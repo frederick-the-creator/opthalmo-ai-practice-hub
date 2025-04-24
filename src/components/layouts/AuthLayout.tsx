@@ -1,12 +1,27 @@
 
-import React from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
+import { useToast } from "@/hooks/use-toast";
 
 const AuthLayout: React.FC = () => {
-  // This is just a mock for now - will be replaced with actual auth check
-  const isAuthenticated = false;
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Check if user is authenticated
+  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+  useEffect(() => {
+    // If user is not authenticated, show a toast message
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access this page",
+        variant: "destructive",
+      });
+    }
+  }, [isAuthenticated, toast]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
