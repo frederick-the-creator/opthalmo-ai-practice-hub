@@ -11,7 +11,8 @@ import {
   BarChart3, 
   Clock, 
   CheckCircle,
-  AlertTriangle 
+  AlertTriangle,
+  Bell
 } from "lucide-react";
 
 const Dashboard: React.FC = () => {
