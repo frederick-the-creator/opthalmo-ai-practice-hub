@@ -1,29 +1,46 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Check if user is authenticated
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If user is not authenticated, show a toast message
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access this page",
-        variant: "destructive",
-      });
-    }
-  }, [isAuthenticated, toast]);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setIsLoading(false);
+      }
+    );
 
-  if (!isAuthenticated) {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // You might want to add a proper loading component
+  }
+
+  if (!session) {
+    toast({
+      title: "Authentication required",
+      description: "Please log in to access this page",
+      variant: "destructive",
+    });
     return <Navigate to="/login" />;
   }
 

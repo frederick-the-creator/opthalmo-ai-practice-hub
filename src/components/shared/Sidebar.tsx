@@ -1,6 +1,5 @@
-
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Video, 
@@ -10,9 +9,13 @@ import {
   LogOut, 
   Eye
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -21,6 +24,26 @@ const Sidebar: React.FC = () => {
     { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },
     { path: "/community", name: "Community", icon: <Users className="w-5 h-5" /> }
   ];
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
@@ -49,7 +72,10 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
       <div className="p-4 border-t border-gray-200">
-        <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center w-full px-4 py-2 text-gray-700 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="ml-3">Logout</span>
         </button>
