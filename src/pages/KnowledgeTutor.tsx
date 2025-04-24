@@ -120,7 +120,7 @@ const KnowledgeTutor: React.FC = () => {
                     Overview
                   </h3>
                   <p className="mt-2 text-gray-700">
-                    Diabetic Retinopathy (DR) is a microvascular complication of diabetes mellitus that affects the blood vessels in the retina. It's one of the leading causes of preventable blindness in working-age adults in the UK.
+                    Diabetic Retinopathy (DR) is a microvascular complication of diabetes mellitus that affects the blood vessels in the retina. It&apos;s one of the leading causes of preventable blindness in working-age adults in the UK.
                   </p>
                 </div>
                 
@@ -159,8 +159,8 @@ const KnowledgeTutor: React.FC = () => {
                     Management
                   </h3>
                   <ul className="mt-2 space-y-1 text-gray-700">
-                    <li>• Glycaemic control (HbA1c target < 48 mmol/mol / 6.5%)</li>
-                    <li>• Blood pressure control (target < 130/80 mmHg)</li>
+                    <li>• Glycaemic control (HbA1c target &lt; 48 mmol/mol / 6.5%)</li>
+                    <li>• Blood pressure control (target &lt; 130/80 mmHg)</li>
                     <li>• Lipid management</li>
                     <li>• Laser photocoagulation for proliferative DR</li>
                     <li>• Anti-VEGF injections for diabetic macular oedema</li>
