@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -20,40 +20,29 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const { error } = await supabase.auth.signUp({
+    // Mock registration - in real app, this would be an API call
+    setTimeout(() => {
+      // Store user information
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("user", JSON.stringify({
+        firstName,
+        lastName,
         email,
-        password,
-        options: {
-          data: {
-            firstName,
-            lastName,
-            trainingLevel,
-          },
-        },
-      });
-
-      if (error) throw error;
+        trainingLevel
+      }));
 
       toast({
         title: "Account created",
         description: "Your account has been successfully created",
       });
-      
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
+
       setIsLoading(false);
-    }
+      navigate("/dashboard");
+    }, 1000);
   };
 
   const toggleShowPassword = () => {
