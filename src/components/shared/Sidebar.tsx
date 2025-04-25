@@ -1,6 +1,6 @@
 
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Video, 
@@ -13,6 +13,7 @@ import {
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -21,6 +22,12 @@ const Sidebar: React.FC = () => {
     { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },
     { path: "/community", name: "Community", icon: <Users className="w-5 h-5" /> }
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
@@ -49,7 +56,10 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
       <div className="p-4 border-t border-gray-200">
-        <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center w-full px-4 py-2 text-gray-700 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="ml-3">Logout</span>
         </button>
