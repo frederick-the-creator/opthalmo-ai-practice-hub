@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import InterviewPracticeRoom from "./pages/InterviewPracticeRoom";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +37,7 @@ const App = () => (
           <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview-practice" element={<InterviewPractice />} />
+            <Route path="/interview-practice-room" element={<InterviewPracticeRoom />} />
             <Route path="/curriculum" element={<Curriculum />} />
             <Route path="/knowledge-tutor" element={<KnowledgeTutor />} />
             <Route path="/community" element={<Community />} />

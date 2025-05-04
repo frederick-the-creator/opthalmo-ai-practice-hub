@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,9 +15,11 @@ import {
   Copy,
   CheckCircle2
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const InterviewPractice: React.FC = () => {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
   
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://ophthalmoprep.com/invite/ABC123");
@@ -71,6 +72,11 @@ const InterviewPractice: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold mb-2">Interview Practice</h1>
           <p className="text-gray-600">Practice clinical and communication stations</p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <Button className="bg-brand-blue text-white" onClick={() => navigate('/interview-practice-room')}>
+            Start Practice
+          </Button>
         </div>
       </div>
 
