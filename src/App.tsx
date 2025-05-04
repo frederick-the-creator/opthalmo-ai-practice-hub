@@ -37,11 +37,22 @@ const App = () => (
           <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview-practice" element={<InterviewPractice />} />
-            <Route path="/interview-practice-room" element={<InterviewPracticeRoom />} />
             <Route path="/curriculum" element={<Curriculum />} />
             <Route path="/knowledge-tutor" element={<KnowledgeTutor />} />
             <Route path="/community" element={<Community />} />
           </Route>
+
+          {/* Full-screen Protected Route */}
+          <Route
+            path="/interview-practice-room"
+            element={
+              localStorage.getItem("isAuthenticated") === "true" ? (
+                <InterviewPracticeRoom />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
