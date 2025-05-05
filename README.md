@@ -1,3 +1,42 @@
+# Ophthalmo AI Practice Hub Monorepo
+
+This project is organized as a monorepo with the following structure:
+
+```
+/apps
+  /frontend   # React app (moved from root)
+  /backend    # Express backend for Daily.co integration (to be added)
+```
+
+## Getting Started
+
+### Frontend
+
+```
+cd apps/frontend
+npm install
+npm run dev
+```
+
+### Backend (to be implemented)
+
+```
+cd apps/backend
+npm install
+npm run dev
+```
+
+## Monorepo Management
+
+- Each app has its own `package.json` and dependencies.
+- A root `package.json` will be added to manage workspaces and shared scripts.
+
+---
+
+## Project Purpose
+
+This project is for ophthalmology interview practice, including video call functionality via Daily.co.
+
 # Welcome to your Lovable project
 
 ## Project info

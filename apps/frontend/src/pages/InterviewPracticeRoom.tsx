@@ -32,25 +32,6 @@ const InterviewPracticeRoom: React.FC = () => {
                 Interviewer
               </div>
               <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
-                <div className="flex gap-2.5 justify-center items-start w-full h-px text-base font-medium text-center text-black whitespace-nowrap max-md:max-w-full">
-                  <div className="flex gap-4 items-center px-2.5 py-3 rounded-3xl bg-slate-200">
-                    <img
-                      src="https://cdn.builder.io/api/v1/image/assets/ff991af4b24f4f3ca250ac3adcc7a093/d7754cdbba530c425fa631c69de3b0ddec6eb025?placeholderIfAbsent=true"
-                      className="object-contain shrink-0 self-stretch my-auto w-3.5 aspect-[0.78]"
-                    />
-                    <div className="text-base font-medium leading-[24px]">
-                      08:00
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 justify-center items-center w-full max-md:max-w-full relative">
-                  <div className="aspect-square w-full h-full flex items-center justify-center">
-                    <img
-                      src="https://cdn.builder.io/api/v1/image/assets/ff991af4b24f4f3ca250ac3adcc7a093/43795a83b0cc06dbd453ade112affa1e6fd50fa3?placeholderIfAbsent=true"
-                      className="object-contain max-w-full aspect-square w-[100px]"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           </div>
