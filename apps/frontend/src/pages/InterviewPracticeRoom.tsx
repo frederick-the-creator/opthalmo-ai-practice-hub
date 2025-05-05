@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
   const [roomUrl, setRoomUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState<1 | 2 | 3>(1);
 
   const createRoom = async () => {
     setLoading(true);
@@ -28,6 +29,149 @@ const InterviewPracticeRoom: React.FC = () => {
     }
   };
 
+  // --- Version 1: Preparation ---
+  if (version === 1) {
+    return (
+      <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
+        <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate("/dashboard")}
+          >
+            Exit
+          </Button>
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </Button>
+        </div>
+        <div className="max-w-full w-full">
+          <div className="flex gap-5 max-md:flex-col">
+            <div className="flex-1 max-md:ml-0 max-md:w-full">
+              <div className="w-full max-md:mt-10 max-md:max-w-full">
+                <div className="overflow-hidden gap-3.5 self-stretch px-5 w-full text-3xl font-medium leading-none text-white whitespace-nowrap bg-sky-900 rounded-2xl min-h-14 max-md:max-w-full flex items-center justify-center">
+                  Preparation
+                </div>
+                <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
+                  {!roomUrl ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Button onClick={createRoom} disabled={loading} className="mb-4">
+                        {loading ? "Creating Room..." : "Start Video Call"}
+                      </Button>
+                      {error && <div className="text-red-500">{error}</div>}
+                    </div>
+                  ) : (
+                    <iframe
+                      src={roomUrl}
+                      title="Video Call"
+                      allow="camera; microphone; fullscreen; speaker; display-capture"
+                      style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
+              <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
+                <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
+                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md" style={{ backgroundColor: "#0E5473" }}>
+                    <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
+                      Please confirm who will be the candidate
+                    </div>
+                    <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
+                      <div>Frederick Lewis</div>
+                      <div>Rohan Misra</div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
+                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium whitespace-nowrap max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md mt-4" style={{ backgroundColor: "#0E5473" }}>
+                    <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
+                      Please select your case
+                    </div>
+                    <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
+                      <div>Case 1</div>
+                      <div>Case 2</div>
+                      <div>Case 3</div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <div className="flex justify-center mt-8">
+                  <Button onClick={() => setVersion(2)} className="flex items-center gap-2 text-lg px-6 py-3">
+                    <Play className="w-5 h-5 mr-2" /> Start Case
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Version 3: Case End ---
+  if (version === 3) {
+    return (
+      <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
+        <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate("/dashboard")}
+          >
+            Exit
+          </Button>
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </Button>
+        </div>
+        <div className="max-w-full w-full">
+          <div className="flex gap-5 max-md:flex-col">
+            <div className="flex-1 max-md:ml-0 max-md:w-full">
+              <div className="w-full max-md:mt-10 max-md:max-w-full">
+                <div className="overflow-hidden gap-3.5 self-stretch px-5 w-full text-3xl font-medium leading-none text-white whitespace-nowrap bg-sky-900 rounded-2xl min-h-14 max-md:max-w-full flex items-center justify-center">
+                  Case End
+                </div>
+                <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
+                  {roomUrl ? (
+                    <iframe
+                      src={roomUrl}
+                      title="Video Call"
+                      allow="camera; microphone; fullscreen; speaker; display-capture"
+                      style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="text-gray-400 text-lg">Video area (case ended)</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
+              <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full justify-center">
+                <Button className="mb-4 w-64 text-lg self-center" onClick={() => navigate("/dashboard")}>Finish</Button>
+                <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={() => setVersion(1)}>Do Another Case</Button>
+                <Button className="w-64 text-lg self-center" variant="secondary">Transcript Review</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Version 2: Interview (default) ---
   return (
     <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
       <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
@@ -52,20 +196,20 @@ const InterviewPracticeRoom: React.FC = () => {
                 Interviewer
               </div>
               <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
-                {!roomUrl ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Button onClick={createRoom} disabled={loading} className="mb-4">
-                      {loading ? "Creating Room..." : "Start Video Call"}
-                    </Button>
-                    {error && <div className="text-red-500">{error}</div>}
-                  </div>
-                ) : (
+                {roomUrl ? (
                   <iframe
                     src={roomUrl}
                     title="Video Call"
                     allow="camera; microphone; fullscreen; speaker; display-capture"
                     style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
                   />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <Button onClick={createRoom} disabled={loading} className="mb-4">
+                      {loading ? "Creating Room..." : "Start Video Call"}
+                    </Button>
+                    {error && <div className="text-red-500">{error}</div>}
+                  </div>
                 )}
               </div>
             </div>
@@ -226,7 +370,7 @@ const InterviewPracticeRoom: React.FC = () => {
                       <br />
                       sudden change in vision.
                       <br />▪ Offers patient information leaflets.
-                      <br />��� Safety netting advice.
+                      <br /> Safety netting advice.
                       <br />
                       Honesty and transparency
                       <br />▪ Honest about diagnosis.
@@ -246,6 +390,11 @@ const InterviewPracticeRoom: React.FC = () => {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
+                <div className="flex justify-center mt-8">
+                  <Button className="w-64 text-lg" onClick={() => setVersion(3)}>
+                    Proceed
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
