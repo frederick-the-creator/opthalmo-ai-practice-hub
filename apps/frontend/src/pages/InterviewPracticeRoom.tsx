@@ -7,6 +7,26 @@ import { ChevronDown } from "lucide-react";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
+  const [roomUrl, setRoomUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const createRoom = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("http://localhost:4000/api/create-room", {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("Failed to create room");
+      const data = await response.json();
+      setRoomUrl(data.url);
+    } catch (err: any) {
+      setError(err.message || "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
@@ -28,10 +48,25 @@ const InterviewPracticeRoom: React.FC = () => {
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex-1 max-md:ml-0 max-md:w-full">
             <div className="w-full max-md:mt-10 max-md:max-w-full">
-              <div className="overflow-hidden gap-3.5 self-stretch px-5 w-full text-3xl font-medium leading-none text-white whitespace-nowrap bg-sky-900 rounded-2xl min-h-14 max-md:max-w-full">
+              <div className="overflow-hidden gap-3.5 self-stretch px-5 w-full text-3xl font-medium leading-none text-white whitespace-nowrap bg-sky-900 rounded-2xl min-h-14 max-md:max-w-full flex items-center justify-center">
                 Interviewer
               </div>
               <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
+                {!roomUrl ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <Button onClick={createRoom} disabled={loading} className="mb-4">
+                      {loading ? "Creating Room..." : "Start Video Call"}
+                    </Button>
+                    {error && <div className="text-red-500">{error}</div>}
+                  </div>
+                ) : (
+                  <iframe
+                    src={roomUrl}
+                    title="Video Call"
+                    allow="camera; microphone; fullscreen; speaker; display-capture"
+                    style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
+                  />
+                )}
               </div>
             </div>
           </div>
