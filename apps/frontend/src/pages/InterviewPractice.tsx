@@ -16,6 +16,11 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
 
 const InterviewPractice: React.FC = () => {
   const [copied, setCopied] = useState(false);
@@ -27,44 +32,38 @@ const InterviewPractice: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Mock online users
-  const onlineUsers = [
-    { 
-      id: 1, 
-      name: "Sarah T.", 
-      level: "ST2", 
-      lastActive: "Now", 
-      status: "Available" 
+  // Mock upcoming sessions
+  const upcomingSessions = [
+    {
+      id: 1,
+      name: "Sarah T.",
+      avatar: "S",
+      date: "2024-06-20",
+      time: "18:00",
+      type: "Clinical Station"
     },
-    { 
-      id: 2, 
-      name: "Michael B.", 
-      level: "ST1", 
-      lastActive: "2m ago", 
-      status: "Available" 
+    {
+      id: 2,
+      name: "Michael B.",
+      avatar: "M",
+      date: "2024-06-21",
+      time: "19:30",
+      type: "Communication Station"
     },
-    { 
-      id: 3, 
-      name: "Aisha K.", 
-      level: "ST3", 
-      lastActive: "5m ago", 
-      status: "In session" 
-    },
-    { 
-      id: 4, 
-      name: "John D.", 
-      level: "Foundation", 
-      lastActive: "Now", 
-      status: "Available" 
-    },
-    { 
-      id: 5, 
-      name: "Emma W.", 
-      level: "ST1", 
-      lastActive: "1m ago", 
-      status: "Available" 
+    {
+      id: 3,
+      name: "Aisha K.",
+      avatar: "A",
+      date: "2024-06-22",
+      time: "17:00",
+      type: "Random Station"
     },
   ];
+
+  // State for scheduling form
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState("");
+  const [sessionType, setSessionType] = useState("");
 
   return (
     <div>
@@ -98,90 +97,93 @@ const InterviewPractice: React.FC = () => {
             <div className="lg:col-span-2">
               <Card className="overflow-hidden">
                 <CardHeader className="bg-gray-50">
-                  <CardTitle>Available Community Members</CardTitle>
+                  <CardTitle>Practice Sessions</CardTitle>
                   <CardDescription>
-                    Find candidates who are online and ready to practice
+                    Join or view your scheduled interviews
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <ul className="divide-y">
-                    {onlineUsers.map((user) => (
-                      <li key={user.id} className="flex items-center justify-between p-4">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                            {user.name.charAt(0)}
-                          </div>
-                          <div className="ml-3">
-                            <p className="font-medium">{user.name}</p>
-                            <div className="flex text-sm text-gray-500">
-                              <span>{user.level}</span>
-                              <span className="mx-2">•</span>
-                              <span>{user.lastActive}</span>
+                  <Tabs defaultValue="schedule" className="p-0">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="schedule">Available Sessions</TabsTrigger>
+                      <TabsTrigger value="my">My Upcoming Sessions</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="schedule">
+                      <ul className="divide-y">
+                        {upcomingSessions.map((session) => (
+                          <li key={session.id} className="flex items-center justify-between p-4">
+                            <div className="flex items-center">
+                              <Avatar>
+                                <AvatarFallback>{session.avatar}</AvatarFallback>
+                              </Avatar>
+                              <div className="ml-3">
+                                <p className="font-medium">{session.name}</p>
+                                <div className="flex text-sm text-gray-500">
+                                  <span>{session.type}</span>
+                                  <span className="mx-2">•</span>
+                                  <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <Badge 
-                            className={`mr-3 ${
-                              user.status === 'Available' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
-                              'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                            }`}
-                          >
-                            {user.status}
-                          </Badge>
-                          <Button 
-                            size="sm" 
-                            disabled={user.status !== 'Available'}
-                            className={user.status === 'Available' ? 'bg-brand-blue' : 'bg-gray-300'}
-                          >
-                            Invite
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                            <Button size="sm" className="bg-brand-blue">
+                              Accept Invitation
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    </TabsContent>
+                    <TabsContent value="my">
+                      {/* Replace with real data if available */}
+                      <ul className="divide-y">
+                        <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
+                      </ul>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             </div>
             
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Start Practice Session</CardTitle>
+                <CardTitle className="text-lg">Schedule Practice Session</CardTitle>
                 <CardDescription>
-                  Choose a session type to begin
+                  Select a date, time, and session type to schedule a session
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full justify-start" variant="outline">
-                  <Stethoscope className="h-5 w-5 mr-2" />
-                  Clinical Station
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Communication Station
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <UserRound className="h-5 w-5 mr-2" />
-                  Random Station
-                </Button>
-                
-                <div className="border-t pt-4">
-                  <h3 className="font-medium mb-2">What to expect:</h3>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-brand-blue" />
-                      5-minute reading time
-                    </li>
-                    <li className="flex items-center">
-                      <CalendarClock className="h-4 w-4 mr-2 text-brand-blue" />
-                      8-minute station time
-                    </li>
-                    <li className="flex items-center">
-                      <Video className="h-4 w-4 mr-2 text-brand-blue" />
-                      Video call with AI transcription
-                    </li>
-                  </ul>
+                <div className="space-y-2">
+                  <Label>Date</Label>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    fromDate={new Date()}
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Time</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={selectedTime}
+                    onChange={e => setSelectedTime(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Session Type</Label>
+                  <Select value={sessionType} onValueChange={setSessionType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select session type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Clinical Station">Clinical Station</SelectItem>
+                      <SelectItem value="Communication Station">Communication Station</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button className="w-full bg-brand-blue">
+                  Schedule Session
+                </Button>
               </CardContent>
             </Card>
           </div>
