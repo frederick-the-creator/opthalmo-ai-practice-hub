@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -16,24 +16,65 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock authentication - in real app, this would be an API call
-    setTimeout(() => {
-      // For demo purposes, accept any credentials
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({ email, name: "Demo User" }));
-      
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
       toast({
-        title: "Success",
-        description: "You have successfully logged in",
+        title: 'Login failed',
+        description: error.message,
+        variant: 'destructive',
       });
-      
       setIsLoading(false);
-      navigate("/dashboard");
-    }, 1000);
+      return;
+    }
+
+    // After login, check if profile exists
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile, error: profileFetchError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      if (!profile && !profileFetchError) {
+        // No profile exists, check localStorage for pendingProfile
+        const pendingProfile = localStorage.getItem('pendingProfile');
+        if (pendingProfile) {
+          const { firstName, lastName, trainingLevel } = JSON.parse(pendingProfile);
+          const { error: profileInsertError } = await supabase.from('profiles').insert({
+            id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            training_level: trainingLevel,
+          });
+          if (!profileInsertError) {
+            localStorage.removeItem('pendingProfile');
+          } else {
+            toast({
+              title: 'Profile creation failed',
+              description: profileInsertError.message,
+              variant: 'destructive',
+            });
+          }
+        }
+      }
+    }
+
+    toast({
+      title: 'Success',
+      description: 'You have successfully logged in',
+    });
+    setIsLoading(false);
+    navigate('/dashboard');
   };
 
   const toggleShowPassword = () => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -20,29 +20,64 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock registration - in real app, this would be an API call
-    setTimeout(() => {
-      // Store user information
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        trainingLevel
-      }));
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
+    if (error) {
       toast({
-        title: "Account created",
-        description: "Your account has been successfully created",
+        title: 'Registration failed',
+        description: error.message,
+        variant: 'destructive',
       });
-
       setIsLoading(false);
-      navigate("/dashboard");
-    }, 1000);
+      return;
+    }
+
+    // If session exists, insert profile immediately
+    if (data.session && data.user) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        first_name: firstName,
+        last_name: lastName,
+        training_level: trainingLevel,
+      });
+      if (profileError) {
+        toast({
+          title: 'Profile creation failed',
+          description: profileError.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+      toast({
+        title: 'Account created',
+        description: 'Your account has been successfully created',
+      });
+      setIsLoading(false);
+      navigate('/dashboard');
+      return;
+    }
+
+    // If no session, store profile info in localStorage for later
+    localStorage.setItem('pendingProfile', JSON.stringify({
+      email,
+      firstName,
+      lastName,
+      trainingLevel,
+    }));
+    toast({
+      title: 'Check your email',
+      description: 'Please confirm your email to complete registration.',
+    });
+    setIsLoading(false);
+    navigate('/login');
   };
 
   const toggleShowPassword = () => {

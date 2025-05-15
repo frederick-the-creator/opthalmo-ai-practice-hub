@@ -1,16 +1,29 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import Footer from "../shared/Footer";
+import { supabase } from '@/integrations/supabase/client';
 
 const GuestLayout: React.FC = () => {
-  // Check if user is authenticated
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // If authenticated, redirect to dashboard
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (loading) return null; // or a spinner
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

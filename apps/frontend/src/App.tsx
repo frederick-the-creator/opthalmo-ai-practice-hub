@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
@@ -19,6 +21,25 @@ import InterviewPracticeRoom from "./pages/InterviewPracticeRoom";
 
 const queryClient = new QueryClient();
 
+function ProtectedInterviewPracticeRoom() {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+  if (loading) return null; // or a spinner
+  return isAuthenticated ? <InterviewPracticeRoom /> : <Navigate to="/login" replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -28,7 +49,7 @@ const App = () => (
         <Routes>
           {/* Guest Routes */}
           <Route element={<GuestLayout />}>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
@@ -45,13 +66,7 @@ const App = () => (
           {/* Full-screen Protected Route */}
           <Route
             path="/interview-practice-room"
-            element={
-              localStorage.getItem("isAuthenticated") === "true" ? (
-                <InterviewPracticeRoom />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
+            element={<ProtectedInterviewPracticeRoom />}
           />
 
           {/* 404 Route */}
