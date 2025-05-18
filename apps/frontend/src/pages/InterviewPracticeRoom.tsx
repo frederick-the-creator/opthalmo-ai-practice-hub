@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, Play } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -11,15 +12,102 @@ const InterviewPracticeRoom: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState<1 | 2 | 3>(1);
 
+  // New state for session and cases
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [hostName, setHostName] = useState<string>("");
+  const [guestName, setGuestName] = useState<string>("");
+  const [cases, setCases] = useState<{ id: string; name: string }[]>([]);
+
+  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
+  const [selectedCase, setSelectedCase] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+
+  const [hostId, setHostId] = useState<string | null>(null);
+  const [guestId, setGuestId] = useState<string | null>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const url = params.get('roomUrl');
+    const session_id = params.get('sessionId');
     if (url) {
       setRoomUrl(url);
     } else {
       setError('No meeting room URL provided.');
     }
+    if (session_id) {
+      setSessionId(session_id);
+    }
   }, []);
+
+  // Fetch session info and cases
+  useEffect(() => {
+    const fetchSessionAndCases = async () => {
+      if (!sessionId) return;
+      // Fetch session with host and guest IDs
+      const { data: session, error: sessionError } = await supabase
+        .from('practice_sessions')
+        .select('host_id, guest_id')
+        .eq('id', sessionId)
+        .single();
+      if (sessionError || !session) return;
+      setHostId(session.host_id);
+      setGuestId(session.guest_id);
+      // Fetch host profile
+      let hostNameStr = "";
+      let guestNameStr = "";
+      if (session.host_id) {
+        const { data: hostProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', session.host_id)
+          .single();
+        if (hostProfile) hostNameStr = `${hostProfile.first_name} ${hostProfile.last_name}`.trim();
+      }
+      if (session.guest_id) {
+        const { data: guestProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', session.guest_id)
+          .single();
+        if (guestProfile) guestNameStr = `${guestProfile.first_name} ${guestProfile.last_name}`.trim();
+      }
+      setHostName(hostNameStr || "Host");
+      setGuestName(guestNameStr || "Guest");
+      // Fetch cases
+      const { data: casesData } = await supabase
+        .from('cases')
+        .select('id, name');
+      setCases(casesData || []);
+    };
+    fetchSessionAndCases();
+  }, [sessionId]);
+
+  // Handler for Start Case
+  const handleStartCase = async () => {
+    if (!sessionId || !selectedCandidate || !selectedCase) return;
+    setUpdating(true);
+    try {
+      const response = await fetch("http://localhost:4000/api/update-session-meta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          candidate_id: selectedCandidate,
+          case_id: selectedCase,
+        }),
+      });
+      if (!response.ok) {
+        setError("Failed to update session with candidate and case.");
+        setUpdating(false);
+        return;
+      }
+      setVersion(2); // Proceed to interview phase
+    } catch (err) {
+      setError("Failed to update session with candidate and case.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   // --- Version 1: Preparation ---
   if (version === 1) {
@@ -77,8 +165,26 @@ const InterviewPracticeRoom: React.FC = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
-                      <div>Frederick Lewis</div>
-                      <div>Rohan Misra</div>
+                      <label>
+                        <input
+                          type="radio"
+                          name="candidate"
+                          value={hostId || ''}
+                          checked={selectedCandidate === hostId}
+                          onChange={() => setSelectedCandidate(hostId)}
+                        />
+                        {hostName}
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="candidate"
+                          value={guestId || ''}
+                          checked={selectedCandidate === guestId}
+                          onChange={() => setSelectedCandidate(guestId)}
+                        />
+                        {guestName}
+                      </label>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -91,15 +197,28 @@ const InterviewPracticeRoom: React.FC = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
-                      <div>Case 1</div>
-                      <div>Case 2</div>
-                      <div>Case 3</div>
+                      {cases.map(c => (
+                        <label key={c.id} style={{ display: 'block', marginBottom: 4 }}>
+                          <input
+                            type="radio"
+                            name="case"
+                            value={c.id}
+                            checked={selectedCase === c.id}
+                            onChange={() => setSelectedCase(c.id)}
+                          />
+                          {c.name}
+                        </label>
+                      ))}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
                 <div className="flex justify-center mt-8">
-                  <Button onClick={() => setVersion(2)} className="flex items-center gap-2 text-lg px-6 py-3">
-                    <Play className="w-5 h-5 mr-2" /> Start Case
+                  <Button
+                    className="flex items-center gap-2 text-lg px-6 py-3"
+                    onClick={handleStartCase}
+                    disabled={!selectedCandidate || !selectedCase || updating}
+                  >
+                    <Play className="w-5 h-5 mr-2" /> {updating ? "Starting..." : "Start Case"}
                   </Button>
                 </div>
               </div>

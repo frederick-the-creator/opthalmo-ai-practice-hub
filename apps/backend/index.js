@@ -78,6 +78,29 @@ app.post('/api/create-session', async (req, res) => {
   }
 });
 
+// Update session meta endpoint: updates case_id and candidate_id for a session
+app.post('/api/update-session-meta', async (req, res) => {
+  const { session_id, case_id, candidate_id } = req.body;
+  if (!session_id || !case_id || !candidate_id) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    const { data, error } = await supabase
+      .from('practice_sessions')
+      .update({ case_id, candidate_id })
+      .eq('id', session_id)
+      .select();
+    if (error) {
+      console.error('Supabase update error:', error);
+      return res.status(500).json({ error: 'Failed to update session' });
+    }
+    res.json({ session: data[0] });
+  } catch (error) {
+    console.error('Error updating session:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to update session' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 }); 

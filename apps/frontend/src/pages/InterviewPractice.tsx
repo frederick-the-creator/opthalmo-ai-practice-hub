@@ -331,7 +331,7 @@ const InterviewPractice: React.FC = () => {
                                 {session.room_url ? (
                                   <Button
                                     className="bg-brand-blue"
-                                    onClick={() => navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}`)}
+                                    onClick={() => navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}&sessionId=${session.id}`)}
                                   >
                                     Join
                                   </Button>

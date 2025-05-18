@@ -9,8 +9,34 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cases: {
+        Row: {
+          actor_brief: string
+          candidate_brief: string
+          id: string
+          markscheme: string
+          name: string
+        }
+        Insert: {
+          actor_brief: string
+          candidate_brief: string
+          id?: string
+          markscheme: string
+          name: string
+        }
+        Update: {
+          actor_brief?: string
+          candidate_brief?: string
+          id?: string
+          markscheme?: string
+          name?: string
+        }
+        Relationships: []
+      }
       practice_sessions: {
         Row: {
+          candidate_id: string | null
+          case_id: string | null
           created_at: string | null
           date: string
           guest_id: string | null
@@ -21,6 +47,8 @@ export type Database = {
           type: string
         }
         Insert: {
+          candidate_id?: string | null
+          case_id?: string | null
           created_at?: string | null
           date: string
           guest_id?: string | null
@@ -31,6 +59,8 @@ export type Database = {
           type: string
         }
         Update: {
+          candidate_id?: string | null
+          case_id?: string | null
           created_at?: string | null
           date?: string
           guest_id?: string | null
@@ -41,6 +71,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "practice_sessions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "practice_sessions_guest_id_fkey"
             columns: ["guest_id"]
