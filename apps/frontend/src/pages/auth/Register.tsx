@@ -10,11 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
 const Register: React.FC = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [trainingLevel, setTrainingLevel] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,6 +21,15 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure your passwords match.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -39,39 +46,6 @@ const Register: React.FC = () => {
       return;
     }
 
-    // If session exists, insert profile immediately
-    if (data.session && data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        first_name: firstName,
-        last_name: lastName,
-        training_level: trainingLevel,
-      });
-      if (profileError) {
-        toast({
-          title: 'Profile creation failed',
-          description: profileError.message,
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-      toast({
-        title: 'Account created',
-        description: 'Your account has been successfully created',
-      });
-      setIsLoading(false);
-      navigate('/dashboard');
-      return;
-    }
-
-    // If no session, store profile info in localStorage for later
-    localStorage.setItem('pendingProfile', JSON.stringify({
-      email,
-      firstName,
-      lastName,
-      trainingLevel,
-    }));
     toast({
       title: 'Check your email',
       description: 'Please confirm your email to complete registration.',
@@ -97,28 +71,6 @@ const Register: React.FC = () => {
         
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input 
-                  id="firstName" 
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required 
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input 
-                  id="lastName" 
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required 
-                />
-              </div>
-            </div>
-            
             <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
               <Input 
@@ -154,23 +106,15 @@ const Register: React.FC = () => {
                 </button>
               </div>
             </div>
-            
             <div className="space-y-1">
-              <Label htmlFor="trainingLevel">Training Level</Label>
-              <Select onValueChange={setTrainingLevel} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your training level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="medical-student">Medical Student</SelectItem>
-                  <SelectItem value="foundation">Foundation Doctor</SelectItem>
-                  <SelectItem value="st1-applicant">ST1 Applicant</SelectItem>
-                  <SelectItem value="st1">ST1</SelectItem>
-                  <SelectItem value="st2">ST2</SelectItem>
-                  <SelectItem value="st3">ST3</SelectItem>
-                  <SelectItem value="st4-and-above">ST4 and above</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
             
             <Button 

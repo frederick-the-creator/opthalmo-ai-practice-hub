@@ -18,6 +18,7 @@ import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import InterviewPracticeRoom from "./pages/InterviewPracticeRoom";
+import CompleteProfile from "./pages/auth/CompleteProfile";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/curriculum" element={<Curriculum />} />
             <Route path="/knowledge-tutor" element={<KnowledgeTutor />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
           </Route>
 
           {/* Full-screen Protected Route */}

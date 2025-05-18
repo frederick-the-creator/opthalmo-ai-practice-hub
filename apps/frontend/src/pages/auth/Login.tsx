@@ -42,30 +42,20 @@ const Login: React.FC = () => {
     if (user) {
       const { data: profile, error: profileFetchError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('id', user.id)
+        .select('user_id')
+        .eq('user_id', user.id)
         .single();
-      if (!profile && !profileFetchError) {
-        // No profile exists, check localStorage for pendingProfile
-        const pendingProfile = localStorage.getItem('pendingProfile');
-        if (pendingProfile) {
-          const { firstName, lastName, trainingLevel } = JSON.parse(pendingProfile);
-          const { error: profileInsertError } = await supabase.from('profiles').insert({
-            id: user.id,
-            first_name: firstName,
-            last_name: lastName,
-            training_level: trainingLevel,
-          });
-          if (!profileInsertError) {
-            localStorage.removeItem('pendingProfile');
-          } else {
-            toast({
-              title: 'Profile creation failed',
-              description: profileInsertError.message,
-              variant: 'destructive',
-            });
-          }
-        }
+      console.log('[Login] User:', user);
+      console.log('[Login] Profile:', profile);
+      console.log('[Login] ProfileFetchError:', profileFetchError);
+      if (!profile && (!profileFetchError || profileFetchError.code === "PGRST116")) {
+        console.log('[Login] Redirecting to /complete-profile');
+        // No profile exists, redirect to profile completion page
+        navigate('/complete-profile');
+        setIsLoading(false);
+        return;
+      } else {
+        console.log('[Login] Profile exists or error is not PGRST116, navigating to dashboard');
       }
     }
 

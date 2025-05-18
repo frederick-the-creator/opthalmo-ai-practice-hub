@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,49 +21,174 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+
+// Types for session and profile
+interface Session {
+  id: string;
+  host_id: string;
+  guest_id?: string | null;
+  date: string;
+  time: string;
+  type: string;
+  created_at: string;
+  profiles?: {
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    avatar: string | null;
+  } | null | Array<{
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    avatar: string | null;
+  }>;
+}
 
 const InterviewPractice: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
+  
+  // State for sessions
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State for scheduling form
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState("");
+  const [sessionType, setSessionType] = useState("");
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+
+  // State for current user
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Fetch current user and sessions from Supabase
+  useEffect(() => {
+    const fetchUserAndSessions = async () => {
+      setLoading(true);
+      setError(null);
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        setError("You must be logged in to view sessions.");
+        setLoading(false);
+        return;
+      }
+      setCurrentUserId(userData.user.id);
+      // Fetch sessions
+      const { data, error } = await supabase
+        .from('practice_sessions')
+        .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+      if (error) {
+        setError("Failed to load sessions");
+        setLoading(false);
+        return;
+      }
+      // Filter out sessions that are more than 1 hour past start time
+      const now = new Date();
+      const filtered = (data as Session[]).filter((session) => {
+        const sessionStart = new Date(`${session.date}T${session.time}`);
+        return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
+      });
+      setSessions(filtered);
+      setLoading(false);
+    };
+    fetchUserAndSessions();
+  }, []);
+
+  // Accept Invitation handler
+  const handleAcceptInvitation = async (sessionId: string) => {
+    if (!currentUserId) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from('practice_sessions')
+      .update({ guest_id: currentUserId })
+      .eq('id', sessionId);
+    if (error) {
+      setError("Failed to accept invitation");
+      setLoading(false);
+      return;
+    }
+    // Refetch sessions
+    const { data, error: fetchError } = await supabase
+      .from('practice_sessions')
+      .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
+    if (!fetchError && data) {
+      const now = new Date();
+      const filtered = (data as Session[]).filter((session) => {
+        const sessionStart = new Date(`${session.date}T${session.time}`);
+        return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
+      });
+      setSessions(filtered);
+    }
+    setLoading(false);
+  };
+
+  // Handle scheduling a new session
+  const handleScheduleSession = async () => {
+    setScheduleError(null);
+    if (!selectedDate || !selectedTime || !sessionType) {
+      setScheduleError("Please select date, time, and session type.");
+      return;
+    }
+    setScheduling(true);
+    // Get current user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      setScheduleError("You must be logged in to schedule a session.");
+      setScheduling(false);
+      return;
+    }
+    const host_id = userData.user.id;
+    // Insert session
+    const { error: insertError } = await supabase.from('practice_sessions').insert([
+      {
+        host_id,
+        date: selectedDate.toISOString().split('T')[0],
+        time: selectedTime,
+        type: sessionType,
+      }
+    ]);
+    if (insertError) {
+      setScheduleError("Failed to schedule session.");
+      setScheduling(false);
+      return;
+    }
+    // Refetch sessions
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setSessionType("");
+    setScheduling(false);
+    // Refetch sessions
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('practice_sessions')
+      .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
+    console.log('Fetched sessions (after insert):', data);
+    if (!error && data) {
+      const now = new Date();
+      const filtered = (data as Session[]).filter((session) => {
+        const sessionStart = new Date(`${session.date}T${session.time}`);
+        return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
+      });
+      setSessions(filtered);
+    }
+    setLoading(false);
+  };
   
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://ophthalmoprep.com/invite/ABC123");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Mock upcoming sessions
-  const upcomingSessions = [
-    {
-      id: 1,
-      name: "Sarah T.",
-      avatar: "S",
-      date: "2024-06-20",
-      time: "18:00",
-      type: "Clinical Station"
-    },
-    {
-      id: 2,
-      name: "Michael B.",
-      avatar: "M",
-      date: "2024-06-21",
-      time: "19:30",
-      type: "Communication Station"
-    },
-    {
-      id: 3,
-      name: "Aisha K.",
-      avatar: "A",
-      date: "2024-06-22",
-      time: "17:00",
-      type: "Random Station"
-    },
-  ];
-
-  // State for scheduling form
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedTime, setSelectedTime] = useState("");
-  const [sessionType, setSessionType] = useState("");
 
   return (
     <div>
@@ -110,32 +235,84 @@ const InterviewPractice: React.FC = () => {
                     </TabsList>
                     <TabsContent value="schedule">
                       <ul className="divide-y">
-                        {upcomingSessions.map((session) => (
-                          <li key={session.id} className="flex items-center justify-between p-4">
-                            <div className="flex items-center">
-                              <Avatar>
-                                <AvatarFallback>{session.avatar}</AvatarFallback>
-                              </Avatar>
-                              <div className="ml-3">
-                                <p className="font-medium">{session.name}</p>
-                                <div className="flex text-sm text-gray-500">
-                                  <span>{session.type}</span>
-                                  <span className="mx-2">•</span>
-                                  <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                        {loading ? (
+                          <li className="p-4 text-gray-500 text-center">Loading...</li>
+                        ) : error ? (
+                          <li className="p-4 text-red-500 text-center">{error}</li>
+                        ) : sessions.length === 0 ? (
+                          <li className="p-4 text-gray-500 text-center">No available sessions.</li>
+                        ) : (
+                          sessions.map((session) => {
+                            let profile = session.profiles;
+                            if (Array.isArray(profile)) profile = profile[0];
+                            const name = profile
+                              ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown'
+                              : 'Unknown';
+                            const avatar = profile?.avatar || (name ? name[0] : 'U');
+                            // Show guest info if present
+                            const isGuestPresent = !!session.guest_id;
+                            const isUserGuestOrHost = currentUserId && (session.host_id === currentUserId || session.guest_id === currentUserId);
+                            return (
+                              <li key={session.id} className="flex items-center justify-between p-4">
+                                <div className="flex items-center">
+                                  <Avatar>
+                                    <AvatarFallback>{avatar}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="ml-3">
+                                    <p className="font-medium">{name}</p>
+                                    <div className="flex text-sm text-gray-500">
+                                      <span>{session.type}</span>
+                                      <span className="mx-2">•</span>
+                                      <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                      {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                            <Button size="sm" className="bg-brand-blue">
-                              Accept Invitation
-                            </Button>
-                          </li>
-                        ))}
+                                <Button size="sm" className="bg-brand-blue" onClick={() => handleAcceptInvitation(session.id)} disabled={isGuestPresent || isUserGuestOrHost}>
+                                  {isGuestPresent ? "Accepted" : "Accept Invitation"}
+                                </Button>
+                              </li>
+                            );
+                          })
+                        )}
                       </ul>
                     </TabsContent>
                     <TabsContent value="my">
-                      {/* Replace with real data if available */}
                       <ul className="divide-y">
-                        <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
+                        {loading ? (
+                          <li className="p-4 text-gray-500 text-center">Loading...</li>
+                        ) : error ? (
+                          <li className="p-4 text-red-500 text-center">{error}</li>
+                        ) : sessions.filter(session => currentUserId && (session.host_id === currentUserId || session.guest_id === currentUserId)).length === 0 ? (
+                          <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
+                        ) : (
+                          sessions.filter(session => currentUserId && (session.host_id === currentUserId || session.guest_id === currentUserId)).map((session) => {
+                            let profile = session.profiles;
+                            if (Array.isArray(profile)) profile = profile[0];
+                            const name = profile
+                              ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown'
+                              : 'Unknown';
+                            const avatar = profile?.avatar || (name ? name[0] : 'U');
+                            return (
+                              <li key={session.id} className="flex items-center justify-between p-4">
+                                <div className="flex items-center">
+                                  <Avatar>
+                                    <AvatarFallback>{avatar}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="ml-3">
+                                    <p className="font-medium">{name}</p>
+                                    <div className="flex text-sm text-gray-500">
+                                      <span>{session.type}</span>
+                                      <span className="mx-2">•</span>
+                                      <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Badge className="bg-green-100 text-green-800">Upcoming</Badge>
+                              </li>
+                            );
+                          })
+                        )}
                       </ul>
                     </TabsContent>
                   </Tabs>
@@ -181,8 +358,9 @@ const InterviewPractice: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="w-full bg-brand-blue">
-                  Schedule Session
+                {scheduleError && <div className="text-red-500 text-sm">{scheduleError}</div>}
+                <Button className="w-full bg-brand-blue" onClick={handleScheduleSession} disabled={scheduling}>
+                  {scheduling ? "Scheduling..." : "Schedule Session"}
                 </Button>
               </CardContent>
             </Card>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, Navigate, useNavigate } from "react-router-dom";
+import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
@@ -7,12 +7,20 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
 
   useEffect(() => {
+    // Skip profile check if already on /complete-profile
+    if (location.pathname === "/complete-profile") {
+      setProfileChecked(true);
+      setLoading(false);
+      return;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setLoading(false);
@@ -22,6 +30,25 @@ const AuthLayout: React.FC = () => {
           description: 'Please log in to access this page',
           variant: 'destructive',
         });
+      }
+      if (session) {
+        (async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('user_id')
+              .eq('user_id', user.id)
+              .single();
+            if (!profile && (!error || error.code === "PGRST116")) {
+              navigate('/complete-profile');
+              return;
+            }
+          }
+          setProfileChecked(true);
+        })();
+      } else {
+        setProfileChecked(true);
       }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -33,13 +60,32 @@ const AuthLayout: React.FC = () => {
           variant: 'destructive',
         });
       }
+      if (session) {
+        (async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('user_id')
+              .eq('user_id', user.id)
+              .single();
+            if (!profile && (!error || error.code === "PGRST116")) {
+              navigate('/complete-profile');
+              return;
+            }
+          }
+          setProfileChecked(true);
+        })();
+      } else {
+        setProfileChecked(true);
+      }
     });
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, navigate, location.pathname]);
 
-  if (loading) return null; // or a spinner
+  if (loading || !profileChecked) return null; // or a spinner
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
