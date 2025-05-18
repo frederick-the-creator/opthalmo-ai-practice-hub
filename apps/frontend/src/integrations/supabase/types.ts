@@ -13,41 +13,44 @@ export type Database = {
         Row: {
           created_at: string | null
           date: string
+          guest_id: string | null
+          host_id: string
           id: string
+          room_url: string | null
           time: string
           type: string
-          host_id: string
-          guest_id: string | null
         }
         Insert: {
           created_at?: string | null
           date: string
+          guest_id?: string | null
+          host_id: string
           id?: string
+          room_url?: string | null
           time: string
           type: string
-          host_id: string
-          guest_id?: string | null
         }
         Update: {
           created_at?: string | null
           date?: string
+          guest_id?: string | null
+          host_id?: string
           id?: string
+          room_url?: string | null
           time?: string
           type?: string
-          host_id?: string
-          guest_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "practice_sessions_host_id_fkey"
-            columns: ["host_id"]
+            foreignKeyName: "practice_sessions_guest_id_fkey"
+            columns: ["guest_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
           {
-            foreignKeyName: "practice_sessions_guest_id_fkey"
-            columns: ["guest_id"]
+            foreignKeyName: "practice_sessions_host_id_fkey"
+            columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]

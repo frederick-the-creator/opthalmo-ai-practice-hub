@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -8,26 +8,18 @@ import { ChevronDown, Play } from "lucide-react";
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
   const [roomUrl, setRoomUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState<1 | 2 | 3>(1);
 
-  const createRoom = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("http://localhost:4000/api/create-room", {
-        method: "POST",
-      });
-      if (!response.ok) throw new Error("Failed to create room");
-      const data = await response.json();
-      setRoomUrl(data.url);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('roomUrl');
+    if (url) {
+      setRoomUrl(url);
+    } else {
+      setError('No meeting room URL provided.');
     }
-  };
+  }, []);
 
   // --- Version 1: Preparation ---
   if (version === 1) {
@@ -55,20 +47,21 @@ const InterviewPracticeRoom: React.FC = () => {
                   Preparation
                 </div>
                 <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
-                  {!roomUrl ? (
+                  {error ? (
                     <div className="flex flex-col items-center justify-center h-full">
-                      <Button onClick={createRoom} disabled={loading} className="mb-4">
-                        {loading ? "Creating Room..." : "Start Video Call"}
-                      </Button>
-                      {error && <div className="text-red-500">{error}</div>}
+                      <div className="text-red-500">{error}</div>
                     </div>
-                  ) : (
+                  ) : roomUrl ? (
                     <iframe
                       src={roomUrl}
                       title="Video Call"
                       allow="camera; microphone; fullscreen; speaker; display-capture"
                       style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
                     />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="text-gray-400 text-lg">Loading meeting room...</div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -205,10 +198,7 @@ const InterviewPracticeRoom: React.FC = () => {
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full">
-                    <Button onClick={createRoom} disabled={loading} className="mb-4">
-                      {loading ? "Creating Room..." : "Start Video Call"}
-                    </Button>
-                    {error && <div className="text-red-500">{error}</div>}
+                    <div className="text-gray-400 text-lg">Loading meeting room...</div>
                   </div>
                 )}
               </div>

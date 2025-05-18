@@ -32,6 +32,7 @@ interface Session {
   time: string;
   type: string;
   created_at: string;
+  room_url?: string | null;
   profiles?: {
     user_id: string;
     first_name: string | null;
@@ -80,7 +81,7 @@ const InterviewPractice: React.FC = () => {
       // Fetch sessions
       const { data, error } = await supabase
         .from('practice_sessions')
-        .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+        .select('id, host_id, guest_id, date, time, type, created_at, room_url, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
         .order('date', { ascending: true })
         .order('time', { ascending: true });
       if (error) {
@@ -159,42 +160,48 @@ const InterviewPractice: React.FC = () => {
       return;
     }
     const host_id = userData.user.id;
-    // Insert session
-    const { error: insertError } = await supabase.from('practice_sessions').insert([
-      {
-        host_id,
-        date: selectedDate.toISOString().split('T')[0],
-        time: selectedTime,
-        type: sessionType,
+    try {
+      // Call backend to create session (creates Daily room and DB row)
+      const response = await fetch("http://localhost:4000/api/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          host_id,
+          date: selectedDate.toISOString().split('T')[0],
+          time: selectedTime,
+          type: sessionType,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        setScheduleError(errorData.error || "Failed to schedule session.");
+        setScheduling(false);
+        return;
       }
-    ]);
-    if (insertError) {
+      // Success: refetch sessions
+      setSelectedDate(undefined);
+      setSelectedTime("");
+      setSessionType("");
+      setScheduling(false);
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('practice_sessions')
+        .select('id, host_id, guest_id, date, time, type, created_at, room_url, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+      if (!error && data) {
+        const now = new Date();
+        const filtered = (data as Session[]).filter((session) => {
+          const sessionStart = new Date(`${session.date}T${session.time}`);
+          return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
+        });
+        setSessions(filtered);
+      }
+      setLoading(false);
+    } catch (err: any) {
       setScheduleError("Failed to schedule session.");
       setScheduling(false);
-      return;
     }
-    // Refetch sessions
-    setSelectedDate(undefined);
-    setSelectedTime("");
-    setSessionType("");
-    setScheduling(false);
-    // Refetch sessions
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('practice_sessions')
-      .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
-      .order('date', { ascending: true })
-      .order('time', { ascending: true });
-    console.log('Fetched sessions (after insert):', data);
-    if (!error && data) {
-      const now = new Date();
-      const filtered = (data as Session[]).filter((session) => {
-        const sessionStart = new Date(`${session.date}T${session.time}`);
-        return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
-      });
-      setSessions(filtered);
-    }
-    setLoading(false);
   };
   
   const handleCopyLink = () => {
@@ -321,7 +328,16 @@ const InterviewPractice: React.FC = () => {
                                     </div>
                                   </div>
                                 </div>
-                                <Badge className="bg-green-100 text-green-800">Upcoming</Badge>
+                                {session.room_url ? (
+                                  <Button
+                                    className="bg-brand-blue"
+                                    onClick={() => navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}`)}
+                                  >
+                                    Join
+                                  </Button>
+                                ) : (
+                                  <Badge className="bg-green-100 text-green-800">Upcoming</Badge>
+                                )}
                               </li>
                             );
                           })
