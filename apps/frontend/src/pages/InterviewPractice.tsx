@@ -102,14 +102,21 @@ const InterviewPractice: React.FC = () => {
 
   // Accept Invitation handler
   const handleAcceptInvitation = async (sessionId: string) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      console.log('No current user ID, cannot accept invitation.');
+      setError("You must be logged in to accept an invitation.");
+      return;
+    }
     setLoading(true);
+    setError(null);
+    console.log('Attempting to accept invitation for session:', sessionId, 'as user:', currentUserId);
     const { error } = await supabase
       .from('practice_sessions')
       .update({ guest_id: currentUserId })
       .eq('id', sessionId);
     if (error) {
-      setError("Failed to accept invitation");
+      console.error('Supabase update error:', error);
+      setError("Failed to accept invitation: " + error.message);
       setLoading(false);
       return;
     }
@@ -119,7 +126,13 @@ const InterviewPractice: React.FC = () => {
       .select('id, host_id, guest_id, date, time, type, created_at, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
       .order('date', { ascending: true })
       .order('time', { ascending: true });
-    if (!fetchError && data) {
+    if (fetchError) {
+      console.error('Supabase fetch error after update:', fetchError);
+      setError("Failed to reload sessions: " + fetchError.message);
+      setLoading(false);
+      return;
+    }
+    if (data) {
       const now = new Date();
       const filtered = (data as Session[]).filter((session) => {
         const sessionStart = new Date(`${session.date}T${session.time}`);
