@@ -22,6 +22,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { createSession } from "@/lib/api";
 
 // Types for session and profile
 interface Session {
@@ -162,19 +163,14 @@ const InterviewPractice: React.FC = () => {
     const host_id = userData.user.id;
     try {
       // Call backend to create session (creates Daily room and DB row)
-      const response = await fetch("http://localhost:4000/api/create-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          host_id,
-          date: selectedDate.toISOString().split('T')[0],
-          time: selectedTime,
-          type: sessionType,
-        }),
+      const response = await createSession({
+        host_id,
+        date: selectedDate.toISOString().split('T')[0],
+        time: selectedTime,
+        type: sessionType,
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        setScheduleError(errorData.error || "Failed to schedule session.");
+      if (response.error) {
+        setScheduleError(response.error || "Failed to schedule session.");
         setScheduling(false);
         return;
       }

@@ -5,6 +5,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchSessionAndCases } from "@/integrations/supabase/utils";
+import { updateSessionMeta } from "@/lib/api";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +26,13 @@ const InterviewPracticeRoom: React.FC = () => {
 
   const [hostId, setHostId] = useState<string | null>(null);
   const [guestId, setGuestId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<'host' | 'guest' | null>(null);
+
+  // State for selected case details
+  const [caseDetails, setCaseDetails] = useState<{ actor_brief: string; candidate_brief: string; markscheme: string } | null>(null);
+  const [caseDetailsLoading, setCaseDetailsLoading] = useState(false);
+  const [candidateId, setCandidateId] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -39,64 +48,88 @@ const InterviewPracticeRoom: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Fetch current user ID
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[DEBUG] Current user from supabase:', user);
+      setCurrentUserId(user?.id || null);
+    };
+    fetchCurrentUser();
+  }, []);
+
   // Fetch session info and cases
   useEffect(() => {
-    const fetchSessionAndCases = async () => {
-      if (!sessionId) return;
-      // Fetch session with host and guest IDs
-      const { data: session, error: sessionError } = await supabase
-        .from('practice_sessions')
-        .select('host_id, guest_id')
-        .eq('id', sessionId)
-        .single();
-      if (sessionError || !session) return;
-      setHostId(session.host_id);
-      setGuestId(session.guest_id);
-      // Fetch host profile
-      let hostNameStr = "";
-      let guestNameStr = "";
-      if (session.host_id) {
-        const { data: hostProfile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', session.host_id)
-          .single();
-        if (hostProfile) hostNameStr = `${hostProfile.first_name} ${hostProfile.last_name}`.trim();
-      }
-      if (session.guest_id) {
-        const { data: guestProfile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', session.guest_id)
-          .single();
-        if (guestProfile) guestNameStr = `${guestProfile.first_name} ${guestProfile.last_name}`.trim();
-      }
-      setHostName(hostNameStr || "Host");
-      setGuestName(guestNameStr || "Guest");
-      // Fetch cases
-      const { data: casesData } = await supabase
-        .from('cases')
-        .select('id, name');
-      setCases(casesData || []);
+    const getSessionAndCases = async () => {
+      const result = await fetchSessionAndCases(sessionId);
+      setHostId(result.hostId);
+      setGuestId(result.guestId);
+      setHostName(result.hostName);
+      setGuestName(result.guestName);
+      setCases(result.cases);
+      setCandidateId(result.candidateId || null);
     };
-    fetchSessionAndCases();
+    getSessionAndCases();
   }, [sessionId]);
+
+  // Determine role after hostId/guestId/currentUserId are set
+  useEffect(() => {
+    // Only need currentUserId and hostId to determine host
+    if (currentUserId && hostId) {
+      if (currentUserId === hostId) {
+        setRole('host');
+        console.log('[DEBUG] Role set to host');
+        return;
+      }
+    }
+    // Only need currentUserId and guestId to determine guest
+    if (currentUserId && guestId) {
+      if (currentUserId === guestId) {
+        setRole('guest');
+        console.log('[DEBUG] Role set to guest');
+        return;
+      }
+    }
+    setRole(null);
+    console.log('[DEBUG] Role set to null');
+  }, [currentUserId, hostId, guestId]);
+
+  // Fetch case details when selectedCase changes (for version 2)
+  useEffect(() => {
+    const fetchCaseDetails = async () => {
+      if (!selectedCase) {
+        setCaseDetails(null);
+        return;
+      }
+      setCaseDetailsLoading(true);
+      const { data, error } = await supabase
+        .from('cases')
+        .select('actor_brief, candidate_brief, markscheme')
+        .eq('id', selectedCase)
+        .single();
+      if (error || !data) {
+        setCaseDetails(null);
+      } else {
+        setCaseDetails({ actor_brief: data.actor_brief, candidate_brief: data.candidate_brief, markscheme: data.markscheme });
+      }
+      setCaseDetailsLoading(false);
+    };
+    if (version === 2 && selectedCase) {
+      fetchCaseDetails();
+    }
+  }, [selectedCase, version]);
 
   // Handler for Start Case
   const handleStartCase = async () => {
     if (!sessionId || !selectedCandidate || !selectedCase) return;
     setUpdating(true);
     try {
-      const response = await fetch("http://localhost:4000/api/update-session-meta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          candidate_id: selectedCandidate,
-          case_id: selectedCase,
-        }),
+      const response = await updateSessionMeta({
+        sessionId,
+        candidateId: selectedCandidate,
+        caseId: selectedCase,
       });
-      if (!response.ok) {
+      if (!response.session) {
         setError("Failed to update session with candidate and case.");
         setUpdating(false);
         return;
@@ -111,6 +144,7 @@ const InterviewPracticeRoom: React.FC = () => {
 
   // --- Version 1: Preparation ---
   if (version === 1) {
+    console.log('[DEBUG] Rendering version 1. Role:', role);
     return (
       <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
         <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
@@ -154,75 +188,78 @@ const InterviewPracticeRoom: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
-              <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
-                <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
-                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md" style={{ backgroundColor: "#0E5473" }}>
-                    <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
-                      Please confirm who will be the candidate
-                    </div>
-                    <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
-                      <label>
-                        <input
-                          type="radio"
-                          name="candidate"
-                          value={hostId || ''}
-                          checked={selectedCandidate === hostId}
-                          onChange={() => setSelectedCandidate(hostId)}
-                        />
-                        {hostName}
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name="candidate"
-                          value={guestId || ''}
-                          checked={selectedCandidate === guestId}
-                          onChange={() => setSelectedCandidate(guestId)}
-                        />
-                        {guestName}
-                      </label>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
-                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium whitespace-nowrap max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md mt-4" style={{ backgroundColor: "#0E5473" }}>
-                    <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
-                      Please select your case
-                    </div>
-                    <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
-                      {cases.map(c => (
-                        <label key={c.id} style={{ display: 'block', marginBottom: 4 }}>
+            {/* Only show right panel if user is host */}
+            {role === 'host' && (
+              <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
+                <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
+                  <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
+                    <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md" style={{ backgroundColor: "#0E5473" }}>
+                      <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
+                        Please confirm who will be the candidate
+                      </div>
+                      <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
+                        <label>
                           <input
                             type="radio"
-                            name="case"
-                            value={c.id}
-                            checked={selectedCase === c.id}
-                            onChange={() => setSelectedCase(c.id)}
+                            name="candidate"
+                            value={hostId || ''}
+                            checked={selectedCandidate === hostId}
+                            onChange={() => setSelectedCandidate(hostId)}
                           />
-                          {c.name}
+                          {hostName}
                         </label>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-                <div className="flex justify-center mt-8">
-                  <Button
-                    className="flex items-center gap-2 text-lg px-6 py-3"
-                    onClick={handleStartCase}
-                    disabled={!selectedCandidate || !selectedCase || updating}
-                  >
-                    <Play className="w-5 h-5 mr-2" /> {updating ? "Starting..." : "Start Case"}
-                  </Button>
+                        <label>
+                          <input
+                            type="radio"
+                            name="candidate"
+                            value={guestId || ''}
+                            checked={selectedCandidate === guestId}
+                            onChange={() => setSelectedCandidate(guestId)}
+                          />
+                          {guestName}
+                        </label>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
+                    <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium whitespace-nowrap max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md mt-4" style={{ backgroundColor: "#0E5473" }}>
+                      <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
+                        Please select your case
+                      </div>
+                      <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md bg-gray-100 text-black">
+                        {cases.map(c => (
+                          <label key={c.id} style={{ display: 'block', marginBottom: 4 }}>
+                            <input
+                              type="radio"
+                              name="case"
+                              value={c.id}
+                              checked={selectedCase === c.id}
+                              onChange={() => setSelectedCase(c.id)}
+                            />
+                            {c.name}
+                          </label>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      className="flex items-center gap-2 text-lg px-6 py-3"
+                      onClick={handleStartCase}
+                      disabled={!selectedCandidate || !selectedCase || updating}
+                    >
+                      <Play className="w-5 h-5 mr-2" /> {updating ? "Starting..." : "Start Case"}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -284,6 +321,83 @@ const InterviewPracticeRoom: React.FC = () => {
   }
 
   // --- Version 2: Interview (default) ---
+  if (version === 2 && currentUserId && candidateId && currentUserId === candidateId) {
+    return (
+      <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
+        <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate("/dashboard")}
+          >
+            Exit
+          </Button>
+          <Button
+            className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </Button>
+        </div>
+        <div className="max-w-full w-full">
+          <div className="flex gap-5 max-md:flex-col">
+            <div className="flex-1 max-md:ml-0 max-md:w-full">
+              <div className="w-full max-md:mt-10 max-md:max-w-full">
+                <div className="overflow-hidden gap-3.5 self-stretch px-5 w-full text-3xl font-medium leading-none text-white whitespace-nowrap bg-sky-900 rounded-2xl min-h-14 max-md:max-w-full flex items-center justify-center">
+                  Candidate
+                </div>
+                <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
+                  {roomUrl ? (
+                    <iframe
+                      src={roomUrl}
+                      title="Video Call"
+                      allow="camera; microphone; fullscreen; speaker; display-capture"
+                      style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="text-gray-400 text-lg">Loading meeting room...</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
+              <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
+                <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
+                  <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
+                    Candidate Brief
+                  </div>
+                </div>
+                <div className="flex-1 mt-8 max-w-full text-black w-[462px] overflow-y-auto">
+                  <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
+                    <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md" style={{ backgroundColor: "#0E5473" }}>
+                      <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
+                        Candidate Brief
+                      </div>
+                      <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
+                        {caseDetailsLoading ? (
+                          <span>Loading candidate brief...</span>
+                        ) : caseDetails && caseDetails.candidate_brief ? (
+                          <span>{caseDetails.candidate_brief}</span>
+                        ) : (
+                          <span>No candidate brief available for this case.</span>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Non-candidate view for version 2 (default)
   return (
     <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
       <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
@@ -374,58 +488,18 @@ const InterviewPracticeRoom: React.FC = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
-                      You are Mary Jones, a 54 year old. You were ea6ng your
-                      breakfast when your usual headache came on today, only this
-                      6me it was followed by loss of vision in your right eye. You
-                      presented as that has never happened before. You have been
-                      having headaches for the past few days now, but ini6ally had
-                      abributed it to your migraine which bothers you a few 6mes a
-                      year. With these migraines, you oPen experience visual
-                      changes in the form of zigzag lines. You have never lost
-                      your vision like this before and want to get it checked out
-                      for reassurance, though you are sure it's probably nothing
-                      and just your usual migraine.
-                      <br />
-                      When the candidate explains that this is GCA and not your
-                      usual migraine, become very anxious and flustered. Ask
-                      repeatedly when you will get your eyesight back. Cling onto
-                      any expression of doubt the candidate has about this
-                      condi6on or its prognosis. If the candidate appears unsure
-                      or provides a weak explana6on, demand that you 'hear it
-                      directly' from their consultant and not 'someone who doesn't
-                      even seem sure of what they're saying'. If the candidate
-                      explains clearly and empathe6cally, accept the diagnosis.
-                      <br />5<br />
-                      When the candidate explains the need for steroid tablets,
-                      start to ques/on what the point is in 'these drugs' if your
-                      vision is already gone. You are worried about the side
-                      effects of steroids as your mother had kidney failure
-                      secondary to 'an6-inflammatories' for her period pains and
-                      you do not want that to happen to you. If the candidate does
-                      not explain that they are to protect the other eye, refuse
-                      to take tablets. If the candidate explains the above, ask
-                      further about effects on kidneys and most common side
-                      effects.
-                      <br />
-                      Other informa6on:
-                      <br />▪ No other eye condi6ons.
-                      <br />▪ You have been feeling run down and 6red lately with
-                      a variety of aches and pains in your shoulder, though you
-                      thought it was just part of the menopause.
-                      <br />▪ You experience migraines with aura (visual
-                      scin6lla6ons) four 6mes a year but your visual symptoms oPen
-                      resolve within the hour.
-                      <br />▪ You do not take medica6ons for your migraines as you
-                      are worried about side effects.
-                      <br />▪ You smoke 15/day and do not drink alcohol.
-                      <br />▪ You are a housewife and live with your husband. You
-                      do not drive.
-                      <br />
+                      {caseDetailsLoading ? (
+                        <span>Loading actor brief...</span>
+                      ) : caseDetails && caseDetails.actor_brief ? (
+                        <span>{caseDetails.actor_brief}</span>
+                      ) : (
+                        <span>No actor brief available for this case.</span>
+                      )}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
                 <Collapsible className="overflow-hidden flex-1 py-2.5 pr-2.5 w-full max-w-[462px] max-md:max-w-full" defaultOpen={true}>
-                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium whitespace-nowrap max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md" style={{ backgroundColor: "#0E5473" }}>
+                  <CollapsibleTrigger className="flex gap-2.5 items-center w-full text-base font-medium whitespace-nowrap max-md:max-w-full bg-[#0E5473] text-white px-3 py-2 rounded-md mt-4" style={{ backgroundColor: "#0E5473" }}>
                     <div className="text-base font-medium leading-[24px] flex-1 text-left" style={{ color: "white" }}>
                       MarkScheme
                     </div>
@@ -433,69 +507,13 @@ const InterviewPracticeRoom: React.FC = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
-                      Rapport, listening and introduction
-                      <br />▪ Appropriately introduced with name and grade.
-                      Confirms patient's ID.
-                      <br />▪ Checks understanding of what has happened so far.
-                      <br />▪ Allows the patient to speak uninterrupted.
-                      <br />▪ Actively listens and acknowledges what the patient
-                      is saying.
-                      <br />▪ Responds appropriately to concerns.
-                      <br />
-                      <span className="font-medium">Apology and empathy</span>
-                      <br />▪ Provides a warning shot before breaking bad news
-                      e.g. "I've discussed your case with
-                      <br />
-                      my consultant and I'm afraid I have some bad news.."
-                      <br />▪ Pauses after breaking bad news.
-                      <br />▪ Shows empathy by acknowledging the patient's anxiety
-                      and surprise.
-                      <br />▪ Asks about any concerns / effects this diagnosis may
-                      have on personal life.
-                      <br />
-                      Medical explanation and plan
-                      <br />
-                      Explains GCA is inflammation of critical arteries supplying
-                      nerves at the back of the eye
-                      <br />
-                      responsible for vision, and this results in damage to them.
-                      <br />▪ Explains treatment is in the form of steroid
-                      tablets.
-                      <br />▪ Emphasises this is to protect the other eye.
-                      <br />▪ Reassures kidney side effects are uncommon.
-                      <br />▪ Most common side effects could include: mood
-                      changes, weight gain and
-                      <br />
-                      increased appetite, dysregulated blood sugar levels.
-                      <br />▪ Appropriate follow up:
-                      <br />▪ Refers to rheumatologists / medics and explains more
-                      tests will be conducted
-                      <br />
-                      with them.
-                      <br />▪ Offers follow-up in eye clinic to ease worries and
-                      answer further questions.
-                      <br />▪ Offers referral to eye clinic liaison officers who
-                      can aid with coming to terms with
-                      <br />
-                      sudden change in vision.
-                      <br />▪ Offers patient information leaflets.
-                      <br /> Safety netting advice.
-                      <br />
-                      Honesty and transparency
-                      <br />▪ Honest about diagnosis.
-                      <br />▪ Honest about poor prognosis.
-                      <br />▪ Offers to ask the consultant to speak to the patient
-                      at the end of consultation if the
-                      <br />
-                      patient continues to show disbelief.
-                      <br />
-                      Appropriate pace, non-verbal
-                      <br />▪ Good eye contact (with camera if virtual).
-                      <br />▪ Chunk and check technique (delivering small amounts
-                      of information and checking
-                      <br />
-                      understanding).
-                      <br />
+                      {caseDetailsLoading ? (
+                        <span>Loading markscheme...</span>
+                      ) : caseDetails && caseDetails.markscheme ? (
+                        <span>{caseDetails.markscheme}</span>
+                      ) : (
+                        <span>No markscheme available for this case.</span>
+                      )}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>

@@ -42,8 +42,13 @@ app.post('/api/create-room', async (req, res) => {
 
 // Create session endpoint: creates Daily room, then inserts session in Supabase
 app.post('/api/create-session', async (req, res) => {
+  console.log('--- /api/create-session called ---');
+  console.log('Request body:', req.body);
+  console.log('SUPABASE_URL:', SUPABASE_URL);
+  console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!SUPABASE_SERVICE_ROLE_KEY);
   const { host_id, date, time, type } = req.body;
   if (!host_id || !date || !time || !type) {
+    console.log('Missing required fields');
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
@@ -59,6 +64,7 @@ app.post('/api/create-session', async (req, res) => {
       }
     );
     const roomUrl = dailyRes.data.url;
+    console.log('Daily.co room created:', roomUrl);
 
     // 2. Insert into Supabase
     const { data, error } = await supabase
@@ -71,6 +77,7 @@ app.post('/api/create-session', async (req, res) => {
       console.error('Supabase insert error:', error);
       return res.status(500).json({ error: 'Failed to create session' });
     }
+    console.log('Supabase insert result:', data);
     res.json({ session: data[0] });
   } catch (error) {
     console.error('Error creating session:', error.response?.data || error.message);
@@ -80,8 +87,13 @@ app.post('/api/create-session', async (req, res) => {
 
 // Update session meta endpoint: updates case_id and candidate_id for a session
 app.post('/api/update-session-meta', async (req, res) => {
+  console.log('--- /api/update-session-meta called ---');
+  console.log('Request body:', req.body);
+  console.log('SUPABASE_URL:', SUPABASE_URL);
+  console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!SUPABASE_SERVICE_ROLE_KEY);
   const { session_id, case_id, candidate_id } = req.body;
   if (!session_id || !case_id || !candidate_id) {
+    console.log('Missing required fields');
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
@@ -94,6 +106,7 @@ app.post('/api/update-session-meta', async (req, res) => {
       console.error('Supabase update error:', error);
       return res.status(500).json({ error: 'Failed to update session' });
     }
+    console.log('Supabase update result:', data);
     res.json({ session: data[0] });
   } catch (error) {
     console.error('Error updating session:', error.response?.data || error.message);
