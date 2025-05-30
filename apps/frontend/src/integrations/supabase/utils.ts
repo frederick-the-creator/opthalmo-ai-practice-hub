@@ -5,6 +5,7 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
     hostId: null,
     guestId: null,
     candidateId: null,
+    version: 1,
     hostName: "Host",
     guestName: "Guest",
     cases: []
@@ -12,13 +13,14 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
   // Fetch session with host and guest IDs
   const { data: session, error: sessionError } = await supabase
     .from('practice_sessions')
-    .select('host_id, guest_id, candidate_id')
+    .select('host_id, guest_id, candidate_id, version')
     .eq('id', sessionId)
     .single();
   if (sessionError || !session) return {
     hostId: null,
     guestId: null,
     candidateId: null,
+    version: 1,
     hostName: "Host",
     guestName: "Guest",
     cases: []
@@ -26,6 +28,7 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
   const hostId = session.host_id;
   const guestId = session.guest_id;
   const candidateId = session.candidate_id;
+  const version = session.version;
   // Fetch host profile
   let hostNameStr = "";
   let guestNameStr = "";
@@ -53,6 +56,7 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
     hostId,
     guestId,
     candidateId,
+    version,
     hostName: hostNameStr || "Host",
     guestName: guestNameStr || "Guest",
     cases: casesData || []

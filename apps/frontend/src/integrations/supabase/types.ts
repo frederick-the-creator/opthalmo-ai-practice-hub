@@ -45,6 +45,7 @@ export type Database = {
           room_url: string | null
           time: string
           type: string
+          version: number
         }
         Insert: {
           candidate_id?: string | null
@@ -55,8 +56,9 @@ export type Database = {
           host_id: string
           id?: string
           room_url?: string | null
-          time: string
+          time?: string
           type: string
+          version?: number
         }
         Update: {
           candidate_id?: string | null
@@ -69,6 +71,7 @@ export type Database = {
           room_url?: string | null
           time?: string
           type?: string
+          version?: number
         }
         Relationships: [
           {
