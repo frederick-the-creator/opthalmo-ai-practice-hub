@@ -9,9 +9,14 @@ const PORT = process.env.PORT || 4000;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-app.use(cors());
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true // optional: only needed if you're sending cookies or auth headers
+}));
 app.use(express.json());
 
 // Health check endpoint
