@@ -214,9 +214,9 @@ const InterviewPractice: React.FC = () => {
           <p className="text-gray-600">Practice clinical and communication stations</p>
         </div>
         <div className="mt-4 md:mt-0">
-          <Button className="bg-brand-blue text-white" onClick={() => navigate('/interview-practice-room')}>
+          {/* <Button className="bg-brand-blue text-white" onClick={() => navigate('/interview-practice-room')}>
             Start Practice
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -226,10 +226,10 @@ const InterviewPractice: React.FC = () => {
             <Users className="mr-2 h-4 w-4" />
             Community Match
           </TabsTrigger>
-          <TabsTrigger value="direct">
+          {/* <TabsTrigger value="direct">
             <LinkIcon className="mr-2 h-4 w-4" />
             Direct Invite
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         
         <TabsContent value="community" className="space-y-6 mt-6">

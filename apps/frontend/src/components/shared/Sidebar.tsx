@@ -1,4 +1,3 @@
-
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
@@ -10,20 +9,22 @@ import {
   LogOut, 
   Eye
 } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
   const navItems = [
-    { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    // { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { path: "/interview-practice", name: "Interview Practice", icon: <Video className="w-5 h-5" /> },
-    { path: "/curriculum", name: "Curriculum", icon: <BookOpen className="w-5 h-5" /> },
-    { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },
-    { path: "/community", name: "Community", icon: <Users className="w-5 h-5" /> }
+    // { path: "/curriculum", name: "Curriculum", icon: <BookOpen className="w-5 h-5" /> },
+    // { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },
+    // { path: "/community", name: "Community", icon: <Users className="w-5 h-5" /> }
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
     navigate("/login");

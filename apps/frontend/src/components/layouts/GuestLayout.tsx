@@ -23,7 +23,7 @@ const GuestLayout: React.FC = () => {
 
   if (loading) return null; // or a spinner
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/interview-practice" replace />;
   }
 
   return (

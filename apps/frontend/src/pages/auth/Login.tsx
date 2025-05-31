@@ -64,7 +64,7 @@ const Login: React.FC = () => {
       description: 'You have successfully logged in',
     });
     setIsLoading(false);
-    navigate('/dashboard');
+    navigate('/interview-practice');
   };
 
   const toggleShowPassword = () => {
