@@ -11,25 +11,34 @@ export type Database = {
     Tables: {
       cases: {
         Row: {
-          actor_brief: string
-          candidate_brief: string
           id: string
+          candidate_brief: string
+          actor_brief: string
           markscheme: string
-          name: string
+          category: string
+          condition: string
+          case_name: string
+          domain: string
         }
         Insert: {
-          actor_brief: string
-          candidate_brief: string
           id?: string
+          candidate_brief: string
+          actor_brief: string
           markscheme: string
-          name: string
+          category: string
+          condition: string
+          case_name: string
+          domain: string
         }
         Update: {
-          actor_brief?: string
-          candidate_brief?: string
           id?: string
+          candidate_brief?: string
+          actor_brief?: string
           markscheme?: string
-          name?: string
+          category?: string
+          condition?: string
+          case_name?: string
+          domain?: string
         }
         Relationships: []
       }

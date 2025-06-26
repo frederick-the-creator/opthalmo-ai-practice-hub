@@ -1,14 +1,15 @@
 import { supabase } from "./client";
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
 
-export const fetchSessionAndCases = async (sessionId: string | null) => {
+export const fetchSession = async (sessionId: string | null) => {
   if (!sessionId) return {
     hostId: null,
     guestId: null,
     candidateId: null,
     version: 1,
     hostName: "Host",
-    guestName: "Guest",
-    cases: []
+    guestName: "Guest"
   };
   // Fetch session with host and guest IDs
   const { data: session, error: sessionError } = await supabase
@@ -22,8 +23,7 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
     candidateId: null,
     version: 1,
     hostName: "Host",
-    guestName: "Guest",
-    cases: []
+    guestName: "Guest"
   };
   const hostId = session.host_id;
   const guestId = session.guest_id;
@@ -48,17 +48,30 @@ export const fetchSessionAndCases = async (sessionId: string | null) => {
       .single();
     if (guestProfile) guestNameStr = `${guestProfile.first_name} ${guestProfile.last_name}`.trim();
   }
-  // Fetch cases
-  const { data: casesData } = await supabase
-    .from('cases')
-    .select('id, name');
   return {
     hostId,
     guestId,
     candidateId,
     version,
     hostName: hostNameStr || "Host",
-    guestName: guestNameStr || "Guest",
-    cases: casesData || []
+    guestName: guestNameStr || "Guest"
   };
-}; 
+};
+
+export const fetchCases = async () => {
+  const { data: casesData } = await supabase
+    .from('cases')
+    .select('id, case_name, actor_brief, candidate_brief, markscheme');
+  return casesData || [];
+};
+
+/**
+ * Converts a markdown string to React elements for safe rendering in the UI.
+ * Can be used for candidate_brief, actor_brief, markscheme, etc.
+ * @param markdown - The markdown string to render
+ * @returns React element rendering the markdown
+ */
+export function renderMarkdownToReact(markdown: string | undefined | null): React.ReactNode {
+  if (!markdown) return null;
+  return <ReactMarkdown>{markdown}</ReactMarkdown>;
+} 

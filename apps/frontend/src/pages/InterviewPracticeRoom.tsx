@@ -5,7 +5,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchSessionAndCases } from "@/integrations/supabase/utils";
+import { fetchSession, fetchCases, renderMarkdownToReact } from "@/integrations/supabase/utils";
 import { updateSessionMeta } from "@/lib/api";
 
 const InterviewPracticeRoom: React.FC = () => {
@@ -18,7 +18,8 @@ const InterviewPracticeRoom: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hostName, setHostName] = useState<string>("");
   const [guestName, setGuestName] = useState<string>("");
-  const [cases, setCases] = useState<{ id: string; name: string }[]>([]);
+  type CaseType = { id: string; case_name: string; actor_brief: string; candidate_brief: string; markscheme: string };
+  const [cases, setCases] = useState<CaseType[]>([]);
 
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
@@ -29,9 +30,7 @@ const InterviewPracticeRoom: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [role, setRole] = useState<'host' | 'guest' | null>(null);
 
-  // State for selected case details
-  const [caseDetails, setCaseDetails] = useState<{ actor_brief: string; candidate_brief: string; markscheme: string } | null>(null);
-  const [caseDetailsLoading, setCaseDetailsLoading] = useState(false);
+  // No separate caseDetails state; use cases array only
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [sessionVersion, setSessionVersion] = useState<1 | 2 | 3>(1);
 
@@ -62,15 +61,16 @@ const InterviewPracticeRoom: React.FC = () => {
   // Fetch session info and cases
   useEffect(() => {
     const getSessionAndCases = async () => {
-      const result = await fetchSessionAndCases(sessionId);
-      setHostId(result.hostId);
-      setGuestId(result.guestId);
-      setHostName(result.hostName);
-      setGuestName(result.guestName);
-      setCases(result.cases);
-      setCandidateId(result.candidateId || null);
-      setSessionVersion(toSessionVersion(result.version));
-      setVersion(toSessionVersion(result.version));
+      const sessionResult = await fetchSession(sessionId);
+      const casesResult = await fetchCases();
+      setHostId(sessionResult.hostId);
+      setGuestId(sessionResult.guestId);
+      setHostName(sessionResult.hostName);
+      setGuestName(sessionResult.guestName);
+      setCases(casesResult);
+      setCandidateId(sessionResult.candidateId || null);
+      setSessionVersion(toSessionVersion(sessionResult.version));
+      setVersion(toSessionVersion(sessionResult.version));
     };
     getSessionAndCases();
   }, [sessionId]);
@@ -97,44 +97,22 @@ const InterviewPracticeRoom: React.FC = () => {
     console.log('[DEBUG] Role set to null');
   }, [currentUserId, hostId, guestId]);
 
-  // Fetch case details when selectedCase changes (for version 2)
-  useEffect(() => {
-    const fetchCaseDetails = async () => {
-      if (!selectedCase) {
-        setCaseDetails(null);
-        return;
-      }
-      setCaseDetailsLoading(true);
-      const { data, error } = await supabase
-        .from('cases')
-        .select('actor_brief, candidate_brief, markscheme')
-        .eq('id', selectedCase)
-        .single();
-      if (error || !data) {
-        setCaseDetails(null);
-      } else {
-        setCaseDetails({ actor_brief: data.actor_brief, candidate_brief: data.candidate_brief, markscheme: data.markscheme });
-      }
-      setCaseDetailsLoading(false);
-    };
-    if (version === 2 && selectedCase) {
-      fetchCaseDetails();
-    }
-  }, [selectedCase, version]);
+  // No effect needed for case details; use cases array directly
 
   // Poll for session version and candidate/case changes
   useEffect(() => {
     if (!sessionId) return;
     const interval = setInterval(async () => {
-      const result = await fetchSessionAndCases(sessionId);
-      setHostId(result.hostId);
-      setGuestId(result.guestId);
-      setHostName(result.hostName);
-      setGuestName(result.guestName);
-      setCases(result.cases);
-      setCandidateId(result.candidateId || null);
-      setSessionVersion(toSessionVersion(result.version));
-      setVersion(toSessionVersion(result.version));
+      const sessionResult = await fetchSession(sessionId);
+      const casesResult = await fetchCases();
+      setHostId(sessionResult.hostId);
+      setGuestId(sessionResult.guestId);
+      setHostName(sessionResult.hostName);
+      setGuestName(sessionResult.guestName);
+      setCases(casesResult);
+      setCandidateId(sessionResult.candidateId || null);
+      setSessionVersion(toSessionVersion(sessionResult.version));
+      setVersion(toSessionVersion(sessionResult.version));
     }, 2000);
     return () => clearInterval(interval);
   }, [sessionId]);
@@ -168,17 +146,16 @@ const InterviewPracticeRoom: React.FC = () => {
         .update({ version: 2 })
         .eq('id', sessionId);
       // Refetch the session and update all state from the latest DB values
-      const result = await fetchSessionAndCases(sessionId);
-      setHostId(result.hostId);
-      setGuestId(result.guestId);
-      setHostName(result.hostName);
-      setGuestName(result.guestName);
-      setCases(result.cases);
-      setCandidateId(result.candidateId || null);
-      setSessionVersion(toSessionVersion(result.version));
-      setVersion(toSessionVersion(result.version));
-      setSelectedCandidate(null);
-      setSelectedCase(null);
+      const sessionResult = await fetchSession(sessionId);
+      const casesResult = await fetchCases();
+      setHostId(sessionResult.hostId);
+      setGuestId(sessionResult.guestId);
+      setHostName(sessionResult.hostName);
+      setGuestName(sessionResult.guestName);
+      setCases(casesResult);
+      setCandidateId(sessionResult.candidateId || null);
+      setSessionVersion(toSessionVersion(sessionResult.version));
+      setVersion(toSessionVersion(sessionResult.version));
     } catch (err) {
       setError("Failed to update session with candidate and case.");
     } finally {
@@ -305,7 +282,7 @@ const InterviewPracticeRoom: React.FC = () => {
                             `}
                             style={{ minWidth: 120 }}
                           >
-                          {c.name}
+                            {c.case_name}
                           </div>
                         ))}
                       </div>
@@ -351,13 +328,14 @@ const InterviewPracticeRoom: React.FC = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
-                {caseDetailsLoading ? (
-                  <span>Loading candidate brief...</span>
-                ) : caseDetails && caseDetails.candidate_brief ? (
-                  <span>{caseDetails.candidate_brief}</span>
-                ) : (
-                  <span>No candidate brief available for this case.</span>
-                )}
+                {(() => {
+                  const found = cases.find(c => c.id === selectedCase);
+                  if (!selectedCase) return <span>Select a case to view the candidate brief.</span>;
+                  if (!found) return <span>No candidate brief available for this case.</span>;
+                  return found.candidate_brief
+                    ? renderMarkdownToReact(found.candidate_brief)
+                    : <span>No candidate brief available for this case.</span>;
+                })()}
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -411,13 +389,14 @@ const InterviewPracticeRoom: React.FC = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
-                {caseDetailsLoading ? (
-                  <span>Loading actor brief...</span>
-                ) : caseDetails && caseDetails.actor_brief ? (
-                  <span>{caseDetails.actor_brief}</span>
-                ) : (
-                  <span>No actor brief available for this case.</span>
-                )}
+                {(() => {
+                  const found = cases.find(c => c.id === selectedCase);
+                  if (!selectedCase) return <span>Select a case to view the actor brief.</span>;
+                  if (!found) return <span>No actor brief available for this case.</span>;
+                  return found.actor_brief
+                    ? renderMarkdownToReact(found.actor_brief)
+                    : <span>No actor brief available for this case.</span>;
+                })()}
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -430,13 +409,14 @@ const InterviewPracticeRoom: React.FC = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
-                {caseDetailsLoading ? (
-                  <span>Loading markscheme...</span>
-                ) : caseDetails && caseDetails.markscheme ? (
-                  <span>{caseDetails.markscheme}</span>
-                ) : (
-                  <span>No markscheme available for this case.</span>
-                )}
+                {(() => {
+                  const found = cases.find(c => c.id === selectedCase);
+                  if (!selectedCase) return <span>Select a case to view the markscheme.</span>;
+                  if (!found) return <span>No markscheme available for this case.</span>;
+                  return found.markscheme
+                    ? renderMarkdownToReact(found.markscheme)
+                    : <span>No markscheme available for this case.</span>;
+                })()}
               </div>
             </CollapsibleContent>
           </Collapsible>
