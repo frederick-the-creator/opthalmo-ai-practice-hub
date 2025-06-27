@@ -56,6 +56,7 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - ✅ `UPDATE`: 
     - Users can update their own sessions (`host_id = auth.uid()`)
     - Users can sign up to others' sessions as guest (`guest_id = auth.uid()`)
+  - Enabled for realtime subscriptions
 
 ---
 

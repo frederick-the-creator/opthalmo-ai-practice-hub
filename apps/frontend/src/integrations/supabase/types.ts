@@ -1,3 +1,9 @@
+export enum Stage {
+  PREP = 1,
+  INTERVIEW = 2,
+  WRAP_UP = 3,
+}
+
 export type Json =
   | string
   | number

@@ -4,188 +4,86 @@ import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, Play } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchSession, fetchCases, renderMarkdownToReact } from "@/integrations/supabase/utils";
-import { updateSessionMeta } from "@/lib/api";
+import { fetchCases, renderMarkdownToReact } from "@/integrations/supabase/utils";
+import { useInterviewSession } from "@/hooks/useInterviewSession";
+import { Stage } from "@/integrations/supabase/types";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
-  const [roomUrl, setRoomUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState<1 | 2 | 3>(1);
-
-  // New state for session and cases
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [hostName, setHostName] = useState<string>("");
-  const [guestName, setGuestName] = useState<string>("");
-  type CaseType = { id: string; case_name: string; actor_brief: string; candidate_brief: string; markscheme: string };
-  const [cases, setCases] = useState<CaseType[]>([]);
-
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
-  const [selectedCase, setSelectedCase] = useState<string | null>(null);
+  const [rawSessionId, setRawSessionId] = useState<string | null>(null);
+  const [cases, setCases] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
 
-  const [hostId, setHostId] = useState<string | null>(null);
-  const [guestId, setGuestId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [role, setRole] = useState<'host' | 'guest' | null>(null);
-
-  // No separate caseDetails state; use cases array only
-  const [candidateId, setCandidateId] = useState<string | null>(null);
-  const [sessionVersion, setSessionVersion] = useState<1 | 2 | 3>(1);
-
+  // Parse roomUrl and sessionId from URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const url = params.get('roomUrl');
     const session_id = params.get('sessionId');
-    if (url) {
-      setRoomUrl(url);
-    } else {
-      setError('No meeting room URL provided.');
-    }
-    if (session_id) {
-      setSessionId(session_id);
-    }
+    if (session_id) setRawSessionId(session_id);
   }, []);
 
+  // Fetch cases
   useEffect(() => {
-    // Fetch current user ID
-    const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('[DEBUG] Current user from supabase:', user);
-      setCurrentUserId(user?.id || null);
-    };
-    fetchCurrentUser();
+    fetchCases().then(setCases);
   }, []);
 
-  // Fetch session info and cases
-  useEffect(() => {
-    const getSessionAndCases = async () => {
-      const sessionResult = await fetchSession(sessionId);
-      const casesResult = await fetchCases();
-      setHostId(sessionResult.hostId);
-      setGuestId(sessionResult.guestId);
-      setHostName(sessionResult.hostName);
-      setGuestName(sessionResult.guestName);
-      setCases(casesResult);
-      setCandidateId(sessionResult.candidateId || null);
-      setSessionVersion(toSessionVersion(sessionResult.version));
-      setVersion(toSessionVersion(sessionResult.version));
-    };
-    getSessionAndCases();
-  }, [sessionId]);
+  // Use the centralised session hook
+  const {
+    session,
+    stage,
+    role,
+    isCandidate,
+    updateStage,
+    setCase: setCaseDb,
+    setCandidate: setCandidateDb,
+    error,
+  } = useInterviewSession(rawSessionId);
 
-  // Determine role after hostId/guestId/currentUserId are set
-  useEffect(() => {
-    // Only need currentUserId and hostId to determine host
-    if (currentUserId && hostId) {
-      if (currentUserId === hostId) {
-        setRole('host');
-        console.log('[DEBUG] Role set to host');
-        return;
-      }
-    }
-    // Only need currentUserId and guestId to determine guest
-    if (currentUserId && guestId) {
-      if (currentUserId === guestId) {
-        setRole('guest');
-        console.log('[DEBUG] Role set to guest');
-        return;
-      }
-    }
-    setRole(null);
-    console.log('[DEBUG] Role set to null');
-  }, [currentUserId, hostId, guestId]);
-
-  // No effect needed for case details; use cases array directly
-
-  // Poll for session version and candidate/case changes
-  useEffect(() => {
-    if (!sessionId) return;
-    const interval = setInterval(async () => {
-      const sessionResult = await fetchSession(sessionId);
-      const casesResult = await fetchCases();
-      setHostId(sessionResult.hostId);
-      setGuestId(sessionResult.guestId);
-      setHostName(sessionResult.hostName);
-      setGuestName(sessionResult.guestName);
-      setCases(casesResult);
-      setCandidateId(sessionResult.candidateId || null);
-      setSessionVersion(toSessionVersion(sessionResult.version));
-      setVersion(toSessionVersion(sessionResult.version));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [sessionId]);
-
-  // Helper to safely cast version
-  function toSessionVersion(v: any): 1 | 2 | 3 {
-    if (v === 1) return 1;
-    if (v === 2) return 2;
-    if (v === 3) return 3;
-    return 1;
-  }
-
-  // Handler for Start Case
-  const handleStartCase = async () => {
-    if (!sessionId || !selectedCandidate || !selectedCase) return;
+  // Handlers for host actions
+  const handleSelectCandidate = async (userId: string) => {
     setUpdating(true);
     try {
-      const response = await updateSessionMeta({
-        sessionId,
-        candidateId: selectedCandidate,
-        caseId: selectedCase,
-      });
-      if (!response.session) {
-        setError("Failed to update session with candidate and case.");
-        setUpdating(false);
-        return;
-      }
-      // Update version to 2 in Supabase
-      await supabase
-        .from('practice_sessions')
-        .update({ version: 2 })
-        .eq('id', sessionId);
-      // Refetch the session and update all state from the latest DB values
-      const sessionResult = await fetchSession(sessionId);
-      const casesResult = await fetchCases();
-      setHostId(sessionResult.hostId);
-      setGuestId(sessionResult.guestId);
-      setHostName(sessionResult.hostName);
-      setGuestName(sessionResult.guestName);
-      setCases(casesResult);
-      setCandidateId(sessionResult.candidateId || null);
-      setSessionVersion(toSessionVersion(sessionResult.version));
-      setVersion(toSessionVersion(sessionResult.version));
-    } catch (err) {
-      setError("Failed to update session with candidate and case.");
-    } finally {
-      setUpdating(false);
-    }
+      await setCandidateDb(userId);
+    } catch {}
+    setUpdating(false);
   };
-
-  // Handler for Back button in version 1
+  const handleSelectCase = async (caseId: string) => {
+    setUpdating(true);
+    try {
+      await setCaseDb(caseId);
+    } catch {}
+    setUpdating(false);
+  };
+  const handleStartCase = async () => {
+    setUpdating(true);
+    try {
+      await updateStage(Stage.INTERVIEW);
+    } catch {}
+    setUpdating(false);
+  };
   const handleBackToVersion1 = async () => {
-    if (!sessionId) return;
-    await supabase
-      .from('practice_sessions')
-      .update({ version: 1, candidate_id: null, case_id: null })
-      .eq('id', sessionId);
-    setVersion(toSessionVersion(1));
-    console.log('[DEBUG] After setting version to 1. version:', 1, 'candidateId:', null, 'caseId:', null);
+    setUpdating(true);
+    try {
+      await updateStage(Stage.PREP);
+    } catch {}
+    setUpdating(false);
   };
-
-  // Handler for Back button in version 3
   const handleBackToVersion2 = async () => {
-    if (!sessionId) return;
-    await supabase
-      .from('practice_sessions')
-      .update({ version: 2 })
-      .eq('id', sessionId);
-    setVersion(toSessionVersion(2));
+    setUpdating(true);
+    try {
+      await updateStage(Stage.INTERVIEW);
+    } catch {}
+    setUpdating(false);
+  };
+  const handleFinishCase = async () => {
+    setUpdating(true);
+    try {
+      await updateStage(Stage.WRAP_UP);
+    } catch {}
+    setUpdating(false);
   };
 
-  // --- Version 1: Preparation ---
-  if (version === 1) {
+  // --- Stage 1: Preparation ---
+  if (stage === Stage.PREP) {
     return (
       <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
         <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
@@ -208,9 +106,9 @@ const InterviewPracticeRoom: React.FC = () => {
                     <div className="flex flex-col items-center justify-center h-full">
                       <div className="text-red-500">{error}</div>
                     </div>
-                  ) : roomUrl ? (
+                  ) : session?.roomUrl ? (
                     <iframe
-                      src={roomUrl}
+                      src={session.roomUrl}
                       title="Video Call"
                       allow="camera; microphone; fullscreen; speaker; display-capture"
                       style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
@@ -237,12 +135,12 @@ const InterviewPracticeRoom: React.FC = () => {
                   <CollapsibleContent>
                     <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md text-black">
                       <div className="flex flex-col">
-                        {[{id: hostId, name: hostName}, {id: guestId, name: guestName}].map(user => (
+                        {[{id: session?.hostId, name: session?.hostName}, {id: session?.guestId, name: session?.guestName}].map(user => (
                           <div
                             key={user.id}
-                            onClick={() => setSelectedCandidate(user.id)}
+                            onClick={() => handleSelectCandidate(user.id)}
                             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-                              ${selectedCandidate === user.id
+                              ${session?.candidateId === user.id
                                 ? 'bg-[#E5EEF3] text-[#0E5473]'
                                 : 'bg-transparent text-[#0E5473] hover:bg-gray-100'}
                             `}
@@ -274,9 +172,9 @@ const InterviewPracticeRoom: React.FC = () => {
                         {cases.map(c => (
                           <div
                             key={c.id}
-                            onClick={() => setSelectedCase(c.id)}
+                            onClick={() => handleSelectCase(c.id)}
                             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-                              ${selectedCase === c.id
+                              ${session?.caseId === c.id
                                 ? 'bg-[#E5EEF3] text-[#0E5473]'
                                 : 'bg-transparent text-[#0E5473] hover:bg-gray-100'}
                             `}
@@ -293,7 +191,7 @@ const InterviewPracticeRoom: React.FC = () => {
                   <Button
                     className="flex items-center gap-2 text-lg px-6 py-3"
                     onClick={handleStartCase}
-                    disabled={!selectedCandidate || !selectedCase || updating}
+                    disabled={!session?.candidateId || !session?.caseId || updating}
                   >
                     <Play className="w-5 h-5 mr-2" /> {updating ? "Starting..." : "Start Case"}
                   </Button>
@@ -307,9 +205,8 @@ const InterviewPracticeRoom: React.FC = () => {
     );
   }
 
-  // --- Version 2: Interview (refactored shared layout) ---
-  if (version === 2) {
-    const isCandidate = currentUserId === candidateId;
+  // --- Stage 2: Interview ---
+  if (stage === Stage.INTERVIEW) {
     const mainTitle = isCandidate ? "Candidate" : "Interviewer";
     const rightPanel = isCandidate ? (
       <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
@@ -329,8 +226,8 @@ const InterviewPracticeRoom: React.FC = () => {
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
                 {(() => {
-                  const found = cases.find(c => c.id === selectedCase);
-                  if (!selectedCase) return <span>Select a case to view the candidate brief.</span>;
+                  const found = cases.find(c => c.id === session?.caseId);
+                  if (!session?.caseId) return <span>Select a case to view the candidate brief.</span>;
                   if (!found) return <span>No candidate brief available for this case.</span>;
                   return found.candidate_brief
                     ? renderMarkdownToReact(found.candidate_brief)
@@ -344,15 +241,8 @@ const InterviewPracticeRoom: React.FC = () => {
           <div className="flex justify-center mt-8">
             <Button
               className="w-64 text-lg"
-              onClick={async () => {
-                if (sessionId) {
-                  await supabase
-                    .from('practice_sessions')
-                    .update({ version: 3 })
-                    .eq('id', sessionId);
-                  setVersion(toSessionVersion(3));
-                }
-              }}
+              onClick={handleFinishCase}
+              disabled={updating}
             >
               Finish Case
             </Button>
@@ -364,7 +254,7 @@ const InterviewPracticeRoom: React.FC = () => {
       <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
         <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
           <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
-            Giant Cell Arteris (GCA)
+            Actor/Interviewer
           </div>
           <div className="mt-3 max-w-full">
             <ToggleGroup type="single" defaultValue="clinical" className="flex justify-start">
@@ -390,8 +280,8 @@ const InterviewPracticeRoom: React.FC = () => {
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
                 {(() => {
-                  const found = cases.find(c => c.id === selectedCase);
-                  if (!selectedCase) return <span>Select a case to view the actor brief.</span>;
+                  const found = cases.find(c => c.id === session?.caseId);
+                  if (!session?.caseId) return <span>Select a case to view the actor brief.</span>;
                   if (!found) return <span>No actor brief available for this case.</span>;
                   return found.actor_brief
                     ? renderMarkdownToReact(found.actor_brief)
@@ -410,8 +300,8 @@ const InterviewPracticeRoom: React.FC = () => {
             <CollapsibleContent>
               <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
                 {(() => {
-                  const found = cases.find(c => c.id === selectedCase);
-                  if (!selectedCase) return <span>Select a case to view the markscheme.</span>;
+                  const found = cases.find(c => c.id === session?.caseId);
+                  if (!session?.caseId) return <span>Select a case to view the markscheme.</span>;
                   if (!found) return <span>No markscheme available for this case.</span>;
                   return found.markscheme
                     ? renderMarkdownToReact(found.markscheme)
@@ -425,15 +315,8 @@ const InterviewPracticeRoom: React.FC = () => {
           <div className="flex justify-center mt-8">
             <Button
               className="w-64 text-lg"
-              onClick={async () => {
-                if (sessionId) {
-                  await supabase
-                    .from('practice_sessions')
-                    .update({ version: 3 })
-                    .eq('id', sessionId);
-                  setVersion(toSessionVersion(3));
-                }
-              }}
+              onClick={handleFinishCase}
+              disabled={updating}
             >
               Finish Case
             </Button>
@@ -453,10 +336,11 @@ const InterviewPracticeRoom: React.FC = () => {
             Exit
           </Button>
           {/* Only the host (and not the candidate) can see the Back button */}
-          {currentUserId === hostId && (
+          {role === 'host' && (
             <Button
               className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
               onClick={handleBackToVersion1}
+              disabled={updating}
             >
               Back
             </Button>
@@ -470,9 +354,9 @@ const InterviewPracticeRoom: React.FC = () => {
                   {mainTitle}
                 </div>
                 <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
-                  {roomUrl ? (
+                  {session?.roomUrl ? (
                     <iframe
-                      src={roomUrl}
+                      src={session.roomUrl}
                       title="Video Call"
                       allow="camera; microphone; fullscreen; speaker; display-capture"
                       style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
@@ -494,8 +378,8 @@ const InterviewPracticeRoom: React.FC = () => {
     );
   }
 
-  // --- Version 3: Case End ---
-  if (version === 3) {
+  // --- Stage 3: Case End ---
+  if (stage === Stage.WRAP_UP) {
     return (
       <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
         <div className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
@@ -508,6 +392,7 @@ const InterviewPracticeRoom: React.FC = () => {
           <Button
             className="font-bold text-white bg-[#0E5473] hover:bg-[#0E5473]/90 border-none"
             onClick={handleBackToVersion2}
+            disabled={updating}
           >
             Back
           </Button>
@@ -520,9 +405,9 @@ const InterviewPracticeRoom: React.FC = () => {
                   Case End
                 </div>
                 <div className="flex overflow-hidden flex-col justify-center mt-5 w-full rounded-2xl border border-solid border-gray-200 h-[calc(100vh-14rem)] max-md:max-w-full">
-                  {roomUrl ? (
+                  {session?.roomUrl ? (
                     <iframe
-                      src={roomUrl}
+                      src={session.roomUrl}
                       title="Video Call"
                       allow="camera; microphone; fullscreen; speaker; display-capture"
                       style={{ width: "100%", height: "100%", border: 0, borderRadius: "1rem" }}
@@ -553,7 +438,6 @@ const InterviewPracticeRoom: React.FC = () => {
   }
 
   // Fallback for unexpected state
-  console.error('[ERROR] InterviewPracticeRoom: Unexpected state', { version, currentUserId, candidateId, hostId, guestId, role });
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white">
       <div className="text-2xl font-bold text-red-600 mb-4">Something went wrong</div>
