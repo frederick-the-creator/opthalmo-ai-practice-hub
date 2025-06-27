@@ -3,6 +3,7 @@ import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchProfile } from "@/integrations/supabase/utils";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -13,21 +14,17 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const [userInitials, setUserInitials] = useState<string>("");
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (userData?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', userData.user.id)
-          .single();
+        const profile = await fetchProfile(userData.user.id);
         if (profile) {
           setUserName(`${profile.first_name} ${profile.last_name}`.trim());
           setUserInitials(`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase());
         }
       }
     };
-    fetchProfile();
+    fetchProfileData();
   }, []);
 
   return (

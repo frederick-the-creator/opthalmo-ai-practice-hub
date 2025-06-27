@@ -1,96 +1,60 @@
 import { supabase } from "./client";
+import type { Tables } from "./types";
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 
-export const fetchSession = async (sessionId: string | null) => {
-  if (!sessionId) return {
-    hostId: null,
-    guestId: null,
-    candidateId: null,
-    caseId: null,
-    date: null,
-    time: null,
-    type: null,
-    roomUrl: null,
-    createdAt: null,
-    id: null,
-    version: 1,
-    hostName: "Host",
-    guestName: "Guest"
-  };
-  // Fetch session with host and guest IDs
-  const { data: session, error: sessionError } = await supabase
-    .from('practice_sessions')
-    .select('*')
-    .eq('id', sessionId)
-    .single();
-  if (sessionError || !session) return {
-    hostId: null,
-    guestId: null,
-    candidateId: null,
-    caseId: null,
-    date: null,
-    time: null,
-    type: null,
-    roomUrl: null,
-    createdAt: null,
-    id: null,
-    version: 1,
-    hostName: "Host",
-    guestName: "Guest"
-  };
-  const hostId = session.host_id;
-  const guestId = session.guest_id;
-  const candidateId = session.candidate_id;
-  const caseId = session.case_id;
-  const date = session.date;
-  const time = session.time;
-  const type = session.type;
-  const roomUrl = session.room_url;
-  const createdAt = session.created_at;
-  const id = session.id;
-  const version = session.version;
-  // Fetch host profile
-  let hostNameStr = "";
-  let guestNameStr = "";
-  if (hostId) {
-    const { data: hostProfile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('user_id', hostId)
-      .single();
-    if (hostProfile) hostNameStr = `${hostProfile.first_name} ${hostProfile.last_name}`.trim();
-  }
-  if (guestId) {
-    const { data: guestProfile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('user_id', guestId)
-      .single();
-    if (guestProfile) guestNameStr = `${guestProfile.first_name} ${guestProfile.last_name}`.trim();
-  }
-  return {
-    hostId,
-    guestId,
-    candidateId,
-    caseId,
-    date,
-    time,
-    type,
-    roomUrl,
-    createdAt,
-    id,
-    version,
-    hostName: hostNameStr || "Host",
-    guestName: guestNameStr || "Guest"
-  };
+export type Session = Tables<"practice_sessions"> & {
+  profiles?: any; // adjust as needed for joined profile info
 };
 
-export const fetchCases = async () => {
-  const { data: casesData } = await supabase
+export type Case = Tables<"cases">;
+export type Profile = Tables<"profiles">;
+
+/**
+ * Fetch all sessions or a single session if sessionId is provided.
+ * Joins profiles for host info.
+ */
+export const fetchSessions = async (sessionId?: string): Promise<Session[] | Session | null> => {
+  let query = supabase
+    .from('practice_sessions')
+    .select('id, host_id, guest_id, candidate_id, case_id, date, time, type, created_at, room_url, version, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+    .order('date', { ascending: true })
+    .order('time', { ascending: true });
+
+  if (sessionId) {
+    // Fetch a single session
+    const { data, error } = await query.eq('id', sessionId).single();
+    if (error || !data) return null;
+    return data;
+  } else {
+    // Fetch all sessions
+    const { data, error } = await query;
+    if (error || !data) return [];
+    return data;
+  }
+};
+
+/**
+ * Fetch all cases.
+ */
+export const fetchCases = async (): Promise<Case[]> => {
+  const { data, error } = await supabase
     .from('cases')
-    .select('id, case_name, actor_brief, candidate_brief, markscheme');
-  return casesData || [];
+    .select('id, case_name, actor_brief, candidate_brief, markscheme, category, condition, domain');
+  return data || [];
+};
+
+/**
+ * Fetch a single profile by userId.
+ */
+export const fetchProfile = async (userId: string): Promise<Profile | null> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('user_id, first_name, last_name, avatar, training_level')
+    .eq('user_id', userId)
+    .single();
+  if (error || !data) return null;
+  return data;
 };
 
 /**
@@ -102,4 +66,35 @@ export const fetchCases = async () => {
 export function renderMarkdownToReact(markdown: string | undefined | null): React.ReactNode {
   if (!markdown) return null;
   return <ReactMarkdown>{markdown}</ReactMarkdown>;
+}
+
+/**
+ * Subscribe to realtime changes on the practice_sessions table.
+ * If sessionId is provided, only subscribe to that session; otherwise, subscribe to all.
+ * Returns a cleanup function to remove the channel.
+ */
+export function subscribeToPracticeSessions({
+  sessionId,
+  onChange,
+}: {
+  sessionId?: string;
+  onChange: () => void;
+}) {
+  const filter = sessionId ? `id=eq.${sessionId}` : undefined;
+  const channel = supabase.channel(
+    sessionId ? `practice_sessions:${sessionId}` : "practice_sessions:all"
+  ).on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "practice_sessions",
+      ...(filter ? { filter } : {}),
+    },
+    onChange
+  ).subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 } 

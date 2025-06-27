@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Stage } from '@/integrations/supabase/types';
-import { fetchSession } from '@/integrations/supabase/utils';
+import { fetchSessions, subscribeToPracticeSessions } from '@/integrations/supabase/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { setCandidate as setCandidateApi, setCase as setCaseApi, setStage as setStageApi } from "@/lib/api";
 
 // Define the return type for clarity (can be expanded later)
 interface UseInterviewSessionResult {
@@ -40,7 +41,7 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
     let isMounted = true;
     const fetch = async () => {
       try {
-        const result = await fetchSession(sessionId);
+        const result = sessionId ? await fetchSessions(sessionId) : null;
         if (isMounted) setSession(result);
       } catch (err: any) {
         if (isMounted) setError('Failed to fetch session');
@@ -53,28 +54,18 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
   // Set up Realtime subscription so session can react to changes in the DB by the other user.
   useEffect(() => {
     if (!sessionId) return;
-    const channel = supabase.channel(`practice_sessions:${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'practice_sessions',
-          filter: `id=eq.${sessionId}`,
-        },
-        async () => {
-          try {
-            const result = await fetchSession(sessionId);
-            setSession(result);
-          } catch (err: any) {
-            setError('Failed to update session from realtime');
-          }
+    const cleanup = subscribeToPracticeSessions({
+      sessionId,
+      onChange: async () => {
+        try {
+          const result = await fetchSessions(sessionId);
+          setSession(result);
+        } catch (err) {
+          setError('Failed to update session from realtime');
         }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      }
+    });
+    return cleanup;
   }, [sessionId]);
 
   // Derive stage from supabase
@@ -129,16 +120,13 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
         return Promise.reject('Can only reset to PREP from INTERVIEW or WRAP_UP');
       }
     }
-    // Write to DB
-    const { error: dbError } = await supabase
-      .from('practice_sessions')
-      .update({ version: nextStage })
-      .eq('id', sessionId);
-    if (dbError) {
-      setError(dbError.message || 'Failed to update stage');
-      return Promise.reject(dbError.message || 'Failed to update stage');
+    try {
+      await setStageApi({ sessionId, version: nextStage });
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to update stage');
+      return Promise.reject(err?.response?.data?.error || 'Failed to update stage');
     }
-    setError(null);
   };
 
   // Helper: setCase
@@ -156,15 +144,13 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
       setError('Can only set case in PREP stage');
       return Promise.reject('Can only set case in PREP stage');
     }
-    const { error: dbError } = await supabase
-      .from('practice_sessions')
-      .update({ case_id: caseId })
-      .eq('id', sessionId);
-    if (dbError) {
-      setError(dbError.message || 'Failed to set case');
-      return Promise.reject(dbError.message || 'Failed to set case');
+    try {
+      await setCaseApi({ sessionId, caseId });
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to set case');
+      return Promise.reject(err?.response?.data?.error || 'Failed to set case');
     }
-    setError(null);
   };
 
   // Helper: setCandidate
@@ -182,15 +168,13 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
       setError('Can only set candidate in PREP stage');
       return Promise.reject('Can only set candidate in PREP stage');
     }
-    const { error: dbError } = await supabase
-      .from('practice_sessions')
-      .update({ candidate_id: candidateUserId })
-      .eq('id', sessionId);
-    if (dbError) {
-      setError(dbError.message || 'Failed to set candidate');
-      return Promise.reject(dbError.message || 'Failed to set candidate');
+    try {
+      await setCandidateApi({ sessionId, candidateId: candidateUserId });
+      setError(null);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to set candidate');
+      return Promise.reject(err?.response?.data?.error || 'Failed to set candidate');
     }
-    setError(null);
   };
 
   return {

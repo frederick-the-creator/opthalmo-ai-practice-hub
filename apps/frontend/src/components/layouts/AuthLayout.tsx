@@ -4,6 +4,7 @@ import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { fetchProfile } from '@/integrations/supabase/utils';
 
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -35,12 +36,8 @@ const AuthLayout: React.FC = () => {
         (async () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('user_id')
-              .eq('user_id', user.id)
-              .single();
-            if (!profile && (!error || error.code === "PGRST116")) {
+            const profile = await fetchProfile(user.id);
+            if (!profile) {
               navigate('/complete-profile');
               return;
             }
@@ -64,12 +61,8 @@ const AuthLayout: React.FC = () => {
         (async () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('user_id')
-              .eq('user_id', user.id)
-              .single();
-            if (!profile && (!error || error.code === "PGRST116")) {
+            const profile = await fetchProfile(user.id);
+            if (!profile) {
               navigate('/complete-profile');
               return;
             }

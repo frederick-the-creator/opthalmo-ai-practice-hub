@@ -21,3 +21,23 @@ export async function createSession({ host_id, date, time, type }: { host_id: st
   });
   return response.data;
 }
+
+export async function acceptInvitation({ sessionId, guestId }: { sessionId: string, guestId: string }) {
+  const response = await api.post("/sessions/accept-invite", { sessionId, guestId });
+  return response.data;
+}
+
+export async function setCandidate({ sessionId, candidateId }: { sessionId: string, candidateId: string }) {
+  const response = await api.post("/sessions/set-candidate", { sessionId, candidateId });
+  return response.data;
+}
+
+export async function setCase({ sessionId, caseId }: { sessionId: string, caseId: string }) {
+  const response = await api.post("/sessions/set-case", { sessionId, caseId });
+  return response.data;
+}
+
+export async function setStage({ sessionId, version }: { sessionId: string, version: number }) {
+  const response = await api.post("/sessions/set-stage", { sessionId, version });
+  return response.data;
+}

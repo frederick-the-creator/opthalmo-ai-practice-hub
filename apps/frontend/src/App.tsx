@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 import Dashboard from "./pages/Dashboard";
-import InterviewPractice from "./pages/InterviewScheduling";
+import InterviewPractice from "./pages/interview-scheduling/InterviewScheduling";
 import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";

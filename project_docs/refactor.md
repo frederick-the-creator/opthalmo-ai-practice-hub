@@ -1,38 +1,40 @@
-# Updated implementation plan  
-*(Polling loop already removed. Focus on error handling, optional React-Query, styling, and accessibility.)*
+# Refactor Plan: InterviewScheduling.tsx to Match InterviewPracticeRoom.tsx Structure
 
----
+## 1. Extract Session Logic to a Custom Hook
+- Create a new hook (e.g., `useInterviewScheduling.ts`) in the appropriate directory.
+- Move all logic related to:
+  - Fetching current user
+  - Fetching sessions
+  - Scheduling a session
+  - Accepting invitations
+  - Managing form state (date, time, type)
+  - Loading and error states
+- The hook should return all state and handlers needed by the main component.
 
-## 3  Data-layer improvements 🌐
+## 2. Panelize the UI
+- Create new components in a `panels/` subdirectory:
+  - `SessionListPanel.tsx`: Shows available sessions and user's upcoming sessions.
+  - `SchedulePanel.tsx`: Contains the scheduling form.
+  - `InvitePanel.tsx`: Handles invite link generation and display.
+- Each panel receives relevant props from the main component.
 
-### 3-A  Verify existing realtime subscription
-1. Confirm `useInterviewSession` establishes exactly one `supabase.channel(...).on('postgres_changes')` per `sessionId`.
-2. Ensure proper cleanup with `channel.unsubscribe()` in the hook’s `useEffect` return.
+## 3. Main Layout Refactor
+- Refactor the main component to use a layout similar to `InterviewPracticeRoom.tsx`:
+  - Header at the top (title, description)
+  - Main content: two columns
+    - Left: `SessionListPanel`
+    - Right: `SchedulePanel` and `InvitePanel` (stacked or tabbed)
+- Remove inline logic/UI for sessions and scheduling from the main file.
 
-### 3-B  Robust error handling
-1. Wrap every Supabase call (`updateStage`, `setCase`, etc.) in `try/catch`.  
-2. Store the message in the hook’s `error` state.  
-3. Surface an **alert component** in the UI that shows the message and offers a **Retry** button linked to the failed operation.
+## 4. Consistent Naming and Patterns
+- Use similar naming conventions for handlers and state as in `InterviewPracticeRoom.tsx`.
+- Pass props to panels/components instead of handling everything inline.
+- Use `useNavigate` for navigation as needed.
 
-### 3-C  Optional: adopt TanStack Query
-1. Install: `pnpm add @tanstack/react-query`.  
-2. Wrap the app with `<QueryClientProvider>`.  
-3. Replace ad-hoc fetches with `useQuery` for caching and retries.  
-4. On realtime payload, synchronise by calling `queryClient.setQueryData(['session', sessionId], payload.new)`.
+## 5. Optional: Use URL Params or State for Panel/Tab Control
+- Optionally, use URL params or local state to control which panel/tab is active, for consistency with how `InterviewPracticeRoom.tsx` uses sessionId from the URL.
 
----
-
-## 4  Styling & design tokens 🎨
-
-1. **Tailwind config** – add brand colours (`primary`, `primaryFg`, etc.) under `theme.extend.colors`.  
-2. Search & replace inline hex (`#0E5473`, `#E5EEF3`) and inline `style={{…}}` blocks with Tailwind utility classes (`bg-primary`, `text-primary`, `bg-primaryFg`, …).  
-3. Implement a consistent disabled style via a `btn-disabled` class; ensure buttons set `aria-disabled={true}` when inactive.  
-4. *(Nice-to-have)* Add simple `framer-motion` animations for panel entry/exit.
-
----
-
-## 5  Accessibility ♿
-
-* Add `aria-expanded` and `aria-controls` to all collapsible triggers.  
-* Set iframe `title` dynamically based on stage and role (e.g., “Interview – Candidate View”).  
-* Run a WCAG contrast audit after applying the new colour tokens and adjust if any text fails AA.
+## 6. Clean Up and Test
+- Remove any unused code from the main file.
+- Ensure all props and types are correct.
+- Test the refactored component for feature parity and UI consistency.

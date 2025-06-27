@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { supabase } from '@/integrations/supabase/client';
+import { fetchProfile } from '@/integrations/supabase/utils';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -25,16 +26,20 @@ const CompleteProfile: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    const { error: profileError } = await supabase.from('profiles').insert({
-      user_id: user.id,
-      first_name: firstName,
-      last_name: lastName,
-      training_level: trainingLevel,
-    });
-    if (profileError) {
-      setError(profileError.message);
-      setIsLoading(false);
-      return;
+    // Check if profile exists first
+    const existingProfile = await fetchProfile(user.id);
+    if (!existingProfile) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        user_id: user.id,
+        first_name: firstName,
+        last_name: lastName,
+        training_level: trainingLevel,
+      });
+      if (profileError) {
+        setError(profileError.message);
+        setIsLoading(false);
+        return;
+      }
     }
     navigate('/dashboard');
   };
