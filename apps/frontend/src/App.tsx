@@ -12,7 +12,8 @@ import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import InterviewPracticeRoom from "./pages/InterviewPracticeRoom";
+
+import InterviewPracticeRoom from "./features/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

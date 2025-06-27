@@ -1,101 +1,156 @@
-## 1  State architecture 🔁 — Detailed Implementation Notes
-
-### 1-A  Create `useInterviewSession` hook
-
-**Purpose** – centralise every bit of session logic (data-fetching, realtime, role/stage calculation, DB writes) and give UI code a single, declarative API.
-
-1. **Inputs**  
-   * `sessionId` (string | null) — supplied by `InterviewPracticeRoom`.
-
-2. **Internal responsibilities**  
-   1. **Initial fetch** — read the `practice_sessions` row once on mount.  
-   2. **Realtime subscription** — open a Supabase channel for that row; merge each payload into local state.  
-   3. **Role derivation** — compare `supabase.auth.user.id` with `host_id` and `guest_id`; return `'host' | 'guest' | null'`.  
-   4. **Stage derivation** — convert the numeric `version` to a **Stage** enum (see §1-B).  
-   5. **Boolean helpers** — compute `isCandidate`, `isInterviewer`, etc. from the row + authed user.  
-   6. **Side-effect helpers** — small, promise-returning functions that *only* write to the DB. Local state is refreshed by the realtime event that follows:  
-      * `updateStage(nextStage)`  
-      * `setCase(caseId)`  
-      * `setCandidate(userId)`
-
-3. **Values returned by the hook**
-   
-ts
-   {
-     session,      // latest row, or null while loading
-     stage,        // Stage enum
-     role,         // 'host' | 'guest' | null
-     isCandidate,  // boolean
-     updateStage,  // helper functions …
-     setCase,
-     setCandidate,
-     error         // string | null
-   }
-
-4. **Error handling**  
-   * Wrap every Supabase call in `try / catch`.  
-   * On failure, assign a message to `error`; leave the previous state intact.  
-   * The hook should never throw; components stay mounted.
+# Component-decomposition implementation plan  
+*(aligned with the latest `InterviewPracticeRoom` that uses `useInterviewSession` and the `Stage` enum)*
 
 ---
 
-### 1-B  Introduce a *Stage* enum
+## 0. File / folder scaffold
+src/features/interview-room/
+├─ InterviewPracticeRoom.tsx # orchestrator only
+├─ HeaderBar.tsx # top bar
+├─ VideoPane.tsx # left iframe/error/loading
+├─ panels/
+│ ├─ PrepPanel.tsx # stage PREP
+│ ├─ InterviewPanel.tsx # stage INTERVIEW (candidate & interviewer modes)
+│ └─ WrapUpPanel.tsx # stage WRAP_UP
+└─ briefs/
+   └─ Brief.tsx # reusable collapsible markdown block
 
-| Enum key | DB value | Human meaning                                |
-|----------|----------|----------------------------------------------|
-| `PREP`       | 1 | Room open, choosing candidate/case              |
-| `INTERVIEW`  | 2 | Live examination in progress                   |
-| `WRAP_UP`    | 3 | Interview ended, review & next-steps            |
+## 1. Component contracts
 
-* Define the enum in a shared file (e.g. `types.ts`) and re-export it.  
-* Outside the hook, never reference the raw numbers—use the enum.
+### 1.1 `<HeaderBar>`
 
----
+| prop         | type                               | purpose                                        |
+|--------------|------------------------------------|------------------------------------------------|
+| `stage`      | `Stage`                            | decide if **Back** appears                     |
+| `role`       | `'host' \| 'guest' \| null`        | only host can see Back                         |
+| `updating`   | `boolean`                          | disable buttons while DB writes are in flight  |
+| `onExit`     | `() => void`                       | navigate to dashboard                          |
+| `onBack`     | `() => void`                       | call `updateStage(...)` to step backwards      |
 
-### 1-C  Guarded transitions (business rules)
-
-| Event name        | Allowed current stage(s) | Allowed actor | Next stage | Preconditions                             |
-|-------------------|--------------------------|---------------|-----------|-------------------------------------------|
-| `START_INTERVIEW` | `PREP`                   | Host          | `INTERVIEW` | Both `candidate_id` **and** `case_id` set |
-| `FINISH_INTERVIEW`| `INTERVIEW`              | Host          | `WRAP_UP`   | —                                         |
-| `RESET_TO_PREP`   | `INTERVIEW`, `WRAP_UP`   | Host          | `PREP`      | —                                         |
-
-* Implement these checks **inside** `updateStage`.  
-* If violated, reject the promise (hook sets `error`).  
-* Never write illegal state to the DB.
-
----
-
-### 1-D  Centralise side-effects
-
-* DB writes happen **only** in the hook’s helpers; UI buttons do **not** call Supabase directly.  
-* Don’t “optimistically” set local state; wait for the realtime event to confirm.  
-* Toasts/notifications live next to the helper functions, not in the component.
+Render logic: always show **Exit**; show **Back** when `role === 'host'` and `stage !== Stage.PREP`.
 
 ---
 
-### 1-E  Remove duplicated local state
+### 1.2 `<VideoPane>`
 
-After adopting the hook:
+| prop      | type                 | purpose                                                |
+|-----------|----------------------|--------------------------------------------------------|
+| `roomUrl` | `string \| null`     | iframe source                                          |
+| `error`   | `string \| null`     | if present, show red banner                            |
 
-* Delete component-level `useState` for `version`, `hostId`, `guestId`, `candidateId`, `role`, etc.  
-* Replace each reference with the corresponding field from the hook.  
-* Buttons now call `updateStage(...)`, never raw Supabase calls.
-
----
-
-### 1-F  Unit tests for the hook
-
-1. **Happy path** — mock session with `version = 1`; expect `stage === PREP` and correct `role`.  
-2. **Guard enforcement** — call `updateStage(INTERVIEW)` as a *guest*; promise rejects, state unchanged.  
-3. **Realtime update** — simulate `postgres_changes` payload with `version = 2`; hook updates `stage` automatically.
+Visual states  
+1. `error` → banner  
+2. `roomUrl` truthy → iframe  
+3. neither → “Loading meeting room…” placeholder
 
 ---
 
-### 1-G  Migration plan
+### 1.3 Panel components (right-side column)
 
-1. Build the hook + enum in isolation.  
-2. Refactor `InterviewPracticeRoom` to consume the hook while keeping old polling behind a feature flag.  
-3. Manual QA the full flow.  
-4. Remove obsolete polling `useEffect`s.  
-5. Merge the feature branch.
+#### `PrepPanel`
+
+| prop | type | notes |
+|------|------|-------|
+| `session` | practice_sessions row | contains `hostId`, `guestId`, `candidateId`, `caseId` |
+| `cases` | array of case rows | list from `fetchCases` |
+| `role` | `'host' \| 'guest' \| null` | host controls selection |
+| `updating` | boolean | disables buttons while saving |
+| `onSelectCandidate(id)` | fn | host chooses candidate |
+| `onSelectCase(id)` | fn | host chooses case |
+| `onStartCase()` | fn | host starts interview |
+
+#### `InterviewPanel`
+
+| prop | type |
+|------|------|
+| `session` | practice_sessions row |
+| `cases`   | array |
+| `role`    | `'host' \| 'guest' \| null` |
+| `isCandidate` | boolean |
+| `updating` | boolean |
+| `onFinishCase()` | fn (host only) |
+| `onBack()` | fn (host only) |
+
+Internal split: `isCandidate ? <CandidateSide /> : <InterviewerSide />`.
+
+#### `WrapUpPanel`
+
+| prop | type |
+|------|------|
+| `role` | `'host' \| 'guest' \| null` |
+| `updating` | boolean |
+| `onExit()` | fn |
+| `onDoAnother()` | fn (host only) |
+| `onTranscript()` | fn (placeholder) |
+
+---
+
+### 1.4 `<Brief>`
+
+| prop | type | purpose |
+|------|------|---------|
+| `title` | `string` | collapsible header text |
+| `markdown` | `string \| null` | rendered via `renderMarkdownToReact` |
+| `placeholder` | `string` | fallback when `markdown` is empty |
+| `defaultOpen?` | `boolean` | optional initial state |
+
+Uses the same Collapsible primitives for consistent styling.
+
+---
+
+## 2. Build & migration steps
+
+1. **Extract HeaderBar** — copy top-bar JSX into its own component; replace with `<HeaderBar … />`.
+2. **Extract VideoPane** — move iframe / loading / error block into new component; parent passes `roomUrl` & `error`.
+3. **Create Brief** — move one Collapsible block into `<Brief>`; replace repeated blocks in InterviewPanel.
+4. **Build PrepPanel** — move PREP right column; rely on callback props instead of direct DB writes.
+5. **Build InterviewPanel** — move INTERVIEW right column; split candidate vs interviewer view; use callbacks.
+5b. **Refactor InterviewPracticeRoom**  
+   const rightPanel = stage === Stage.PREP
+       ? <PrepPanel {...props}/>
+       : stage === Stage.INTERVIEW
+           ? <InterviewPanel {...props}/>
+           : <WrapUpPanel {...props}/>;
+   return (
+     <>
+       <HeaderBar … />
+       <div className="layout">
+         <VideoPane roomUrl={session?.roomUrl ?? null} error={error} />
+         {rightPanel}
+       </div>
+     </>
+   );
+6. **Build WrapUpPanel** — move WRAP_UP right column; host-only actions via callbacks.
+7. **Delete unused handlers & leftover conditional JSX** — remove `handleBackToVersion1`, etc., now absorbed into panel props.
+
+---
+
+## 3. Styling & design tokens
+
+* Add `primary`, `primary-fg` colours to Tailwind config and replace hex codes.  
+* Eliminate new inline `style={…}` blocks; prefer class names.  
+* Re-export a shared button variant (e.g. `btn-primary`) from your UI library.
+
+---
+
+## 4. Testing checklist
+
+| Component | Assertions (React Testing Library) |
+|-----------|------------------------------------|
+| HeaderBar | Back appears only for host & non-PREP; buttons disabled when `updating`. |
+| VideoPane | Shows error banner; iframe when URL; loader otherwise. |
+| Brief | Renders placeholder if no markdown; collapses/expands on trigger. |
+| PrepPanel | Start disabled until both candidate & case selected; callbacks fire. |
+| InterviewPanel | Candidate/interviewer views show correct briefs; Finish button host-only. |
+| WrapUpPanel | Host sees all buttons; guest sees none. |
+
+Add a Cypress happy-path flow PREP → INTERVIEW → WRAP_UP using the new component tree.
+
+---
+
+## 5. Cleanup tasks
+
+1. Run ESLint & Prettier.  
+2. Remove legacy polling code and unused imports.  
+3. Add or update Storybook stories for every new component.  
+4. Open PR referencing this plan and tick items when complete.
