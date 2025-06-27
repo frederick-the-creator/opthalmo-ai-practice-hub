@@ -5,7 +5,7 @@ import PrepPanel from "./panels/PrepPanel";
 import InterviewPanel from "./panels/InterviewPanel";
 import WrapUpPanel from "./panels/WrapUpPanel";
 import { useNavigate } from "react-router-dom";
-import { useInterviewSession } from "@/hooks/useInterviewSession";
+import { useInterviewSession } from "@/pages/interview-room/useInterviewSession";
 import { fetchCases } from "@/integrations/supabase/utils";
 import { Stage } from "@/integrations/supabase/types";
 

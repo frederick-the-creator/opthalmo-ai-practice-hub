@@ -11,14 +11,6 @@ const api = axios.create({
   },
 });
 
-export async function updateSessionMeta({ sessionId, candidateId, caseId }: { sessionId: string, candidateId: string, caseId: string }) {
-  const response = await api.post("/update-session-meta", {
-    session_id: sessionId,
-    candidate_id: candidateId,
-    case_id: caseId,
-  });
-  return response.data;
-}
 
 export async function createSession({ host_id, date, time, type }: { host_id: string, date: string, time: string, type: string }) {
   const response = await api.post("/create-session", {

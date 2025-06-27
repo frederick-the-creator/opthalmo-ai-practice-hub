@@ -7,13 +7,13 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 import Dashboard from "./pages/Dashboard";
-import InterviewPractice from "./pages/InterviewPractice";
+import InterviewPractice from "./pages/InterviewScheduling";
 import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
-import InterviewPracticeRoom from "./features/interview-room/InterviewPracticeRoom";
+import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

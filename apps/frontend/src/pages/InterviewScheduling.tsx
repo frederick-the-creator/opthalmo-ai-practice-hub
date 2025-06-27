@@ -4,12 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Video, 
   Users, 
-  Link as LinkIcon, 
-  Clock, 
-  CalendarClock,
-  UserRound,
   Stethoscope,
   MessageSquare,
   Copy,
