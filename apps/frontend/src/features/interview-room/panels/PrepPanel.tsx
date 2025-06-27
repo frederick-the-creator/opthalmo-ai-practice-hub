@@ -25,8 +25,8 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCan
           onClick={() => onSelectCandidate(user.id)}
           className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
             ${session?.candidateId === user.id
-              ? 'bg-[#E5EEF3] text-[#0E5473]'
-              : 'bg-transparent text-[#0E5473] hover:bg-gray-100'}
+              ? 'bg-primary-foreground text-primary'
+              : 'bg-transparent text-primary hover:bg-gray-100'}
           `}
           style={{ minWidth: 120 }}
         >
@@ -51,8 +51,8 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCan
           onClick={() => onSelectCase(c.id)}
           className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
             ${session?.caseId === c.id
-              ? 'bg-[#E5EEF3] text-[#0E5473]'
-              : 'bg-transparent text-[#0E5473] hover:bg-gray-100'}
+              ? 'bg-primary-foreground text-primary'
+              : 'bg-transparent text-primary hover:bg-gray-100'}
           `}
           style={{ minWidth: 120 }}
         >
@@ -92,9 +92,10 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCan
         </Brief>
         <div className="flex justify-center mt-8">
           <Button
-            className="flex items-center gap-2 text-lg px-6 py-3"
+            className={`flex items-center gap-2 text-lg px-6 py-3 ${loading ? 'btn-disabled' : ''}`}
             onClick={handleStart}
             disabled={!session?.candidateId || !session?.caseId || loading}
+            aria-disabled={loading}
           >
             <Play className="w-5 h-5 mr-2" /> {loading ? "Starting..." : "Start Case"}
           </Button>

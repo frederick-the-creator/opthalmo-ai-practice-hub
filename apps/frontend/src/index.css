@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 200 78% 25%;
+    --primary-foreground: 200 44% 93%;
 
     --secondary: 160 84% 39%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -121,5 +120,11 @@
 
   .stats-card {
     @apply flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-sm border border-gray-100;
+  }
+
+  .btn-disabled {
+    @apply opacity-50 cursor-not-allowed bg-primary text-primary-foreground;
+    pointer-events: none;
+    aria-disabled: true;
   }
 }
