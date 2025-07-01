@@ -41,3 +41,9 @@ export async function setStage({ sessionId, version }: { sessionId: string, vers
   const response = await api.post("/sessions/set-stage", { sessionId, version });
   return response.data;
 }
+
+export async function startRecording({ room_url }: { room_url: string }) {
+  console.log('Starting recording function', room_url);
+  const response = await api.post("/sessions/start-recording", { room_url });
+  return response.data;
+}

@@ -4,7 +4,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import { supabase, updatePracticeSession, createPracticeSession } from './integrations/supabaseRoutes';
-import { createDailyRoom } from './integrations/dailyRoutes';
+import { createDailyRoom, startDailyRecording } from './integrations/dailyRoutes';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
@@ -59,6 +59,7 @@ app.post('/api/sessions/accept-invite', async (req: Request, res: Response) => {
     }
     res.json({ session: data[0] });
   } catch (err: any) {
+    console.error('Error accepting invitation:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to accept invitation' });
   }
 });
@@ -75,6 +76,7 @@ app.post('/api/sessions/set-candidate', async (req: Request, res: Response) => {
     }
     res.json({ session: data[0] });
   } catch (err: any) {
+    console.error('Error setting candidate:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to set candidate' });
   }
 });
@@ -88,6 +90,7 @@ app.post('/api/sessions/set-case', async (req: Request, res: Response) => {
     const session = await updatePracticeSession(sessionId, { case_id: caseId });
     res.json({ session });
   } catch (err: any) {
+    console.error('Error setting case:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to set case' });
   }
 });
@@ -101,7 +104,31 @@ app.post('/api/sessions/set-stage', async (req: Request, res: Response) => {
     const session = await updatePracticeSession(sessionId, { version });
     res.json({ session });
   } catch (err: any) {
+    console.error('Error setting stage:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to set stage' });
+  }
+});
+
+// Start recording endpoint: starts a Daily.co recording for a given room_url
+app.post('/api/sessions/start-recording', async (req: Request, res: Response) => {
+  console.log('Starting recording endpoint');
+  const { room_url } = req.body;
+  if (!room_url) {
+    return res.status(400).json({ error: 'Missing room_url' });
+  }
+  try {
+    // Extract room name from URL (last segment)
+    const urlParts = room_url.split('/');
+    const roomName = urlParts[urlParts.length - 1];
+    if (!roomName) {
+      return res.status(400).json({ error: 'Invalid room_url' });
+    }
+    // Start recording via Daily.co
+    const recording = await startDailyRecording(roomName);
+    res.json({ recording });
+  } catch (err: any) {
+    console.error('Error starting recording:', err.response?.data || err.message);
+    res.status(500).json({ error: err.message || 'Failed to start recording' });
   }
 });
 

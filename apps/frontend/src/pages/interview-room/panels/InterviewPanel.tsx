@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Brief from '../briefs/Brief';
+import { startRecording } from '@/lib/api';
 
 type InterviewPanelProps = {
   session: any;
@@ -14,7 +15,27 @@ type InterviewPanelProps = {
 };
 
 const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, isCandidate, onFinishCase }) => {
+  const [recording, setRecording] = useState<null | any>(null);
+  const [recordingLoading, setRecordingLoading] = useState(false);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
+  const [recordingSuccess, setRecordingSuccess] = useState<string | null>(null);
+
   const foundCase = cases.find(c => c.id === session?.case_id);
+
+  const handleStartRecording = async () => {
+    setRecordingLoading(true);
+    setRecordingError(null);
+    setRecordingSuccess(null);
+    try {
+      const result = await startRecording({ room_url: session?.room_url });
+      setRecording(result.recording);
+      setRecordingSuccess('Recording started!');
+    } catch (err: any) {
+      setRecordingError(err?.response?.data?.error || err.message || 'Failed to start recording');
+    } finally {
+      setRecordingLoading(false);
+    }
+  };
 
   if (isCandidate) {
     return (
@@ -30,11 +51,21 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
             markdown={foundCase?.candidate_brief ?? null}
             placeholder={!session?.case_id ? 'Select a case to view the candidate brief.' : 'No candidate brief available for this case.'}
           />
-          {/* Only the host sees the Proceed button */}
+          {/* Only the host sees the Proceed and Recording buttons */}
           {role === 'host' && (
-            <div className="flex justify-center mt-8">
+            <div className="flex flex-col items-center mt-8 gap-4">
               <Button
                 className="w-64 text-lg"
+                onClick={handleStartRecording}
+                disabled={recordingLoading}
+                variant="secondary"
+              >
+                {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
+              </Button>
+              {recordingError && <div className="text-red-500 text-sm mt-2">{recordingError}</div>}
+              {recordingSuccess && <div className="text-green-600 text-sm mt-2">{recordingSuccess}</div>}
+              <Button
+                className="w-64 text-lg mt-4"
                 onClick={onFinishCase}
               >
                 Finish Case
@@ -76,11 +107,21 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
           markdown={foundCase?.markscheme ?? null}
           placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
         />
-        {/* Only the host sees the Proceed button */}
+        {/* Only the host sees the Proceed and Recording buttons */}
         {role === 'host' && (
-          <div className="flex justify-center mt-8">
+          <div className="flex flex-col items-center mt-8 gap-4">
             <Button
               className="w-64 text-lg"
+              onClick={handleStartRecording}
+              disabled={recordingLoading}
+              variant="secondary"
+            >
+              {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
+            </Button>
+            {recordingError && <div className="text-red-500 text-sm mt-2">{recordingError}</div>}
+            {recordingSuccess && <div className="text-green-600 text-sm mt-2">{recordingSuccess}</div>}
+            <Button
+              className="w-64 text-lg mt-4"
               onClick={onFinishCase}
             >
               Finish Case
