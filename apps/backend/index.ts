@@ -4,7 +4,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import { supabase, updatePracticeSession, createPracticeSession } from './integrations/supabaseRoutes';
-import { createDailyRoom, startDailyRecording } from './integrations/dailyRoutes';
+import { createDailyRoom, startDailyRecording, stopDailyRecording } from './integrations/dailyRoutes';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
@@ -129,6 +129,27 @@ app.post('/api/sessions/start-recording', async (req: Request, res: Response) =>
   } catch (err: any) {
     console.error('Error starting recording:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to start recording' });
+  }
+});
+
+// Stop recording endpoint: stops a Daily.co recording for a given room_url
+app.post('/api/sessions/stop-recording', async (req: Request, res: Response) => {
+  console.log('Stopping recording endpoint');
+  const { room_url } = req.body;
+  if (!room_url) {
+    return res.status(400).json({ error: 'Missing room_url' });
+  }
+  try {
+    const urlParts = room_url.split('/');
+    const roomName = urlParts[urlParts.length - 1];
+    if (!roomName) {
+      return res.status(400).json({ error: 'Invalid room_url' });
+    }
+    const result = await stopDailyRecording(roomName);
+    res.json({ result });
+  } catch (err: any) {
+    console.error('Error stopping recording:', err.response?.data || err.message);
+    res.status(500).json({ error: err.message || 'Failed to stop recording' });
   }
 });
 

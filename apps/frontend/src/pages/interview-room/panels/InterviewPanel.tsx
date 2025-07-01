@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Brief from '../briefs/Brief';
-import { startRecording } from '@/lib/api';
+import { startRecording, stopRecording } from '@/lib/api';
 
 type InterviewPanelProps = {
   session: any;
@@ -19,6 +19,9 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [recordingSuccess, setRecordingSuccess] = useState<string | null>(null);
+  const [stopLoading, setStopLoading] = useState(false);
+  const [stopError, setStopError] = useState<string | null>(null);
+  const [stopSuccess, setStopSuccess] = useState<string | null>(null);
 
   const foundCase = cases.find(c => c.id === session?.case_id);
 
@@ -26,6 +29,8 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     setRecordingLoading(true);
     setRecordingError(null);
     setRecordingSuccess(null);
+    setStopError(null);
+    setStopSuccess(null);
     try {
       const result = await startRecording({ room_url: session?.room_url });
       setRecording(result.recording);
@@ -34,6 +39,22 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
       setRecordingError(err?.response?.data?.error || err.message || 'Failed to start recording');
     } finally {
       setRecordingLoading(false);
+    }
+  };
+
+  const handleStopRecording = async () => {
+    setStopLoading(true);
+    setStopError(null);
+    setStopSuccess(null);
+    setRecordingError(null);
+    setRecordingSuccess(null);
+    try {
+      const result = await stopRecording({ room_url: session?.room_url });
+      setStopSuccess('Recording stopped.');
+    } catch (err: any) {
+      setStopError(err?.response?.data?.error || err.message || 'Failed to stop recording');
+    } finally {
+      setStopLoading(false);
     }
   };
 
@@ -54,16 +75,28 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
           {/* Only the host sees the Proceed and Recording buttons */}
           {role === 'host' && (
             <div className="flex flex-col items-center mt-8 gap-4">
-              <Button
-                className="w-64 text-lg"
-                onClick={handleStartRecording}
-                disabled={recordingLoading}
-                variant="secondary"
-              >
-                {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
-              </Button>
+              <div className="flex gap-2 w-full justify-center">
+                <Button
+                  className="w-64 text-lg"
+                  onClick={handleStartRecording}
+                  disabled={recordingLoading || stopLoading}
+                  variant="secondary"
+                >
+                  {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
+                </Button>
+                <Button
+                  className="w-64 text-lg"
+                  onClick={handleStopRecording}
+                  disabled={stopLoading || recordingLoading}
+                  variant="destructive"
+                >
+                  {stopLoading ? 'Stopping...' : 'Stop Recording'}
+                </Button>
+              </div>
               {recordingError && <div className="text-red-500 text-sm mt-2">{recordingError}</div>}
               {recordingSuccess && <div className="text-green-600 text-sm mt-2">{recordingSuccess}</div>}
+              {stopError && <div className="text-red-500 text-sm mt-2">{stopError}</div>}
+              {stopSuccess && <div className="text-green-600 text-sm mt-2">{stopSuccess}</div>}
               <Button
                 className="w-64 text-lg mt-4"
                 onClick={onFinishCase}
@@ -110,16 +143,28 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
         {/* Only the host sees the Proceed and Recording buttons */}
         {role === 'host' && (
           <div className="flex flex-col items-center mt-8 gap-4">
-            <Button
-              className="w-64 text-lg"
-              onClick={handleStartRecording}
-              disabled={recordingLoading}
-              variant="secondary"
-            >
-              {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
-            </Button>
+            <div className="flex gap-2 w-full justify-center">
+              <Button
+                className="w-64 text-lg"
+                onClick={handleStartRecording}
+                disabled={recordingLoading || stopLoading}
+                variant="secondary"
+              >
+                {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
+              </Button>
+              <Button
+                className="w-64 text-lg"
+                onClick={handleStopRecording}
+                disabled={stopLoading || recordingLoading}
+                variant="destructive"
+              >
+                {stopLoading ? 'Stopping...' : 'Stop Recording'}
+              </Button>
+            </div>
             {recordingError && <div className="text-red-500 text-sm mt-2">{recordingError}</div>}
             {recordingSuccess && <div className="text-green-600 text-sm mt-2">{recordingSuccess}</div>}
+            {stopError && <div className="text-red-500 text-sm mt-2">{stopError}</div>}
+            {stopSuccess && <div className="text-green-600 text-sm mt-2">{stopSuccess}</div>}
             <Button
               className="w-64 text-lg mt-4"
               onClick={onFinishCase}

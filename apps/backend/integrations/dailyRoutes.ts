@@ -47,4 +47,28 @@ export async function startDailyRecording(roomName: string): Promise<any> {
     console.error('Error starting recording:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || error.message || 'Failed to start Daily.co recording');
   }
+}
+
+/**
+ * Stop a recording for a Daily.co room.
+ * @param roomName The Daily.co room name (not the full URL)
+ * @returns The response from Daily.co
+ * @throws If the API call fails
+ */
+export async function stopDailyRecording(roomName: string): Promise<any> {
+  try {
+    const dailyRes = await axios.post(
+      `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return dailyRes.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || error.message || 'Failed to stop Daily.co recording');
+  }
 } 
