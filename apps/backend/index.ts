@@ -2,8 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import axios from 'axios';
-import { supabase, updatePracticeSession, createPracticeSession } from './integrations/supabaseRoutes';
+import { updatePracticeSession, createPracticeSession } from './integrations/supabaseRoutes';
 import { createDailyRoom, startDailyRecording, stopDailyRecording } from './integrations/dailyRoutes';
 
 const app = express();
