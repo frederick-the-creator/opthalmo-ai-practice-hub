@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/supabase/client";
 import { createSession, acceptInvitation } from "@/lib/api";
-import { fetchSessions as fetchSessionsUtil, subscribeToPracticeSessions } from "@/integrations/supabase/utils";
+import { fetchSessions as fetchSessionsUtil, subscribeToPracticeSessions } from "@/supabase/utils";
 
 // Types for session and profile
 export interface Session {

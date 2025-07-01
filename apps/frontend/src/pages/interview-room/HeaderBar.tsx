@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage } from '@/integrations/supabase/types';
+import { Stage } from '@/supabase/types';
 import { Button } from '@/components/ui/button';
 
 type HeaderBarProps = {

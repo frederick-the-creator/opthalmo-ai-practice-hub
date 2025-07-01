@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Stage } from '@/integrations/supabase/types';
-import { fetchSessions, subscribeToPracticeSessions } from '@/integrations/supabase/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { Stage } from '@/supabase/types';
+import { fetchSessions, subscribeToPracticeSessions } from '@/supabase/utils';
+import { supabase } from '@/supabase/client';
 import { setCandidate as setCandidateApi, setCase as setCaseApi, setStage as setStageApi } from "@/lib/api";
 
 // Define the return type for clarity (can be expanded later)

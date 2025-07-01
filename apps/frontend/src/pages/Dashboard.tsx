@@ -4,7 +4,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import WeakAreas from "@/components/dashboard/WeakAreas";
 import RecentSessions from "@/components/dashboard/RecentSessions";
 import Notifications from "@/components/dashboard/Notifications";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, onComplete: () => void, prefill?: { firstName?: string, lastName?: string, trainingLevel?: string } }) {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import Footer from "../shared/Footer";
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/supabase/client';
 
 const GuestLayout: React.FC = () => {
   const [loading, setLoading] = useState(true);

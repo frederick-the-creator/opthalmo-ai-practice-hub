@@ -1,7 +1,7 @@
 import React from 'react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
-import { renderMarkdownToReact } from '@/integrations/supabase/utils';
+import { renderMarkdownToReact } from '@/supabase/utils';
 
 type BriefProps = {
   title: string;

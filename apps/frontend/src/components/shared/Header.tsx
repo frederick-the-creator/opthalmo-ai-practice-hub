@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchProfile } from "@/integrations/supabase/utils";
+import { supabase } from "@/supabase/client";
+import { fetchProfile } from "@/supabase/utils";
 
 interface HeaderProps {
   toggleSidebar?: () => void;

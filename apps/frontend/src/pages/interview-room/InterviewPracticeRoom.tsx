@@ -6,8 +6,8 @@ import InterviewPanel from "./panels/InterviewPanel";
 import WrapUpPanel from "./panels/WrapUpPanel";
 import { useNavigate } from "react-router-dom";
 import { useInterviewSession } from "@/pages/interview-room/useInterviewSession";
-import { fetchCases } from "@/integrations/supabase/utils";
-import { Stage } from "@/integrations/supabase/types";
+import { fetchCases } from "@/supabase/utils";
+import { Stage } from "@/supabase/types";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();

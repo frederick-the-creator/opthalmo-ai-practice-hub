@@ -3,8 +3,8 @@ import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/integrations/supabase/client';
-import { fetchProfile } from '@/integrations/supabase/utils';
+import { supabase } from '@/supabase/client';
+import { fetchProfile } from '@/supabase/utils';
 
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
