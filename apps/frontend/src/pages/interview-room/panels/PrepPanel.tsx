@@ -7,12 +7,13 @@ type PrepPanelProps = {
   session: any;
   cases: any[];
   role: 'host' | 'guest' | null;
+  updating?: boolean;
   onSelectCandidate: (id: string) => void;
   onSelectCase: (id: string) => void;
   onStartCase: () => Promise<void> | void;
 };
 
-const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCandidate, onSelectCase, onStartCase }) => {
+const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, onSelectCandidate, onSelectCase, onStartCase }) => {
   const [loading, setLoading] = useState(false);
   console.log('role', role);
   if (role !== 'host') return null;
