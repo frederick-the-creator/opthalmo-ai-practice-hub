@@ -14,17 +14,27 @@ type PrepPanelProps = {
 
 const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCandidate, onSelectCase, onStartCase }) => {
   const [loading, setLoading] = useState(false);
+  console.log('role', role);
   if (role !== 'host') return null;
 
   // Candidate selection content
+  const candidates = [
+    session?.host_id
+      ? { id: session.host_id, name: session?.profiles ? `${session.profiles.first_name} ${session.profiles.last_name}` : 'Host' }
+      : null,
+    session?.guest_id
+      ? { id: session.guest_id, name: 'Guest' }
+      : null,
+  ].filter(Boolean);
+
   const candidateContent = (
     <div className="flex flex-col">
-      {[{id: session?.hostId, name: session?.hostName}, {id: session?.guestId, name: session?.guestName}].map(user => (
+      {candidates.map(user => (
         <div
           key={user.id}
           onClick={() => onSelectCandidate(user.id)}
           className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-            ${session?.candidateId === user.id
+            ${session?.candidate_id === user.id
               ? 'bg-primary-foreground text-primary'
               : 'bg-transparent text-primary hover:bg-gray-100'}
           `}
@@ -50,7 +60,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCan
           key={c.id}
           onClick={() => onSelectCase(c.id)}
           className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-            ${session?.caseId === c.id
+            ${session?.case_id === c.id
               ? 'bg-primary-foreground text-primary'
               : 'bg-transparent text-primary hover:bg-gray-100'}
           `}
@@ -94,7 +104,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, onSelectCan
           <Button
             className={`flex items-center gap-2 text-lg px-6 py-3 ${loading ? 'btn-disabled' : ''}`}
             onClick={handleStart}
-            disabled={!session?.candidateId || !session?.caseId || loading}
+            disabled={!session?.candidate_id || !session?.case_id || loading}
             aria-disabled={loading}
           >
             <Play className="w-5 h-5 mr-2" /> {loading ? "Starting..." : "Start Case"}

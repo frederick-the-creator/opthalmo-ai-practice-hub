@@ -80,9 +80,9 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
   let role: 'host' | 'guest' | null = null;
   let isCandidate = false;
   if (userId && session) {
-    if (userId === session.hostId) role = 'host';
-    else if (userId === session.guestId) role = 'guest';
-    if (userId === session.candidateId) isCandidate = true;
+    if (userId === session.host_id) role = 'host';
+    else if (userId === session.guest_id) role = 'guest';
+    if (userId === session.candidate_id) isCandidate = true;
   }
 
   // Helper: updateStage
@@ -103,7 +103,7 @@ export function useInterviewSession(sessionId: string | null): UseInterviewSessi
         setError('Can only start interview from PREP stage');
         return Promise.reject('Can only start interview from PREP stage');
       }
-      if (!session.candidateId || !session.caseId) {
+      if (!session.candidate_id || !session.case_id) {
         setError('Candidate and case must be set before starting interview');
         return Promise.reject('Candidate and case must be set before starting interview');
       }

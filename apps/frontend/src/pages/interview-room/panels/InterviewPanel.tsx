@@ -14,7 +14,7 @@ type InterviewPanelProps = {
 };
 
 const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, isCandidate, onFinishCase }) => {
-  const foundCase = cases.find(c => c.id === session?.caseId);
+  const foundCase = cases.find(c => c.id === session?.case_id);
 
   if (isCandidate) {
     return (
@@ -28,7 +28,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
           <Brief
             title="Candidate Brief"
             markdown={foundCase?.candidate_brief ?? null}
-            placeholder={!session?.caseId ? 'Select a case to view the candidate brief.' : 'No candidate brief available for this case.'}
+            placeholder={!session?.case_id ? 'Select a case to view the candidate brief.' : 'No candidate brief available for this case.'}
           />
           {/* Only the host sees the Proceed button */}
           {role === 'host' && (
@@ -69,12 +69,12 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
         <Brief
           title="Actor Brief"
           markdown={foundCase?.actor_brief ?? null}
-          placeholder={!session?.caseId ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
+          placeholder={!session?.case_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
         />
         <Brief
           title="MarkScheme"
           markdown={foundCase?.markscheme ?? null}
-          placeholder={!session?.caseId ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
+          placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
         />
         {/* Only the host sees the Proceed button */}
         {role === 'host' && (

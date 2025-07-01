@@ -9,7 +9,9 @@ This will be the Express backend for the Ophthalmo AI Practice Hub.
 
 ## Usage (to be implemented)
 
-```
+```sh
 npm install
-npm run dev
+npm run dev # runs with ts-node
+npm run build # compiles to dist/
+npm start # runs compiled JS from dist/
 ``` 
