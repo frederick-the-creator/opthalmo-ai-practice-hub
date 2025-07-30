@@ -48,7 +48,9 @@ export async function startRecording({ room_url }: { room_url: string }) {
   return response.data;
 }
 
-export async function stopRecording({ room_url }: { room_url: string }) {
-  const response = await api.post("/sessions/stop-recording", { room_url });
+export async function stopRecording({ room_url, sessionId }: { room_url: string, sessionId: string }) {
+  console.log('Stopping recording function room_url', room_url);
+  console.log('Stopping recording function sessionId', sessionId);
+  const response = await api.post("/sessions/stop-recording", { room_url, sessionId });
   return response.data;
 }

@@ -49,7 +49,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     setRecordingError(null);
     setRecordingSuccess(null);
     try {
-      const result = await stopRecording({ room_url: session?.room_url });
+      const result = await stopRecording({ room_url: session?.room_url, sessionId: session?.id });
       setStopSuccess('Recording stopped.');
     } catch (err: any) {
       setStopError(err?.response?.data?.error || err.message || 'Failed to stop recording');

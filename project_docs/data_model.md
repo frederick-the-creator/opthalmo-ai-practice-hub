@@ -75,3 +75,31 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
 
 - **Usage**:
   - Linked from `practice_sessions` via `case_id`
+
+
+  ### 📁 Supabase Storage Bucket: `practice_transcriptions`
+
+- **Purpose:**  
+  Stores JSON transcription files for each practice session.
+
+- **Bucket Name:**  
+  `transcriptions`
+
+- **File Structure:**  
+  Each transcription is stored as `transcriptions/{session_id}/transcript.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
+
+- **Access Control (RLS Policies):**
+  - **Read:** Allowed for users who are the `host` or `guest` of the session.
+  - **Insert/Upload:** Allowed for the `host` of the session.
+  - **Delete:** Allowed for the `host` of the session.
+  - **Public:** **Not public** (private bucket).
+
+- **Security Implementation:**
+  - RLS (Row Level Security) is enabled on the `storage.objects` table.
+  - Policies use the session ID in the file path to match against the `practice_sessions` table and the authenticated user’s UID.
+
+- **Relevant Table Links:**
+  - `practice_sessions.id` (UUID) is used as the folder name for each session’s transcription.
+
+**Example file path:**  
+`practice_transcriptions/123e4567-e89b-12d3-a456-426614174000/transcript.json`
