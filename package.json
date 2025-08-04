@@ -13,5 +13,8 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "ts-node-dev": "^2.0.0"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.2"
   }
 }

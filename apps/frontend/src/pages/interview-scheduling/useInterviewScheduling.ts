@@ -123,12 +123,18 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
     const host_id = userData.user.id;
     try {
+      // Combine selectedDate and selectedTime into a UTC ISO string
+      const [hours, minutes] = selectedTime.split(":").map(Number);
+      const localDateTime = new Date(selectedDate);
+      localDateTime.setHours(hours, minutes, 0, 0);
+      const datetime_utc = localDateTime.toISOString();
       // Call backend to create session (creates Daily room and DB row)
       const response = await createSession({
         host_id,
-        date: selectedDate.toISOString().split('T')[0],
-        time: selectedTime,
+        date: selectedDate.toISOString().split('T')[0], // for backward compatibility
+        time: selectedTime, // for backward compatibility
         type: sessionType,
+        datetime_utc, // now required
       });
       if (response.error) {
         setScheduleError(response.error || "Failed to schedule session.");

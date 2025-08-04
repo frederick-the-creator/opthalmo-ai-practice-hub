@@ -12,6 +12,7 @@ export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERV
  * @throws If the insert fails.
  */
 export async function createPracticeSession(fields: Record<string, any>): Promise<any> {
+  console.log('Creating session with fields:', fields);
   const { data, error } = await supabase
     .from('practice_sessions')
     .insert([fields])

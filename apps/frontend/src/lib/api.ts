@@ -12,12 +12,13 @@ const api = axios.create({
 });
 
 
-export async function createSession({ host_id, date, time, type }: { host_id: string, date: string, time: string, type: string }) {
+export async function createSession({ host_id, date, time, type, datetime_utc }: { host_id: string, date: string, time: string, type: string, datetime_utc: string }) {
   const response = await api.post("/create-session", {
     host_id,
     date,
     time,
     type,
+    datetime_utc,
   });
   return response.data;
 }
