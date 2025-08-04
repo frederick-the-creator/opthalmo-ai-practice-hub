@@ -24,6 +24,7 @@ interface Session {
     last_name: string | null;
     avatar: string | null;
   }>;
+  datetime_utc: string;
 }
 
 interface Props {
@@ -97,7 +98,11 @@ const SessionListPanel: React.FC<Props> = ({
                       <div className="flex text-sm text-gray-500">
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
-                        <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                        <span>{
+                          session.datetime_utc
+                            ? new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                            : new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                        }</span>
                         {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
                       </div>
                     </div>
@@ -133,7 +138,11 @@ const SessionListPanel: React.FC<Props> = ({
                       <div className="flex text-sm text-gray-500">
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
-                        <span>{new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                        <span>{
+                          session.datetime_utc
+                            ? new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                            : new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                        }</span>
                       </div>
                     </div>
                   </div>

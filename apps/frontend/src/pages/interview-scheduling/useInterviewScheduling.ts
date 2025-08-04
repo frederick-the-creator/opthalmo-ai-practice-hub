@@ -24,6 +24,7 @@ export interface Session {
     last_name: string | null;
     avatar: string | null;
   }>;
+  datetime_utc: string;
 }
 
 export interface UseInterviewSchedulingResult {
@@ -163,7 +164,9 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Filter out sessions that are more than 1 hour past start time
       const now = new Date();
       const filtered = (data as any[]).filter((session) => {
-        const sessionStart = new Date(`${session.date}T${session.time}`);
+        const sessionStart = session.datetime_utc
+          ? new Date(session.datetime_utc)
+          : new Date(`${session.date}T${session.time}`);
         return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
       });
       setSessions(filtered);

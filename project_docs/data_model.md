@@ -31,8 +31,7 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `id`: UUID, primary key
   - `host_id`: UUID, references `profiles(user_id)`
   - `guest_id`: UUID, nullable, references `profiles(user_id)`
-  - `date`: date of session
-  - `time`: time of session (no time zone)
+  - `datetime_utc`: Date and time of session
   - `type`: text — type of session (e.g. mock, review)
   - `room_url`: unique text — session room identifier or link
   - `case_id`: UUID, nullable, references `cases(id)`
@@ -41,7 +40,6 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `created_at`: timestamp with time zone, defaults to `now() at time zone 'utc'`
 
 - **Indexes**:
-  - `(date, time)` — for efficient time-slot lookup
   - `host_id` — to query all sessions hosted by a user
   - `guest_id` — to query all sessions where a user is a guest
 
