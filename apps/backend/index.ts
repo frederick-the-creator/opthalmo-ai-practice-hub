@@ -26,8 +26,9 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Create session endpoint: creates Daily room, then inserts session in Supabase
 app.post('/api/create-session', async (req: Request, res: Response) => {
 
-  const { host_id, date, time, type, datetime_utc } = req.body;
-  if (!host_id || !date || !time || !type || !datetime_utc) {
+  const { host_id, type, datetime_utc } = req.body;
+  console.log('Backend API Route - datetime_utc', datetime_utc);
+  if (!host_id || !type || !datetime_utc) {
     console.log('Missing required fields');
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -37,7 +38,8 @@ app.post('/api/create-session', async (req: Request, res: Response) => {
     console.log('Daily.co room created:', roomUrl);
 
     // 2. Insert into Supabase
-    const { data } = await createPracticeSession({ host_id, date, time, type, room_url: roomUrl, datetime_utc });
+    console.log('Backend API Route - datetime_utc', datetime_utc);
+    const { data } = await createPracticeSession({ host_id, type, room_url: roomUrl, datetime_utc });
     res.json({ session: data[0] });
     
   } catch (error: any) {

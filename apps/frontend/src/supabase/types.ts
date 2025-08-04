@@ -53,40 +53,37 @@ export type Database = {
           candidate_id: string | null
           case_id: string | null
           created_at: string | null
-          date: string
           guest_id: string | null
           host_id: string
           id: string
           room_url: string | null
-          time: string
           type: string
           version: number
+          datetime_utc: string
         }
         Insert: {
           candidate_id?: string | null
           case_id?: string | null
           created_at?: string | null
-          date: string
           guest_id?: string | null
           host_id: string
           id?: string
           room_url?: string | null
-          time?: string
           type: string
           version?: number
+          datetime_utc?: string
         }
         Update: {
           candidate_id?: string | null
           case_id?: string | null
           created_at?: string | null
-          date?: string
           guest_id?: string | null
           host_id?: string
           id?: string
           room_url?: string | null
-          time?: string
           type?: string
           version?: number
+          datetime_utc?: string
         }
         Relationships: [
           {

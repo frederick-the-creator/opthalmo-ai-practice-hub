@@ -124,16 +124,20 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
     const host_id = userData.user.id;
     try {
-      // Combine selectedDate and selectedTime into a UTC ISO string
+      // Debug logs for timezone issue
+      console.log('selectedDate:', selectedDate);
+      console.log('selectedTime:', selectedTime);
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth(); // 0-based
+      const day = selectedDate.getDate();
       const [hours, minutes] = selectedTime.split(":").map(Number);
-      const localDateTime = new Date(selectedDate);
-      localDateTime.setHours(hours, minutes, 0, 0);
+      const localDateTime = new Date(year, month, day, hours, minutes, 0, 0);
+      console.log('localDateTime (local):', localDateTime);
       const datetime_utc = localDateTime.toISOString();
+      console.log('datetime_utc (to send):', datetime_utc);
       // Call backend to create session (creates Daily room and DB row)
       const response = await createSession({
         host_id,
-        date: selectedDate.toISOString().split('T')[0], // for backward compatibility
-        time: selectedTime, // for backward compatibility
         type: sessionType,
         datetime_utc, // now required
       });
@@ -164,9 +168,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Filter out sessions that are more than 1 hour past start time
       const now = new Date();
       const filtered = (data as any[]).filter((session) => {
-        const sessionStart = session.datetime_utc
-          ? new Date(session.datetime_utc)
-          : new Date(`${session.date}T${session.time}`);
+        const sessionStart = new Date(session.datetime_utc);
         return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
       });
       setSessions(filtered);

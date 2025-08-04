@@ -8,8 +8,6 @@ interface Session {
   id: string;
   host_id: string;
   guest_id?: string | null;
-  date: string;
-  time: string;
   type: string;
   created_at: string;
   room_url?: string | null;
@@ -99,9 +97,7 @@ const SessionListPanel: React.FC<Props> = ({
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
                         <span>{
-                          session.datetime_utc
-                            ? new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                            : new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                         {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
                       </div>
@@ -139,9 +135,7 @@ const SessionListPanel: React.FC<Props> = ({
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
                         <span>{
-                          session.datetime_utc
-                            ? new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                            : new Date(session.date + 'T' + session.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                       </div>
                     </div>
