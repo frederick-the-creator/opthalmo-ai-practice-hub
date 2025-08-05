@@ -139,7 +139,12 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
       setStopSuccess('Recording stopped.');
       setHasStoppedRecording(true); // Prevent further stops
     } catch (err: any) {
-      setStopError(err?.response?.data?.error || err.message || 'Failed to stop recording');
+      const errorMsg = err?.response?.data?.error || err.message || 'Failed to stop recording';
+      if (errorMsg.toLowerCase().includes('not-found')) {
+        setStopError('You must join the call to stop recording.');
+      } else {
+        setStopError(errorMsg);
+      }
     } finally {
       setStopLoading(false);
     }
