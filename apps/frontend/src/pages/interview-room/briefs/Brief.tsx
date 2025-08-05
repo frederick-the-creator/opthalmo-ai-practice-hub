@@ -20,7 +20,7 @@ const Brief: React.FC<BriefProps> = ({ title, markdown, placeholder, defaultOpen
       <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
     </CollapsibleTrigger>
     <CollapsibleContent>
-      <div className="overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
+      <div className="brief-content overflow-hidden flex-1 shrink gap-2.5 mt-2.5 text-xs leading-6 basis-0 size-full max-md:max-w-full p-3 rounded-md">
         {children ? children : (markdown ? renderMarkdownToReact(markdown) : <span>{placeholder}</span>)}
       </div>
     </CollapsibleContent>
