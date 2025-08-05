@@ -28,6 +28,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
   const [editingTimer, setEditingTimer] = useState(false);
   const timerInputRef = useRef<HTMLInputElement | null>(null);
   const [timerInputError, setTimerInputError] = useState<string | null>(null);
+  const [hasStoppedRecording, setHasStoppedRecording] = useState(false);
 
   // Start timer when timerActive is set to true
   useEffect(() => {
@@ -136,6 +137,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     try {
       const result = await stopRecording({ room_url: session?.room_url, sessionId: session?.id });
       setStopSuccess('Recording stopped.');
+      setHasStoppedRecording(true); // Prevent further stops
     } catch (err: any) {
       setStopError(err?.response?.data?.error || err.message || 'Failed to stop recording');
     } finally {
@@ -195,7 +197,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
                 <Button
                   className="w-64 text-lg"
                   onClick={handleStopRecording}
-                  disabled={stopLoading || recordingLoading}
+                  disabled={stopLoading || recordingLoading || hasStoppedRecording}
                   variant="destructive"
                 >
                   {stopLoading ? 'Stopping...' : 'Stop Recording'}
@@ -286,7 +288,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
               <Button
                 className="w-64 text-lg"
                 onClick={handleStopRecording}
-                disabled={stopLoading || recordingLoading}
+                disabled={stopLoading || recordingLoading || hasStoppedRecording}
                 variant="destructive"
               >
                 {stopLoading ? 'Stopping...' : 'Stop Recording'}

@@ -155,39 +155,38 @@ app.post('/api/sessions/stop-recording', async (req: Request, res: Response) => 
     const stopResult = await stopDailyRecording(roomName);
     console.log('stopResult:', stopResult);
 
-    // 2. Get the latest recording ID for the room
-    const recordingId = await getLatestRecordingId(roomName);
-    console.log('latest recordingId:', recordingId);
-    if (!recordingId) {
-      return res.status(500).json({ error: 'No recording ID found for room' });
-    }
+    // Respond to the client immediately after stopping the recording
+    res.json({ stopResult });
 
-    // 3. Submit transcription job
-    console.log('Submitting transcription job for recording:', recordingId);
-    const { transcription_id } = await submitTranscriptionJob(recordingId);
-
-    // 4. Poll for transcription completion
-    console.log('Polling transcription status for:', transcription_id);
-    const transcriptionResult = await pollTranscriptionStatus(transcription_id);
-
-    // 5. Fetch the transcription JSON
-    console.log('Fetching transcription JSON for:', transcriptionResult);
-    const transcriptionJson = await fetchTranscriptionJson(transcriptionResult);
-
-    console.log('transcriptionJson:', transcriptionJson);
-
-    // 6. Upload to Supabase Storage
-    console.log('Uploading transcription to Supabase Storage for session:', sessionId);
-    const storageUrl = await uploadTranscriptionToStorage(sessionId, transcriptionJson);
-
-    // 7. Return the storage URL/path and relevant info
-    res.json({
-      stopResult,
-      recordingId,
-      transcription_id,
-      transcription_status: transcriptionResult.status,
-      storageUrl,
-    });
+    // Run the rest of the workflow in the background
+    (async () => {
+      try {
+        // 2. Get the latest recording ID for the room
+        const recordingId = await getLatestRecordingId(roomName);
+        console.log('latest recordingId:', recordingId);
+        if (!recordingId) {
+          console.error('No recording ID found for room');
+          return;
+        }
+        // 3. Submit transcription job
+        console.log('Submitting transcription job for recording:', recordingId);
+        const { transcription_id } = await submitTranscriptionJob(recordingId);
+        // 4. Poll for transcription completion
+        console.log('Polling transcription status for:', transcription_id);
+        const transcriptionResult = await pollTranscriptionStatus(transcription_id);
+        // 5. Fetch the transcription JSON
+        console.log('Fetching transcription JSON for:', transcriptionResult);
+        const transcriptionJson = await fetchTranscriptionJson(transcriptionResult);
+        console.log('transcriptionJson:', transcriptionJson);
+        // 6. Upload to Supabase Storage
+        console.log('Uploading transcription to Supabase Storage for session:', sessionId);
+        const storageUrl = await uploadTranscriptionToStorage(sessionId, transcriptionJson);
+        // 7. Log completion
+        console.log('Transcription and upload complete:', { recordingId, transcription_id, transcription_status: transcriptionResult.status, storageUrl });
+      } catch (err: any) {
+        console.error('Error in background stop-recording workflow:', err.response?.data || err.message);
+      }
+    })();
   } catch (err: any) {
     console.error('Error in stop-recording workflow:', err.response?.data || err.message);
     res.status(500).json({ error: err.message || 'Failed to process stop-recording workflow' });
