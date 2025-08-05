@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import Brief from '../briefs/Brief';
@@ -22,6 +22,81 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
   const [stopLoading, setStopLoading] = useState(false);
   const [stopError, setStopError] = useState<string | null>(null);
   const [stopSuccess, setStopSuccess] = useState<string | null>(null);
+  const [timer, setTimer] = useState(8 * 60); // 8 minutes in seconds
+  const [timerActive, setTimerActive] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [editingTimer, setEditingTimer] = useState(false);
+  const timerInputRef = useRef<HTMLInputElement | null>(null);
+  const [timerInputError, setTimerInputError] = useState<string | null>(null);
+
+  // Start timer when timerActive is set to true
+  useEffect(() => {
+    if (timerActive && timer > 0) {
+      timerRef.current = setInterval(() => {
+        setTimer(prev => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerActive]);
+
+  // Stop timer when it reaches 0 and trigger stop recording
+  useEffect(() => {
+    if (timer === 0) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      setTimerActive(false);
+      // Only trigger stop if not already loading/stopping
+      if (!stopLoading && !recordingLoading) {
+        handleStopRecording();
+      }
+    }
+  }, [timer]);
+
+  // Format timer as MM:SS
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  // Parse MM:SS string to seconds
+  const parseTimeInput = (value: string) => {
+    const match = value.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    const min = parseInt(match[1], 10);
+    const sec = parseInt(match[2], 10);
+    if (isNaN(min) || isNaN(sec) || sec > 59) return null;
+    return min * 60 + sec;
+  };
+
+  // Handle timer input submit
+  const handleTimerInputSubmit = (e?: React.FormEvent | React.FocusEvent) => {
+    if (e) e.preventDefault();
+    if (timerInputRef.current) {
+      const value = timerInputRef.current.value;
+      const seconds = parseTimeInput(value);
+      if (seconds !== null) {
+        setTimer(seconds);
+        setTimerInputError(null);
+        setEditingTimer(false);
+        return;
+      } else {
+        setTimerInputError('Please enter time as MM:SS');
+      }
+    }
+    // Don't close input if invalid
+  };
+
+  // Focus input when editing
+  useEffect(() => {
+    if (editingTimer && timerInputRef.current) {
+      timerInputRef.current.focus();
+      timerInputRef.current.select();
+    }
+  }, [editingTimer]);
 
   const foundCase = cases.find(c => c.id === session?.case_id);
 
@@ -35,6 +110,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
       const result = await startRecording({ room_url: session?.room_url });
       setRecording(result.recording);
       setRecordingSuccess('Recording started!');
+      setTimerActive(true); // Only start the timer, do not reset
     } catch (err: any) {
       setRecordingError(err?.response?.data?.error || err.message || 'Failed to start recording');
     } finally {
@@ -43,6 +119,10 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
   };
 
   const handleStopRecording = async () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setTimerActive(false);
     setStopLoading(true);
     setStopError(null);
     setStopSuccess(null);
@@ -75,6 +155,29 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
           {/* Only the host sees the Proceed and Recording buttons */}
           {role === 'host' && (
             <div className="flex flex-col items-center mt-8 gap-4">
+              <div className="mb-2 text-2xl font-mono text-primary cursor-pointer" onClick={() => {
+                if (!timerActive && !recordingLoading && !stopLoading) setEditingTimer(true);
+              }}>
+                {editingTimer ? (
+                  <form onSubmit={handleTimerInputSubmit} style={{ display: 'inline' }}>
+                    <input
+                      ref={timerInputRef}
+                      type="text"
+                      defaultValue={formatTimer(timer)}
+                      onBlur={handleTimerInputSubmit}
+                      maxLength={5}
+                      className="w-20 text-2xl font-mono text-center border border-primary rounded px-1"
+                      disabled={timerActive || recordingLoading || stopLoading}
+                      aria-label="Set timer in MM:SS"
+                    />
+                  </form>
+                ) : (
+                  <>Timer: {formatTimer(timer)}</>
+                )}
+                {editingTimer && timerInputError && (
+                  <div className="text-red-500 text-xs mt-1">{timerInputError}</div>
+                )}
+              </div>
               <div className="flex gap-2 w-full justify-center">
                 <Button
                   className="w-64 text-lg"
@@ -143,6 +246,29 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
         {/* Only the host sees the Proceed and Recording buttons */}
         {role === 'host' && (
           <div className="flex flex-col items-center mt-8 gap-4">
+            <div className="mb-2 text-2xl font-mono text-primary cursor-pointer" onClick={() => {
+              if (!timerActive && !recordingLoading && !stopLoading) setEditingTimer(true);
+            }}>
+              {editingTimer ? (
+                <form onSubmit={handleTimerInputSubmit} style={{ display: 'inline' }}>
+                  <input
+                    ref={timerInputRef}
+                    type="text"
+                    defaultValue={formatTimer(timer)}
+                    onBlur={handleTimerInputSubmit}
+                    maxLength={5}
+                    className="w-20 text-2xl font-mono text-center border border-primary rounded px-1"
+                    disabled={timerActive || recordingLoading || stopLoading}
+                    aria-label="Set timer in MM:SS"
+                  />
+                </form>
+              ) : (
+                <>Timer: {formatTimer(timer)}</>
+              )}
+              {editingTimer && timerInputError && (
+                <div className="text-red-500 text-xs mt-1">{timerInputError}</div>
+              )}
+            </div>
             <div className="flex gap-2 w-full justify-center">
               <Button
                 className="w-64 text-lg"
