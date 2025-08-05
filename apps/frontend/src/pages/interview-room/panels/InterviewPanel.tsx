@@ -112,7 +112,12 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
       setRecordingSuccess('Recording started!');
       setTimerActive(true); // Only start the timer, do not reset
     } catch (err: any) {
-      setRecordingError(err?.response?.data?.error || err.message || 'Failed to start recording');
+      const errorMsg = err?.response?.data?.error || err.message || 'Failed to start recording';
+      if (errorMsg.toLowerCase().includes('not-found')) {
+        setRecordingError('You must join the call to start recording.');
+      } else {
+        setRecordingError(errorMsg);
+      }
     } finally {
       setRecordingLoading(false);
     }
