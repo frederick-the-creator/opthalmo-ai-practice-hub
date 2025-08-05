@@ -19,8 +19,8 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ stage, role, onExit, onBack }) =>
       >
         Exit
       </Button>
-      {/* Show Back only for host and not PREP stage */}
-      {role === 'host' && stage !== Stage.PREP && onBack && (
+      {/* Show Back only for host and not PREP or WRAP_UP stage */}
+      {role === 'host' && stage !== Stage.PREP && stage !== Stage.WRAP_UP && onBack && (
         <Button
           className="font-bold text-white bg-primary hover:bg-primary/90 border-none"
           onClick={onBack}
