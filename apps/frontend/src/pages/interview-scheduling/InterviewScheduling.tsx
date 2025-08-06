@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useInterviewScheduling } from "./useInterviewScheduling";
@@ -15,6 +15,7 @@ const InterviewPractice: React.FC = () => {
     scheduling, scheduleError,
     handleAcceptInvitation, handleScheduleSession,
     handleCopyLink, copied,
+    isPrivate, setIsPrivate,
   } = useInterviewScheduling();
   const navigate = useNavigate();
 
@@ -33,41 +34,31 @@ const InterviewPractice: React.FC = () => {
           <p className="text-gray-600">Practice clinical and communication stations</p>
         </div>
       </div>
-      <Tabs defaultValue="community" className="mb-8">
-        <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-          <TabsTrigger value="community">
-            Community Match
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="community" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <SessionListPanel
-                sessions={sessions}
-                loading={loading}
-                error={error}
-                currentUserId={currentUserId}
-                onAccept={handleAcceptInvitation}
-                onJoin={handleJoin}
-              />
-            </div>
-            <SchedulePanel
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              selectedTime={selectedTime}
-              setSelectedTime={setSelectedTime}
-              sessionType={sessionType}
-              setSessionType={setSessionType}
-              scheduleError={scheduleError}
-              scheduling={scheduling}
-              onSchedule={handleScheduleSession}
-            />
-          </div>
-        </TabsContent>
-        <TabsContent value="direct" className="mt-6">
-          <InvitePanel copied={copied} onCopy={handleCopyLink} />
-        </TabsContent>
-      </Tabs>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SessionListPanel
+            sessions={sessions}
+            loading={loading}
+            error={error}
+            currentUserId={currentUserId}
+            onAccept={handleAcceptInvitation}
+            onJoin={handleJoin}
+          />
+        </div>
+        <SchedulePanel
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          sessionType={sessionType}
+          setSessionType={setSessionType}
+          scheduleError={scheduleError}
+          scheduling={scheduling}
+          onSchedule={handleScheduleSession}
+          isPrivate={isPrivate}
+          setIsPrivate={setIsPrivate}
+        />
+      </div>
     </div>
   );
 };

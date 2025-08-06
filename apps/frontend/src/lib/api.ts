@@ -12,12 +12,13 @@ const api = axios.create({
 });
 
 
-export async function createSession({ host_id, type, datetime_utc }: { host_id: string, type: string, datetime_utc: string }) {
+export async function createSession({ host_id, type, datetime_utc, private: isPrivate }: { host_id: string, type: string, datetime_utc: string, private: boolean }) {
   console.log('Frontend API Call - datetime_utc', datetime_utc);
   const response = await api.post("/create-session", {
     host_id,
     type,
     datetime_utc,
+    private: isPrivate,
   });
   return response.data;
 }

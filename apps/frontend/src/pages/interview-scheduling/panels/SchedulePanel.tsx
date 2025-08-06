@@ -16,6 +16,8 @@ interface Props {
   scheduleError: string | null;
   scheduling: boolean;
   onSchedule: () => void;
+  isPrivate: boolean;
+  setIsPrivate: (val: boolean) => void;
 }
 
 const SchedulePanel: React.FC<Props> = ({
@@ -28,6 +30,8 @@ const SchedulePanel: React.FC<Props> = ({
   scheduleError,
   scheduling,
   onSchedule,
+  isPrivate,
+  setIsPrivate,
 }) => (
   <Card>
     <CardHeader>
@@ -66,6 +70,16 @@ const SchedulePanel: React.FC<Props> = ({
             <SelectItem value="Communication Station">Communication Station</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input
+          id="private-session"
+          type="checkbox"
+          checked={isPrivate}
+          onChange={e => setIsPrivate(e.target.checked)}
+          className="form-checkbox h-4 w-4 text-brand-blue"
+        />
+        <Label htmlFor="private-session">Private Session</Label>
       </div>
       {scheduleError && <div className="text-red-500 text-sm">{scheduleError}</div>}
       <Button className="w-full bg-brand-blue" onClick={onSchedule} disabled={scheduling}>

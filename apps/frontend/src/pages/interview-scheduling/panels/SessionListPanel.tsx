@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
 
 interface Session {
   id: string;
@@ -23,6 +24,7 @@ interface Session {
     avatar: string | null;
   }>;
   datetime_utc: string;
+  private?: boolean;
 }
 
 interface Props {
@@ -53,11 +55,11 @@ const SessionListPanel: React.FC<Props> = ({
     return { name, avatar };
   };
 
-  // Available sessions (not joined by user)
+  // Available sessions (not joined by user) and only public
   const availableSessions = sessions.filter(
     (session) =>
-      !currentUserId ||
-      (session.host_id !== currentUserId && session.guest_id !== currentUserId)
+      (!currentUserId || (session.host_id !== currentUserId && session.guest_id !== currentUserId)) &&
+      session.private !== true
   );
 
   // My sessions (joined or hosted by user)
@@ -123,6 +125,7 @@ const SessionListPanel: React.FC<Props> = ({
           ) : (
             mySessions.map((session) => {
               const { name, avatar } = getProfile(session);
+              const isHost = currentUserId && session.host_id === currentUserId;
               return (
                 <li key={session.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
@@ -130,7 +133,12 @@ const SessionListPanel: React.FC<Props> = ({
                       <AvatarFallback>{avatar}</AvatarFallback>
                     </Avatar>
                     <div className="ml-3">
-                      <p className="font-medium">{name}</p>
+                      <p className="font-medium flex items-center gap-2">
+                        {name}
+                        {session.private && (
+                          <Badge className="bg-gray-200 text-gray-700 ml-2">Private</Badge>
+                        )}
+                      </p>
                       <div className="flex text-sm text-gray-500">
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
@@ -140,16 +148,32 @@ const SessionListPanel: React.FC<Props> = ({
                       </div>
                     </div>
                   </div>
-                  {session.room_url ? (
-                    <Button
-                      className="bg-brand-blue"
-                      onClick={() => onJoin(session)}
-                    >
-                      Join
-                    </Button>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-800">Upcoming</Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {session.private && isHost && session.room_url && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="border-gray-300"
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.origin + '/invite/' + session.id);
+                          toast({ title: 'Invite link copied!' });
+                        }}
+                      >
+                        Invite Link
+                      </Button>
+                    )}
+                    {session.room_url ? (
+                      <Button
+                        className="bg-brand-blue"
+                        onClick={() => onJoin(session)}
+                      >
+                        Join
+                      </Button>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-800">Upcoming</Badge>
+                    )}
+                  </div>
                 </li>
               );
             })

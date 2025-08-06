@@ -17,7 +17,7 @@ export type Profile = Tables<"profiles">;
 export const fetchSessions = async (sessionId?: string): Promise<Session[] | Session | null> => {
   let query = supabase
     .from('practice_sessions')
-    .select('id, host_id, guest_id, candidate_id, case_id, datetime_utc, type, created_at, room_url, version, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, candidate_id, case_id, datetime_utc, type, created_at, room_url, version, private, profiles:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar)')
     .order('datetime_utc', { ascending: true });
 
   if (sessionId) {

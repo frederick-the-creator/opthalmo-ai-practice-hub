@@ -60,6 +60,7 @@ export type Database = {
           type: string
           version: number
           datetime_utc: string
+          private: boolean
         }
         Insert: {
           candidate_id?: string | null
@@ -72,6 +73,7 @@ export type Database = {
           type: string
           version?: number
           datetime_utc?: string
+          private?: boolean
         }
         Update: {
           candidate_id?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           type?: string
           version?: number
           datetime_utc?: string
+          private?: boolean
         }
         Relationships: [
           {

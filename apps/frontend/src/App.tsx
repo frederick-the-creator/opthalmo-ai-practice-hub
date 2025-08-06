@@ -15,6 +15,7 @@ import Register from "./pages/auth/Register";
 
 import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
+import InviteAcceptPage from "./pages/interview-scheduling/InviteAcceptPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
           <Route element={<AuthLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview-practice" element={<InterviewPractice />} />
+            <Route path="/invite/:sessionId" element={<InviteAcceptPage />} />
           </Route>
 
           {/* Full-screen Protected Route */}

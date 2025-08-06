@@ -44,6 +44,8 @@ export interface UseInterviewSchedulingResult {
   handleScheduleSession: () => Promise<void>;
   handleCopyLink: () => void;
   copied: boolean;
+  isPrivate: boolean;
+  setIsPrivate: (val: boolean) => void;
 }
 
 export function useInterviewScheduling(): UseInterviewSchedulingResult {
@@ -58,6 +60,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
 
   // Initial fetch of user and sessions
@@ -139,7 +142,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       const response = await createSession({
         host_id,
         type: sessionType,
-        datetime_utc, // now required
+        datetime_utc,
+        private: isPrivate,
       });
       if (response.error) {
         setScheduleError(response.error || "Failed to schedule session.");
@@ -150,6 +154,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       setSelectedDate(undefined);
       setSelectedTime("");
       setSessionType("");
+      setIsPrivate(false);
       setScheduling(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
@@ -203,5 +208,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     handleScheduleSession,
     handleCopyLink,
     copied,
+    isPrivate,
+    setIsPrivate,
   };
 }
