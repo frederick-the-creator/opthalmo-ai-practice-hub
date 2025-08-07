@@ -15,7 +15,6 @@ type PrepPanelProps = {
 
 const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, onSelectCandidate, onSelectCase, onStartCase }) => {
   const [loading, setLoading] = useState(false);
-  // console.log('PrepPanel render:', { role, session, cases, updating });
 
   // Candidate selection content
   const candidates = [
@@ -38,12 +37,10 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
         }
       : null,
   ].filter(Boolean);
-  // console.log('candidates:', candidates);
 
   const candidateContent = (
     <div className="flex flex-col">
       {candidates.map(user => {
-        // console.log('candidate user:', user);
         return (
           <div
             key={user.id}
