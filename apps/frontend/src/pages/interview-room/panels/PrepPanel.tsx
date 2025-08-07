@@ -21,10 +21,22 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
   // Candidate selection content
   const candidates = [
     session?.host_id
-      ? { id: session.host_id, name: session?.profiles ? `${session.profiles.first_name} ${session.profiles.last_name}` : 'Host' }
+      ? {
+          id: session.host_id,
+          name:
+            session.host_profile && (session.host_profile.first_name || session.host_profile.last_name)
+              ? `${session.host_profile.first_name || ''} ${session.host_profile.last_name || ''}`.trim() || 'Host'
+              : 'Host',
+        }
       : null,
     session?.guest_id
-      ? { id: session.guest_id, name: 'Guest' }
+      ? {
+          id: session.guest_id,
+          name:
+            session.guest_profile && (session.guest_profile.first_name || session.guest_profile.last_name)
+              ? `${session.guest_profile.first_name || ''} ${session.guest_profile.last_name || ''}`.trim() || 'Guest'
+              : 'Guest',
+        }
       : null,
   ].filter(Boolean);
 
