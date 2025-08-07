@@ -12,17 +12,18 @@ interface Session {
   type: string;
   created_at: string;
   room_url?: string | null;
-  profiles?: {
+  host_profile?: {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
     avatar: string | null;
-  } | null | Array<{
+  } | null;
+  guest_profile?: {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
     avatar: string | null;
-  }>;
+  } | null;
   datetime_utc: string;
   private?: boolean;
 }
@@ -44,15 +45,23 @@ const SessionListPanel: React.FC<Props> = ({
   onAccept,
   onJoin,
 }) => {
-  // Helper to get profile info
-  const getProfile = (session: Session) => {
-    let profile = session.profiles;
-    if (Array.isArray(profile)) profile = profile[0];
-    const name = profile
-      ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown'
-      : 'Unknown';
-    const avatar = profile?.avatar || (name ? name[0] : 'U');
-    return { name, avatar };
+  // Helper to get host and guest profile info
+  const getHostAndGuestProfiles = (session: Session, currentUserId: string | null) => {
+    const hostProfile = session.host_profile || null;
+    const guestProfile = session.guest_profile || null;
+    const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
+    let guestName: string;
+    if (guestProfile) {
+      if (currentUserId && session.guest_id === currentUserId) {
+        guestName = 'You';
+      } else {
+        guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
+      }
+    } else {
+      guestName = 'No Guest';
+    }
+    const hostAvatar = hostProfile?.avatar || (hostName ? hostName[0] : 'U');
+    return { hostName, guestName, hostAvatar };
   };
 
   // Available sessions (not joined by user) and only public
@@ -85,16 +94,17 @@ const SessionListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">No available sessions.</li>
           ) : (
             availableSessions.map((session) => {
-              const { name, avatar } = getProfile(session);
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(session, currentUserId);
               const isGuestPresent = !!session.guest_id;
               return (
                 <li key={session.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
                     <Avatar>
-                      <AvatarFallback>{avatar}</AvatarFallback>
+                      <AvatarFallback>{hostAvatar}</AvatarFallback>
                     </Avatar>
                     <div className="ml-3">
-                      <p className="font-medium">{name}</p>
+                      <p className="font-medium">{hostName}</p>
+                      <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
@@ -124,21 +134,22 @@ const SessionListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
           ) : (
             mySessions.map((session) => {
-              const { name, avatar } = getProfile(session);
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(session, currentUserId);
               const isHost = currentUserId && session.host_id === currentUserId;
               return (
                 <li key={session.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
                     <Avatar>
-                      <AvatarFallback>{avatar}</AvatarFallback>
+                      <AvatarFallback>{hostAvatar}</AvatarFallback>
                     </Avatar>
                     <div className="ml-3">
                       <p className="font-medium flex items-center gap-2">
-                        {name}
+                        {hostName}
                         {session.private && (
                           <Badge className="bg-gray-200 text-gray-700 ml-2">Private</Badge>
                         )}
                       </p>
+                      <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
                         <span>{session.type}</span>
                         <span className="mx-2">•</span>
@@ -165,7 +176,9 @@ const SessionListPanel: React.FC<Props> = ({
                     )}
                     {session.room_url ? (
                       <Button
-                        className="bg-brand-blue"
+                        className={`bg-brand-blue${!session.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
+                        aria-label={!session.guest_id ? 'Waiting for guest' : 'Join session'}
+                        title={!session.guest_id ? 'Waiting for guest to accept session' : 'Join session'}
                         onClick={() => onJoin(session)}
                       >
                         Join

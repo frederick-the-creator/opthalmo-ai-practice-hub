@@ -13,18 +13,20 @@ export interface Session {
   type: string;
   created_at: string;
   room_url?: string | null;
-  profiles?: {
+  host_profile?: {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
     avatar: string | null;
-  } | null | Array<{
+  } | null;
+  guest_profile?: {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
     avatar: string | null;
-  }>;
+  } | null;
   datetime_utc: string;
+  private?: boolean;
 }
 
 export interface UseInterviewSchedulingResult {
