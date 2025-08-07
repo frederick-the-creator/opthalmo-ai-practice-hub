@@ -18,11 +18,14 @@ const InterviewPracticeRoom: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const session_id = params.get('sessionId');
+    const roomUrlParam = params.get('roomUrl');
     if (session_id) setRawSessionId(session_id);
   }, []);
 
   useEffect(() => {
-    fetchCases().then(setCases);
+    fetchCases().then(fetched => {
+      setCases(fetched);
+    });
   }, []);
 
   const {
@@ -39,6 +42,7 @@ const InterviewPracticeRoom: React.FC = () => {
   useEffect(() => {
     setUpdating(false);
   }, [stage]);
+
 
   // Handlers for host actions
   const handleSelectCandidate = (userId: string) => {

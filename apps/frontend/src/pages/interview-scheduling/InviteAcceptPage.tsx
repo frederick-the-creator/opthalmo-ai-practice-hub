@@ -13,6 +13,7 @@ interface Session {
   type: string;
   datetime_utc: string;
   private?: boolean;
+  room_url?: string | null;
 }
 
 const InviteAcceptPage: React.FC = () => {
@@ -39,7 +40,7 @@ const InviteAcceptPage: React.FC = () => {
       // Fetch session from Supabase
       const { data, error } = await supabase
         .from("practice_sessions")
-        .select("id, host_id, guest_id, type, datetime_utc, private")
+        .select("id, host_id, guest_id, type, datetime_utc, private, room_url")
         .eq("id", sessionId)
         .single();
       if (error || !data) {
@@ -59,7 +60,12 @@ const InviteAcceptPage: React.FC = () => {
     try {
       await acceptInvitation({ sessionId, guestId: currentUserId });
       toast({ title: "Session accepted!" });
-      navigate("/interview-practice");
+      // If the session has a room_url, send the user straight to the interview room
+      if (session?.room_url) {
+        navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}&sessionId=${sessionId}`);
+      } else {
+        navigate("/interview-practice");
+      }
     } catch (err: any) {
       toast({ title: "Failed to accept session.", description: err?.message || "" });
       setAccepting(false);

@@ -71,7 +71,6 @@ export function renderMarkdownToReact(markdown: string | undefined | null): Reac
   normalized = normalized.replace(/(\n*)\*\*Examination Findings\*\*/g, '\n\n**Examination Findings**');
 
   // Debug: log the normalized string
-  console.log('Normalized markdown:', JSON.stringify(normalized));
 
   return <ReactMarkdown>{normalized}</ReactMarkdown>;
 }
