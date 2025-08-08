@@ -27,7 +27,7 @@ const Brief: React.FC<BriefProps> = ({
   contentClassName,
 }) => (
   <Collapsible
-    className={`overflow-hidden flex flex-col min-h-0 py-2.5 pr-2.5 pb-0 w-full max-w-[462px] max-md:max-w-full ${containerClassName ?? ''}`}
+    className={`overflow-hidden flex flex-col min-h-0 py-2.5 pr-2.5 pb-0 w-full max-w-[462px] max-md:max-w-full`} //       ${containerClassName ?? ''}
     defaultOpen={open === undefined ? defaultOpen : undefined}
     open={open}
     onOpenChange={onOpenChange}
@@ -40,7 +40,7 @@ const Brief: React.FC<BriefProps> = ({
     </CollapsibleTrigger>
     <CollapsibleContent className="flex-1 min-h-0 flex flex-col">
       <div
-        className={`brief-content overflow-y-auto flex-1 min-h-0 gap-2.5 mt-0 text-xs leading-6 max-md:max-w-full p-3 pt-0 rounded-md ${contentClassName ?? ''}`}
+        className={`brief-content overflow-y-auto flex-1 min-h-0 gap-2.5 mt-0 text-xs leading-6 max-md:max-w-full p-3 pt-0 rounded-md `} //${contentClassName ?? ''}
       >
         {children ? children : (markdown ? renderMarkdownToReact(markdown) : <span>{placeholder}</span>)}
       </div>

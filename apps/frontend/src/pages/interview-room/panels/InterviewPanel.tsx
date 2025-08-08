@@ -44,32 +44,33 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     setMarkOpen(open);
     if (open) setActorOpen(false);
   }, []);
-  return (
+  return (// 
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
       <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
         <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
         {foundCase?.case_name}
         </div>
       </div>
-      <div className="flex-1 mt-2 max-w-full text-black w-[462px] flex flex-col h-[calc(100vh-14rem)] min-h-0">
+      <div className="flex-1 mt-2 max-w-full text-black w-[462px] flex flex-col min-h-0">
         {/* Controlled toggles to keep only one open */}
-        <Brief
-          title="Actor Brief"
-          markdown={foundCase?.actor_brief ?? null}
-          placeholder={!session?.case_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
-          open={actorOpen}
-          onOpenChange={handleActorChange}
-          containerClassName="min-h-0 flex-1"
-          contentClassName="h-full"
-        />
-        <Brief
-          title="MarkScheme"
-          markdown={foundCase?.markscheme ?? null}
-          placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
-          open={markOpen}
-          onOpenChange={handleMarkChange}
-          containerClassName="mt-auto"
-        />
+        <div className={actorOpen ? "flex-1 min-h-0 flex flex-col" : "flex-none"}>
+          <Brief
+            title="Actor Brief"
+            markdown={foundCase?.actor_brief ?? null}
+            placeholder={!session?.case_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
+            open={actorOpen}
+            onOpenChange={handleActorChange}
+          />
+        </div>
+        <div className={markOpen ? "flex-1 min-h-0 flex flex-col" : "flex-none"}>
+          <Brief
+            title="MarkScheme"
+            markdown={foundCase?.markscheme ?? null}
+            placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
+            open={markOpen}
+            onOpenChange={handleMarkChange}
+          />
+        </div>
         {/* Controls moved to InterviewPracticeRoom */}
       </div>
     </div>
