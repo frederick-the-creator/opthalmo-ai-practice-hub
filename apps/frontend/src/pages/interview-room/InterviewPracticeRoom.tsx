@@ -4,6 +4,7 @@ import VideoPane from "./VideoPane";
 import PrepPanel from "./panels/PrepPanel";
 import InterviewPanel from "./panels/InterviewPanel";
 import WrapUpPanel from "./panels/WrapUpPanel";
+import InterviewControls from "./panels/InterviewControls";
 import { useNavigate } from "react-router-dom";
 import { useInterviewSession } from "@/pages/interview-room/useInterviewSession";
 import { fetchCases } from "@/supabase/utils";
@@ -127,6 +128,15 @@ const InterviewPracticeRoom: React.FC = () => {
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex-1 max-md:ml-0 max-md:w-full">
             <VideoPane roomUrl={session?.room_url ?? null} error={error} />
+            {stage === Stage.INTERVIEW && role === 'host' && (
+              <div className="mt-4 flex justify-center">
+                <InterviewControls
+                  roomUrl={session?.room_url ?? null}
+                  sessionId={session?.id ?? null}
+                  onFinishCase={handleFinishCase}
+                />
+              </div>
+            )}
           </div>
           <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
             {rightPanel}
