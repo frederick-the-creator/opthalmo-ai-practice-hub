@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Brief from '../briefs/Brief';
 
 type InterviewPanelProps = {
@@ -22,7 +22,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
             {foundCase?.case_name}
           </div>
         </div>
-        <div className="flex-1 mt-8 max-w-full text-black w-[462px] overflow-y-auto">
+        <div className="flex-1 mt-2 max-w-full text-black w-[462px]">
           <Brief
             title="Candidate Brief"
             markdown={foundCase?.candidate_brief ?? null}
@@ -34,6 +34,16 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     );
   }
   // Interviewer/Actor view
+  const [actorOpen, setActorOpen] = useState(true);
+  const [markOpen, setMarkOpen] = useState(false);
+  const handleActorChange = useCallback((open: boolean) => {
+    setActorOpen(open);
+    if (open) setMarkOpen(false);
+  }, []);
+  const handleMarkChange = useCallback((open: boolean) => {
+    setMarkOpen(open);
+    if (open) setActorOpen(false);
+  }, []);
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
       <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
@@ -41,16 +51,24 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
         {foundCase?.case_name}
         </div>
       </div>
-      <div className="flex-1 mt-8 max-w-full text-black w-[462px] overflow-y-auto">
+      <div className="flex-1 mt-2 max-w-full text-black w-[462px] flex flex-col h-[calc(100vh-14rem)] min-h-0">
+        {/* Controlled toggles to keep only one open */}
         <Brief
           title="Actor Brief"
           markdown={foundCase?.actor_brief ?? null}
           placeholder={!session?.case_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
+          open={actorOpen}
+          onOpenChange={handleActorChange}
+          containerClassName="min-h-0 flex-1"
+          contentClassName="h-full"
         />
         <Brief
           title="MarkScheme"
           markdown={foundCase?.markscheme ?? null}
           placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
+          open={markOpen}
+          onOpenChange={handleMarkChange}
+          containerClassName="mt-auto"
         />
         {/* Controls moved to InterviewPracticeRoom */}
       </div>
