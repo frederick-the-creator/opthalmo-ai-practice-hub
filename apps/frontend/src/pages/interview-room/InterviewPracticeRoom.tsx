@@ -85,7 +85,6 @@ const InterviewPracticeRoom: React.FC = () => {
         updating={updating}
         onSelectCandidate={handleSelectCandidate}
         onSelectCase={handleSelectCase}
-        onStartCase={handleStartCase}
       />
     );
   } else if (stage === Stage.INTERVIEW) {
@@ -128,20 +127,23 @@ const InterviewPracticeRoom: React.FC = () => {
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex-1 max-md:ml-0 max-md:w-full">
             <VideoPane roomUrl={session?.room_url ?? null} error={error} />
-            {stage === Stage.INTERVIEW && role === 'host' && (
-              <div className="mt-4 flex justify-center">
-                <InterviewControls
-                  roomUrl={session?.room_url ?? null}
-                  sessionId={session?.id ?? null}
-                  onFinishCase={handleFinishCase}
-                />
-              </div>
-            )}
           </div>
           <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
             {rightPanel}
           </div>
         </div>
+        {role === 'host' && (stage === Stage.PREP || stage === Stage.INTERVIEW) && (
+          <div className="mt-4 flex justify-center">
+            <InterviewControls
+              roomUrl={session?.room_url ?? null}
+              sessionId={session?.id ?? null}
+              stage={stage}
+              onStartCase={handleStartCase}
+              canStart={Boolean(session?.candidate_id && session?.case_id)}
+              onFinishCase={handleFinishCase}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

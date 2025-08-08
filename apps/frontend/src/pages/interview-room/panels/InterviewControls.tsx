@@ -1,14 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { startRecording, stopRecording } from '@/lib/api';
+import { Stage } from '@/supabase/types';
+import { Play } from 'lucide-react';
 
 type InterviewControlsProps = {
   roomUrl: string | null;
   sessionId: string | null;
-  onFinishCase: () => void;
+  stage: Stage;
+  onStartCase?: () => Promise<void> | void;
+  canStart?: boolean;
+  onFinishCase?: () => void;
 };
 
-const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionId, onFinishCase }) => {
+const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionId, stage, onStartCase, canStart, onFinishCase }) => {
   const [recording, setRecording] = useState<null | any>(null);
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
@@ -23,6 +28,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
   const timerInputRef = useRef<HTMLInputElement | null>(null);
   const [timerInputError, setTimerInputError] = useState<string | null>(null);
   const [hasStoppedRecording, setHasStoppedRecording] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
   useEffect(() => {
     if (timerActive && timer > 0) {
@@ -134,6 +140,33 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
     }
   };
 
+  const handleStartCaseClick = async () => {
+    if (!onStartCase) return;
+    setStartLoading(true);
+    try {
+      await onStartCase();
+    } finally {
+      setStartLoading(false);
+    }
+  };
+
+  if (stage === Stage.PREP) {
+    return (
+      <div className="w-full mt-6">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+          <Button
+            className={`flex items-center gap-2 text-lg px-6 py-3 ${startLoading ? 'btn-disabled' : ''}`}
+            onClick={handleStartCaseClick}
+            disabled={!canStart || startLoading}
+            aria-disabled={startLoading}
+          >
+            <Play className="w-5 h-5 mr-2" /> {startLoading ? 'Starting...' : 'Start Case'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full mt-6">
       <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
@@ -176,7 +209,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
         >
           {stopLoading ? 'Stopping...' : 'Stop Recording'}
         </Button>
-        <Button className="text-lg" onClick={onFinishCase}>
+        <Button className="text-lg" onClick={() => onFinishCase?.()}>
           Finish Case
         </Button>
       </div>

@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
+import React from 'react';
 import Brief from '../briefs/Brief';
 
 type PrepPanelProps = {
@@ -10,11 +8,9 @@ type PrepPanelProps = {
   updating?: boolean;
   onSelectCandidate: (id: string) => void;
   onSelectCase: (id: string) => void;
-  onStartCase: () => Promise<void> | void;
 };
 
-const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, onSelectCandidate, onSelectCase, onStartCase }) => {
-  const [loading, setLoading] = useState(false);
+const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, onSelectCandidate, onSelectCase }) => {
 
   // Candidate selection content
   const candidates = [
@@ -88,14 +84,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
     </div>
   );
 
-  const handleStart = async () => {
-    setLoading(true);
-    try {
-      await onStartCase();
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Start Case button moved to InterviewControls
 
   // Guest placeholders
   const guestCandidatePlaceholder = <span className="text-gray-400">Waiting for host to select candidate...</span>;
@@ -122,18 +111,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
         >
           {role === 'host' ? caseContent : guestCasePlaceholder}
         </Brief>
-        {role === 'host' && (
-          <div className="flex justify-center mt-8">
-            <Button
-              className={`flex items-center gap-2 text-lg px-6 py-3 ${loading ? 'btn-disabled' : ''}`}
-              onClick={handleStart}
-              disabled={!session?.candidate_id || !session?.case_id || loading}
-              aria-disabled={loading}
-            >
-              <Play className="w-5 h-5 mr-2" /> {loading ? "Starting..." : "Start Case"}
-            </Button>
-          </div>
-        )}
+        {/* Start Case button moved to InterviewControls */}
       </div>
     </div>
   );
