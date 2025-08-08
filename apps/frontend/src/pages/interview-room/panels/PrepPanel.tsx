@@ -55,10 +55,22 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
     </div>
   );
 
-  // Case selection content
+  // Case selection content (sorted alphabetically by case_name)
+  const sortedCases = React.useMemo(() => {
+    return [...(cases || [])].sort((a, b) => {
+      const aName = (a?.case_name ?? '').toString();
+      const bName = (b?.case_name ?? '').toString();
+      const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+      if (cmp !== 0) return cmp;
+      const aId = (a?.id ?? '').toString();
+      const bId = (b?.id ?? '').toString();
+      return aId.localeCompare(bId);
+    });
+  }, [cases]);
+
   const caseContent = (
     <div className="flex flex-col">
-      {cases.map(c => {
+      {sortedCases.map(c => {
         // console.log('case:', c);
         return (
           <div
