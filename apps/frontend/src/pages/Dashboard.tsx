@@ -66,7 +66,7 @@ function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, 
           </Select>
         </div>
         {error && <div className="text-red-600">{error}</div>}
-        <button type="submit" className="w-full bg-brand-blue text-white py-2 rounded" disabled={isLoading}>
+        <button type="submit" className="w-full bg-primary text-white py-2 rounded" disabled={isLoading}>
           {isLoading ? "Saving..." : "Save Profile"}
         </button>
       </form>

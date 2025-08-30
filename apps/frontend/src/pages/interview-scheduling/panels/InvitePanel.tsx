@@ -46,7 +46,7 @@ const InvitePanel: React.FC<Props> = ({ copied, onCopy }) => (
             Communication Station
           </Button>
         </div>
-        <Button className="w-full bg-brand-blue">
+        <Button className="w-full bg-primary">
           Generate New Session Link
         </Button>
       </div>

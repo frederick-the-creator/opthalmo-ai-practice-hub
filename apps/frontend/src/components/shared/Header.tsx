@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         
         <div className="flex items-center">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-brand-blue text-white">{userInitials || "JD"}</AvatarFallback>
+            <AvatarFallback className="bg-primary text-white">{userInitials || "JD"}</AvatarFallback>
           </Avatar>
           <div className="ml-3 hidden md:block">
             <p className="text-sm font-medium text-gray-900">{userName || "Jane Doe"}</p>

@@ -43,8 +43,8 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
             onClick={() => onSelectCandidate(user.id)}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
               ${session?.candidate_id === user.id
-                ? 'bg-primary-foreground text-primary'
-                : 'bg-transparent text-primary hover:bg-gray-100'}
+                ? 'bg-primary-foreground text-black'
+                : 'bg-transparent text-black hover:bg-gray-100'}
             `}
             style={{ minWidth: 120 }}
           >
@@ -78,8 +78,8 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
             onClick={() => onSelectCase(c.id)}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
               ${session?.case_id === c.id
-                ? 'bg-primary-foreground text-primary'
-                : 'bg-transparent text-primary hover:bg-gray-100'}
+                ? 'bg-primary-foreground text-black'
+                : 'bg-transparent text-black hover:bg-gray-100'}
             `}
             style={{ minWidth: 120 }}
           >

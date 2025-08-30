@@ -76,7 +76,7 @@ const Login: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <Eye className="h-10 w-10 text-brand-blue" />
+            <Eye className="h-10 w-10 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>Sign in to your OphthalmoPrep account</CardDescription>
@@ -99,7 +99,7 @@ const Login: React.FC = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-brand-blue hover:underline">
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -127,7 +127,7 @@ const Login: React.FC = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-brand-blue"
+              className="w-full bg-primary"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -138,7 +138,7 @@ const Login: React.FC = () => {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/register" className="text-brand-blue hover:underline">
+            <Link to="/register" className="text-primary hover:underline">
               Sign up
             </Link>
           </p>

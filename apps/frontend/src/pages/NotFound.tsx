@@ -10,7 +10,7 @@ const NotFound: React.FC = () => {
       <div className="text-center max-w-md">
         <div className="flex justify-center mb-6">
           <div className="rounded-full bg-gray-100 p-5 inline-flex">
-            <Eye className="h-16 w-16 text-brand-blue" />
+            <Eye className="h-16 w-16 text-primary" />
           </div>
         </div>
         <h1 className="text-7xl font-bold text-gray-900 mb-4">404</h1>
@@ -20,7 +20,7 @@ const NotFound: React.FC = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/">
-            <Button className="w-full sm:w-auto bg-brand-blue">
+            <Button className="w-full sm:w-auto bg-primary">
               <Home className="mr-2 h-4 w-4" />
               Back to Home
             </Button>

@@ -19,7 +19,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
         icon={Video}
         value={stats.stationsDone}
         label="Stations Completed"
-        iconColor="text-brand-blue"
+        iconColor="text-primary"
         bgColor="bg-blue-100"
       />
       <StatsCard

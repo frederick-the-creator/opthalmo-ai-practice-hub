@@ -45,7 +45,7 @@ const WeakAreas: React.FC<WeakAreasProps> = ({ areas }) => {
         </ul>
         <div className="mt-4">
           <Link to="/curriculum">
-            <Button variant="link" className="text-brand-blue p-0">
+            <Button variant="link" className="text-primary p-0">
               View all topics
             </Button>
           </Link>

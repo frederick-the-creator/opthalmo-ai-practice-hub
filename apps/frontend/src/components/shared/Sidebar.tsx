@@ -33,7 +33,7 @@ const Sidebar: React.FC = () => {
   return (
     <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
       <div className="flex items-center justify-center h-16 border-b border-gray-200">
-        <Eye className="h-8 w-8 text-brand-blue" />
+        <Eye className="h-8 w-8 text-primary" />
         <span className="ml-2 text-xl font-bold">OphthalmoPrep</span>
       </div>
       <div className="flex-1 overflow-y-auto py-6 px-3">
@@ -45,7 +45,7 @@ const Sidebar: React.FC = () => {
               className={({ isActive }) =>
                 `flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive 
-                    ? "bg-brand-blue bg-opacity-10 text-brand-blue" 
+                    ? "bg-primary bg-opacity-10 text-primary" 
                     : "text-gray-700 hover:bg-gray-100"
                 }`
               }

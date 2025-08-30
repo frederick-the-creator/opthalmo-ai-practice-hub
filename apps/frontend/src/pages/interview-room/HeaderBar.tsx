@@ -14,7 +14,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ stage, role, onExit, onBack }) =>
   return (
     <header className="flex flex-wrap gap-2.5 items-center pb-5 w-full text-xl whitespace-nowrap max-md:max-w-full">
       <Button
-        className="font-bold text-white bg-primary hover:bg-primary/90 border-none"
+        className="font-bold text-white bg-primary hover:bg-accent border-none"
         onClick={onExit}
       >
         Exit
@@ -22,7 +22,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ stage, role, onExit, onBack }) =>
       {/* Show Back only for host and not PREP or WRAP_UP stage */}
       {role === 'host' && stage !== Stage.PREP && stage !== Stage.WRAP_UP && onBack && (
         <Button
-          className="font-bold text-white bg-primary hover:bg-primary/90 border-none"
+          className="font-bold text-white bg-primary hover:bg-accent border-none"
           onClick={onBack}
         >
           Back

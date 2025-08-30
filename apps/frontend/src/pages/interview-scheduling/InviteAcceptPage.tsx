@@ -92,10 +92,10 @@ const InviteAcceptPage: React.FC = () => {
             <div className="font-semibold mt-2">Date & Time:</div>
             <div>{new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
           </div>
-          {isHost && <div className="text-blue-600 mb-2">You are the host of this session.</div>}
+          {isHost && <div className="text-accent mb-2">You are the host of this session.</div>}
           {isGuest && <div className="text-green-600 mb-2">You have already accepted this session.</div>}
           {!isHost && !isGuest && (
-            <Button className="w-full bg-brand-blue" onClick={handleAccept} disabled={accepting}>
+            <Button className="w-full bg-primary" onClick={handleAccept} disabled={accepting}>
               {accepting ? "Accepting..." : "Accept Session"}
             </Button>
           )}

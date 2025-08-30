@@ -34,11 +34,11 @@ const Notifications: React.FC<NotificationsProps> = ({ reminders }) => {
                 <CheckCircle className="h-5 w-5 mr-3 text-brand-green flex-shrink-0 mt-0.5" />
               )}
               {reminder.category === 'invitation' && (
-                <Users className="h-5 w-5 mr-3 text-brand-blue flex-shrink-0 mt-0.5" />
+                <Users className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
               )}
               <div>
                 <p className="text-gray-800">{reminder.text}</p>
-                <Button variant="link" className="text-brand-blue p-0 h-auto text-sm">
+                <Button variant="link" className="text-primary p-0 h-auto text-sm">
                   {reminder.category === 'invitation' ? 'Respond' : 'Take action'}
                 </Button>
               </div>
@@ -46,7 +46,7 @@ const Notifications: React.FC<NotificationsProps> = ({ reminders }) => {
           ))}
         </ul>
         <div className="mt-4">
-          <Button variant="link" className="text-brand-blue p-0">
+          <Button variant="link" className="text-primary p-0">
             View all notifications
           </Button>
         </div>

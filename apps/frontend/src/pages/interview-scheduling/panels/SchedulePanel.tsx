@@ -77,12 +77,12 @@ const SchedulePanel: React.FC<Props> = ({
           type="checkbox"
           checked={isPrivate}
           onChange={e => setIsPrivate(e.target.checked)}
-          className="form-checkbox h-4 w-4 text-brand-blue"
+          className="form-checkbox h-4 w-4 text-primary"
         />
         <Label htmlFor="private-session">Private Session</Label>
       </div>
       {scheduleError && <div className="text-red-500 text-sm">{scheduleError}</div>}
-      <Button className="w-full bg-brand-blue" onClick={onSchedule} disabled={scheduling}>
+      <Button className="w-full bg-primary" onClick={onSchedule} disabled={scheduling}>
         {scheduling ? "Scheduling..." : "Schedule Session"}
       </Button>
     </CardContent>

@@ -171,7 +171,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
     <div className="w-full mt-6">
       <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
         <div
-          className="text-2xl font-mono text-primary cursor-pointer"
+          className="text-2xl font-mono text-black cursor-pointer"
           onClick={() => {
             if (!timerActive && !recordingLoading && !stopLoading) setEditingTimer(true);
           }}

@@ -89,7 +89,7 @@ const CompleteProfile: React.FC = () => {
               </Select>
             </div>
             {error && <div className="text-red-600 text-sm">{error}</div>}
-            <Button type="submit" className="w-full bg-brand-blue mt-6" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-primary mt-6" disabled={isLoading}>
               {isLoading ? "Saving..." : "Save Profile"}
             </Button>
           </form>

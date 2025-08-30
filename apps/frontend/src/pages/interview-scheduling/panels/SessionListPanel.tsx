@@ -115,7 +115,7 @@ const SessionListPanel: React.FC<Props> = ({
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-brand-blue" onClick={() => onAccept(session.id)} disabled={isGuestPresent}>
+                  <Button size="sm" className="bg-primary" onClick={() => onAccept(session.id)} disabled={isGuestPresent}>
                     {isGuestPresent ? "Accepted" : "Accept Invitation"}
                   </Button>
                 </li>
@@ -176,7 +176,7 @@ const SessionListPanel: React.FC<Props> = ({
                     )}
                     {session.room_url ? (
                       <Button
-                        className={`bg-brand-blue${!session.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
+                        className={`bg-primary${!session.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
                         aria-label={!session.guest_id ? 'Waiting for guest' : 'Join session'}
                         title={!session.guest_id ? 'Waiting for guest to accept session' : 'Join session'}
                         onClick={() => onJoin(session)}

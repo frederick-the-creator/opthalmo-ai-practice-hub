@@ -22,7 +22,7 @@ const RecentSessions: React.FC<RecentSessionsProps> = ({ sessions }) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
-          <Clock className="h-5 w-5 mr-2 text-brand-blue" />
+          <Clock className="h-5 w-5 mr-2 text-primary" />
           Recent Practice Sessions
         </CardTitle>
       </CardHeader>
@@ -47,7 +47,7 @@ const RecentSessions: React.FC<RecentSessionsProps> = ({ sessions }) => {
           ))}
         </ul>
         <div className="mt-4">
-          <Button variant="link" className="text-brand-blue p-0">
+          <Button variant="link" className="text-primary p-0">
             View all sessions
           </Button>
         </div>

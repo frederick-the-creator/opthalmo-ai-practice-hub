@@ -64,7 +64,6 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// Custom application colors
-				'brand-blue': '#3b82f6',
 				'brand-green': '#10b981',
 				'brand-purple': '#8b5cf6',
 				'brand-light-blue': '#bfdbfe',

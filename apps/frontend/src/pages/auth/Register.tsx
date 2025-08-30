@@ -63,7 +63,7 @@ const Register: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <Eye className="h-10 w-10 text-brand-blue" />
+            <Eye className="h-10 w-10 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
           <CardDescription>Start your ophthalmology interview preparation journey</CardDescription>
@@ -119,7 +119,7 @@ const Register: React.FC = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-brand-blue mt-6"
+              className="w-full bg-primary mt-6"
               disabled={isLoading}
             >
               {isLoading ? "Creating Account..." : "Create Account"}
@@ -130,7 +130,7 @@ const Register: React.FC = () => {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link to="/login" className="text-brand-blue hover:underline">
+            <Link to="/login" className="text-primary hover:underline">
               Sign in
             </Link>
           </p>

@@ -11,7 +11,7 @@ const NavBar: React.FC = () => {
     <nav className="bg-white shadow-sm py-4">
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
-          <Eye className="h-8 w-8 text-brand-blue" />
+          <Eye className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold text-gray-900">OphthalmoPrep</span>
         </Link>
         
