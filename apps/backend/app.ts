@@ -1,0 +1,29 @@
+import dotenv from 'dotenv';
+dotenv.config();
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import sessionRouter from './controllers/session'
+import recordingRouter from './controllers/recording';
+
+const app = express();
+
+const FRONTEND_URL = process.env.FRONTEND_URL;
+console.log('FRONTEND_URL:', FRONTEND_URL);
+
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+app.use(express.json());
+
+// Health check endpoint
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
+app.use('/api/sessions', sessionRouter)
+app.use('/api/recording', recordingRouter)
+
+export default app

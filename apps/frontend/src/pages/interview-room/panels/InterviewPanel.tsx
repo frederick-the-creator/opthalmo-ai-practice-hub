@@ -62,16 +62,6 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
             onOpenChange={handleActorChange}
           />
         </div>
-        {/* <div className={markOpen ? "flex-1 min-h-0 flex flex-col" : "flex-none"}>
-          <Brief
-            title="MarkScheme"
-            markdown={foundCase?.markscheme ?? null}
-            placeholder={!session?.case_id ? 'Select a case to view the markscheme.' : 'No markscheme available for this case.'}
-            open={markOpen}
-            onOpenChange={handleMarkChange}
-          />
-        </div> */}
-        {/* Controls moved to InterviewPracticeRoom */}
       </div>
     </div>
   );

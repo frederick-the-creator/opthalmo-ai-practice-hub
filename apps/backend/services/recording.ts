@@ -1,28 +1,5 @@
 import axios from 'axios';
-
-/**
- * Create a new Daily.co room and return its URL.
- * @returns The created room URL.
- * @throws If the room creation fails.
- */
-export async function createDailyRoom(): Promise<string> {
-  try {
-    const dailyRes = await axios.post(
-      'https://api.daily.co/v1/rooms',
-      {},
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return dailyRes.data.url;
-  } catch (error: any) {
-    console.error('Error creating Daily.co room:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || error.message || 'Failed to create Daily.co room');
-  }
-}
+import { uploadTranscriptionToStorage } from '../services/session';
 
 /**
  * Start a recording for a Daily.co room.
@@ -221,5 +198,52 @@ export async function fetchTranscriptionJson(transcriptionResult: any): Promise<
   } catch (error: any) {
     console.error('Error fetching transcription JSON:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || error.message || 'Failed to fetch transcription JSON');
+  }
+}
+
+/**
+ * End-to-end transcription workflow for a finished Daily.co recording.
+ * - Finds latest recording for the room
+ * - Submits transcription job
+ * - Polls until complete
+ * - Fetches transcript JSON
+ * - Uploads to Supabase Storage under the session ID
+ */
+export async function transcribe(roomName: string, sessionId: string): Promise<void> {
+  try {
+    // 1) Find latest recording ID for the room
+    const recordingId = await getLatestRecordingId(roomName);
+    console.log('latest recordingId:', recordingId);
+    if (!recordingId) {
+      console.error('No recording ID found for room');
+      return;
+    }
+
+    // 2) Submit transcription job
+    console.log('Submitting transcription job for recording:', recordingId);
+    const { transcription_id } = await submitTranscriptionJob(recordingId);
+
+    // 3) Poll for completion
+    console.log('Polling transcription status for:', transcription_id);
+    const transcriptionResult = await pollTranscriptionStatus(transcription_id);
+
+    // 4) Fetch the transcription JSON
+    console.log('Fetching transcription JSON for:', transcriptionResult);
+    const transcriptionJson = await fetchTranscriptionJson(transcriptionResult);
+    console.log('transcriptionJson:', transcriptionJson);
+
+    // 5) Upload transcript to Supabase Storage
+    console.log('Uploading transcription to Supabase Storage for session:', sessionId);
+    const storageUrl = await uploadTranscriptionToStorage(sessionId, transcriptionJson);
+
+    // 6) Log completion
+    console.log('Transcription and upload complete:', {
+      recordingId,
+      transcription_id,
+      transcription_status: transcriptionResult.status,
+      storageUrl,
+    });
+  } catch (err: any) {
+    console.error('Error in transcribe workflow:', err.response?.data || err.message);
   }
 }

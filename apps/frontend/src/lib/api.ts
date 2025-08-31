@@ -14,7 +14,7 @@ const api = axios.create({
 
 export async function createSession({ host_id, type, datetime_utc, private: isPrivate }: { host_id: string, type: string, datetime_utc: string, private: boolean }) {
   console.log('Frontend API Call - datetime_utc', datetime_utc);
-  const response = await api.post("/create-session", {
+  const response = await api.post("/sessions/create-session", {
     host_id,
     type,
     datetime_utc,
@@ -44,14 +44,11 @@ export async function setStage({ sessionId, version }: { sessionId: string, vers
 }
 
 export async function startRecording({ room_url }: { room_url: string }) {
-  console.log('Starting recording function', room_url);
-  const response = await api.post("/sessions/start-recording", { room_url });
+  const response = await api.post("/recording/start", { room_url });
   return response.data;
 }
 
 export async function stopRecording({ room_url, sessionId }: { room_url: string, sessionId: string }) {
-  console.log('Stopping recording function room_url', room_url);
-  console.log('Stopping recording function sessionId', sessionId);
-  const response = await api.post("/sessions/stop-recording", { room_url, sessionId });
+  const response = await api.post("/recording/stop", { room_url, sessionId });
   return response.data;
 }

@@ -16,7 +16,7 @@ const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   
   const navItems = [
-    // { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { path: "/interview-practice", name: "Interview Practice", icon: <Video className="w-5 h-5" /> },
     // { path: "/curriculum", name: "Curriculum", icon: <BookOpen className="w-5 h-5" /> },
     // { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },

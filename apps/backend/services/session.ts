@@ -1,9 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = process.env.SUPABASE_URL as string;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
-
-export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+import axios from 'axios'
+import supabase from '../utils/supabase'
 
 /**
  * Insert a new practice session into the database.
@@ -24,6 +20,63 @@ export async function createPracticeSession(fields: Record<string, any>): Promis
   }
   return { data, error: null };
 }
+
+/**
+ * Create a new Daily.co room and return its URL.
+ * @returns The created room URL.
+ * @throws If the room creation fails.
+ */
+export async function createDailyRoom(): Promise<string> {
+  try {
+    const dailyRes = await axios.post(
+      'https://api.daily.co/v1/rooms',
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return dailyRes.data.url;
+  } catch (error: any) {
+    console.error('Error creating Daily.co room:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || error.message || 'Failed to create Daily.co room');
+  }
+}
+
+export interface CreateSessionInput {
+    host_id: string;
+    type: string;
+    datetime_utc: string;
+    private?: boolean;
+  }
+  
+  /**
+   * Create a practice session by provisioning a Daily.co room and inserting the session in Supabase.
+   * @returns The created session object
+   */
+export async function createSession(input: CreateSessionInput): Promise<any> {
+    const { host_id, type, datetime_utc, private: isPrivate } = input;
+    if (!host_id || !type || !datetime_utc) {
+      throw new Error('Missing required fields');
+    }
+  
+    // 1. Create Daily.co room
+    const roomUrl = await createDailyRoom();
+  
+    // 2. Insert into Supabase
+    const { data } = await createPracticeSession({
+      host_id,
+      type,
+      room_url: roomUrl,
+      datetime_utc,
+      private: !!isPrivate,
+    });
+  
+    return data[0];
+}
+
 
 /**
  * Update a practice session with given fields.
@@ -80,4 +133,8 @@ export async function uploadTranscriptionToStorage(sessionId: string, transcript
   const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
   return publicUrlData?.publicUrl || filePath;
 }
+
+
+
+
 

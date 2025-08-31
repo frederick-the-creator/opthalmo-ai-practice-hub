@@ -163,11 +163,11 @@ const Dashboard: React.FC = () => {
   //   },
   // ];
 
-  const upcomingReminders = [
-    { id: 1, text: "Practice Communication Skills", category: "suggestion" as const },
-    { id: 2, text: "Review your recent practice sessions", category: "action" as const },
-    { id: 3, text: "Sam invited you to practice", category: "invitation" as const },
-  ];
+  // const upcomingReminders = [
+  //   { id: 1, text: "Practice Communication Skills", category: "suggestion" as const },
+  //   { id: 2, text: "Review your recent practice sessions", category: "action" as const },
+  //   { id: 3, text: "Sam invited you to practice", category: "invitation" as const },
+  // ];
 
   return (
     <div>
