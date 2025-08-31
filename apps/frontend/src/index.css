@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* https://coolors.co/palette/2364aa-3da5d9-73bfb8-fec601-ea7317 */
+
+
 @layer base {
   :root {
     --background: 210 40% 98%;
@@ -13,13 +16,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 217 91% 60%;
+    --primary: 211 65.9% 40.2%;
     --primary-foreground: 200 44% 93%;
 
     --secondary: 160 84% 39%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --accent: 250 84% 54%;
+    --accent: 200 67.2% 54.5%;
     --accent-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;

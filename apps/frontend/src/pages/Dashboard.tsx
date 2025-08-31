@@ -5,6 +5,7 @@ import WeakAreas from "@/components/dashboard/WeakAreas";
 import RecentSessions from "@/components/dashboard/RecentSessions";
 import Notifications from "@/components/dashboard/Notifications";
 import { supabase } from "@/supabase/client";
+import type { Tables } from "@/supabase/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, onComplete: () => void, prefill?: { firstName?: string, lastName?: string, trainingLevel?: string } }) {
@@ -14,12 +15,14 @@ function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('firstName', firstName)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     const { error: profileInsertError } = await supabase.from('profiles').insert({
-      id: userId,
+      user_id: userId,
       first_name: firstName,
       last_name: lastName,
       training_level: trainingLevel,
@@ -74,23 +77,29 @@ function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, 
   );
 }
 
+type Profile = Tables<"profiles">;
+
 const Dashboard: React.FC = () => {
   const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
   const [userId, setUserId] = useState<string | null>(null);
   const [prefill, setPrefill] = useState<{ firstName?: string, lastName?: string, trainingLevel?: string } | undefined>(undefined);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id || null);
+      console.log('userId', user)
       if (user) {
-        const { data: profile, error: profileFetchError } = await supabase
+        const { data: fetchedProfile, error: profileFetchError } = await supabase
           .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-        if (profile) {
+          .select('user_id, first_name, last_name, avatar, training_level')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (fetchedProfile) {
+          setProfile(fetchedProfile);
           setProfileStatus('complete');
+          console.log('profile', fetchedProfile)
         } else if (profileFetchError && profileFetchError.code === "PGRST116") {
           // No profile exists
           const pendingProfile = localStorage.getItem('pendingProfile');
@@ -114,45 +123,45 @@ const Dashboard: React.FC = () => {
   }
 
   // Mock data
-  const stats = {
-    stationsDone: 24,
-    stationsWeak: 7,
-    progress: 68,
-    weeklyPractice: 4,
-  };
+  // const stats = {
+  //   stationsDone: 24,
+  //   stationsWeak: 7,
+  //   progress: 68,
+  //   weeklyPractice: 4,
+  // };
 
-  const weakAreas = [
-    { topic: "Diabetic Retinopathy", score: 3.2 },
-    { topic: "Glaucoma Assessment", score: 3.5 },
-    { topic: "Breaking Bad News", score: 4.0 },
-  ];
+  // const weakAreas = [
+  //   { topic: "Diabetic Retinopathy", score: 3.2 },
+  //   { topic: "Glaucoma Assessment", score: 3.5 },
+  //   { topic: "Breaking Bad News", score: 4.0 },
+  // ];
 
-  const recentSessions = [
-    { 
-      id: 1, 
-      type: "Clinical", 
-      topic: "Cataract Assessment", 
-      date: "Yesterday", 
-      score: 7.8,
-      partner: "Sarah T." 
-    },
-    { 
-      id: 2, 
-      type: "Communication", 
-      topic: "Explaining Surgery Risks", 
-      date: "3 days ago", 
-      score: 6.5,
-      partner: "AI Practice" 
-    },
-    { 
-      id: 3, 
-      type: "Clinical", 
-      topic: "Retinal Detachment", 
-      date: "5 days ago", 
-      score: 8.2,
-      partner: "Michael B." 
-    },
-  ];
+  // const recentSessions = [
+  //   { 
+  //     id: 1, 
+  //     type: "Clinical", 
+  //     topic: "Cataract Assessment", 
+  //     date: "Yesterday", 
+  //     score: 7.8,
+  //     partner: "Sarah T." 
+  //   },
+  //   { 
+  //     id: 2, 
+  //     type: "Communication", 
+  //     topic: "Explaining Surgery Risks", 
+  //     date: "3 days ago", 
+  //     score: 6.5,
+  //     partner: "AI Practice" 
+  //   },
+  //   { 
+  //     id: 3, 
+  //     type: "Clinical", 
+  //     topic: "Retinal Detachment", 
+  //     date: "5 days ago", 
+  //     score: 8.2,
+  //     partner: "Michael B." 
+  //   },
+  // ];
 
   const upcomingReminders = [
     { id: 1, text: "Practice Communication Skills", category: "suggestion" as const },
@@ -163,18 +172,18 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Welcome Back, Jane</h1>
-        <p className="text-gray-600">Here's your interview preparation progress</p>
+        <h1 className="text-3xl font-bold mb-2">Welcome Back{profile?.first_name ? `, ${profile.first_name}` : ''}</h1>
+        {/* <p className="text-gray-600">Here's your interview preparation progress</p> */}
       </div>
 
-      <StatsOverview stats={stats} />
+      {/* <StatsOverview stats={stats} /> */}
       <QuickActions />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <WeakAreas areas={weakAreas} />
         <RecentSessions sessions={recentSessions} />
         <Notifications reminders={upcomingReminders} />
-      </div>
+      </div> */}
     </div>
   );
 };

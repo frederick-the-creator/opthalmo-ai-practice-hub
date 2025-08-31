@@ -20,7 +20,6 @@ export type Database = {
           id: string
           candidate_brief: string
           actor_brief: string
-          markscheme: string
           category: string
           condition: string
           case_name: string
@@ -30,7 +29,6 @@ export type Database = {
           id?: string
           candidate_brief: string
           actor_brief: string
-          markscheme: string
           category: string
           condition: string
           case_name: string
@@ -40,7 +38,6 @@ export type Database = {
           id?: string
           candidate_brief?: string
           actor_brief?: string
-          markscheme?: string
           category?: string
           condition?: string
           case_name?: string

@@ -39,7 +39,7 @@ export const fetchSessions = async (sessionId?: string): Promise<Session[] | Ses
 export const fetchCases = async (): Promise<Case[]> => {
   const { data, error } = await supabase
     .from('cases')
-    .select('id, case_name, actor_brief, candidate_brief, markscheme, category, condition, domain');
+    .select('id, case_name, actor_brief, candidate_brief, category, condition, domain');
   return data || [];
 };
 

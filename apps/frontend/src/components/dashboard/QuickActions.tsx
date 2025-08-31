@@ -14,7 +14,7 @@ const QuickActions: React.FC = () => {
         </Button>
       </Link>
       
-      <Link to="/knowledge-tutor" className="col-span-1">
+      {/* <Link to="/knowledge-tutor" className="col-span-1">
         <Button variant="outline" className="w-full py-8 text-lg h-auto group border-2 hover:bg-gray-50">
           <Brain className="mr-2 h-6 w-6 text-brand-purple group-hover:scale-110 transition-transform" />
           Knowledge Tutor
@@ -26,7 +26,7 @@ const QuickActions: React.FC = () => {
           <Users className="mr-2 h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
           Find Practice Partners
         </Button>
-      </Link>
+      </Link> */}
     </div>
   );
 };

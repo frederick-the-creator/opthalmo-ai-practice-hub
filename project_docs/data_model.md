@@ -65,7 +65,6 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `id`: UUID, primary key (auto-generated)
   - `candidate_brief`: text — visible to the candidate
   - `actor_brief`: text — visible to the actor/assessor
-  - `markscheme`: text — used for evaluation or feedback
   - `category`: text — thematic grouping of the case
   - `condition`: text — clinical or medical condition
   - `case_name`: text — descriptive name of the case
