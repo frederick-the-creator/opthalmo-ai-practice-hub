@@ -2,6 +2,8 @@ import { supabase } from "./client";
 import type { Tables } from "./types";
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 export type Session = Tables<"practice_sessions"> & {
   profiles?: any; // adjust as needed for joined profile info
@@ -12,7 +14,7 @@ export type Profile = Tables<"profiles">;
 
 /**
  * Fetch all sessions or a single session if sessionId is provided.
- * Joins profiles for host info.
+ * Joins profiles for host info.s
  */
 export const fetchSessions = async (sessionId?: string): Promise<Session[] | Session | null> => {
   let query = supabase
@@ -66,13 +68,11 @@ export function renderMarkdownToReact(markdown: string | undefined | null): Reac
 
   if (!markdown) return null;
   // 1. Replace all literal \n with real newlines
-  let normalized = markdown.replace(/\\n/g, '\n');
-  // 2. Ensure there are exactly two newlines before '**Examination Findings**'
-  normalized = normalized.replace(/(\n*)\*\*Examination Findings\*\*/g, '\n\n**Examination Findings**');
+
 
   // Debug: log the normalized string
 
-  return <ReactMarkdown>{normalized}</ReactMarkdown>;
+  return <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{markdown}</ReactMarkdown>;
 }
 
 /**
