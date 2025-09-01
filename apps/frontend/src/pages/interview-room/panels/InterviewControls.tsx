@@ -193,22 +193,27 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
             <>Timer: {formatTimer(timer)}</>
           )}
         </div>
-        <Button
-          className="text-lg"
-          onClick={handleStartRecording}
-          disabled={recordingLoading || stopLoading}
-          variant="secondary"
-        >
-          {recordingLoading ? 'Starting Recording...' : 'Start Recording'}
-        </Button>
-        <Button
-          className="text-lg"
-          onClick={handleStopRecording}
-          disabled={stopLoading || recordingLoading || hasStoppedRecording}
-          variant="destructive"
-        >
-          {stopLoading ? 'Stopping...' : 'Stop Recording'}
-        </Button>
+        {(() => {
+          const isRecordingActive = timerActive || (!!recording && !hasStoppedRecording);
+          const isStarting = recordingLoading;
+          const isStopping = stopLoading;
+          const showStop = isRecordingActive || isStopping;
+          const onClick = showStop ? handleStopRecording : handleStartRecording;
+          const disabled = isStarting || isStopping;
+          const label = isStarting
+            ? 'Starting Recording...'
+            : isStopping
+            ? 'Stopping...'
+            : showStop
+            ? 'Stop Recording'
+            : 'Start Recording';
+          const variant = showStop ? 'destructive' : 'secondary';
+          return (
+            <Button className="text-lg" onClick={onClick} disabled={disabled} variant={variant as any}>
+              {label}
+            </Button>
+          );
+        })()}
         <Button className="text-lg" onClick={() => onFinishCase?.()}>
           Finish Case
         </Button>

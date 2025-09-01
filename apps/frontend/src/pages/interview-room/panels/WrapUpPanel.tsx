@@ -9,15 +9,22 @@ type WrapUpPanelProps = {
   onTranscript: () => void;
 };
 
-const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ role, onExit, onDoAnother, onTranscript }) => {
+const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ role, onExit, onDoAnother }) => {
   const isHost = role === 'host';
+  const handleRedo = () => {
+    const confirmed = window.confirm(
+      'This will overwrite your previous recording and you will not receive feedback on your performance.'
+    );
+    if (confirmed) {
+      onDoAnother();
+    }
+  };
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full justify-center">
       {isHost ? (
         <>
           <Button className="mb-4 w-64 text-lg self-center" onClick={onExit}>Finish</Button>
-          <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={onDoAnother}>Do Another Case</Button>
-          <Button className="w-64 text-lg self-center" variant="secondary" onClick={onTranscript}>Transcript Review</Button>
+          <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={handleRedo}>Redo</Button>
         </>
       ) : (
         <div className="text-center text-gray-500">
