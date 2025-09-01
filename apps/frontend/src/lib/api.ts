@@ -52,3 +52,8 @@ export async function stopRecording({ room_url, sessionId }: { room_url: string,
   const response = await api.post("/recording/stop", { room_url, sessionId });
   return response.data;
 }
+
+export async function transcribeRecording({ room_url, sessionId }: { room_url: string, sessionId: string }) {
+  const response = await api.post("/recording/transcribe", { room_url, sessionId });
+  return response.data;
+}
