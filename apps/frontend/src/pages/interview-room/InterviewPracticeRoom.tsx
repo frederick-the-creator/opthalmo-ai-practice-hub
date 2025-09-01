@@ -6,7 +6,7 @@ import InterviewPanel from "./panels/InterviewPanel";
 import WrapUpPanel from "./panels/WrapUpPanel";
 import InterviewControls from "./panels/InterviewControls";
 import { useNavigate } from "react-router-dom";
-import { transcribeRecording } from "@/lib/api";
+import { assessCandidatePerformance } from "@/lib/api";
 import { useInterviewSession } from "@/pages/interview-room/useInterviewSession";
 import { fetchCases } from "@/supabase/utils";
 import { Stage } from "@/supabase/types";
@@ -89,7 +89,8 @@ const InterviewPracticeRoom: React.FC = () => {
   const handleTranscript = async () => {
     if (!session?.room_url || !session?.id) return;
     try {
-      await transcribeRecording({ room_url: session.room_url, sessionId: session.id });
+      const sessionCase = cases.find(c => c.id === session?.case_id)
+      await assessCandidatePerformance({ room_url: session.room_url, sessionId: session.id, case_name: sessionCase.case_name});
     } catch (e) {
       // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
       console.error('Failed to start transcription', e);

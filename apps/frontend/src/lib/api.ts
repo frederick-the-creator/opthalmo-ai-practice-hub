@@ -53,7 +53,7 @@ export async function stopRecording({ room_url, sessionId }: { room_url: string,
   return response.data;
 }
 
-export async function transcribeRecording({ room_url, sessionId }: { room_url: string, sessionId: string }) {
-  const response = await api.post("/recording/transcribe", { room_url, sessionId });
+export async function assessCandidatePerformance({ room_url, sessionId, case_name }: { room_url: string, sessionId: string, case_name:string }) {
+  const response = await api.post("/assessment", { room_url, sessionId, case_name });
   return response.data;
 }

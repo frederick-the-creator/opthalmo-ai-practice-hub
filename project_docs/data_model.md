@@ -67,23 +67,25 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `actor_brief`: text — visible to the actor/assessor
   - `category`: text — thematic grouping of the case
   - `condition`: text — clinical or medical condition
-  - `case_name`: text — descriptive name of the case
+  - `case_name`: text — descriptive name of the case for display in UI
+  - `case_name`" text - name of case for internal team reference
   - `domain`: text — skill or competency domain (e.g. communication, ethics)
 
 - **Usage**:
   - Linked from `practice_sessions` via `case_id`
 
 
-  ### 📁 Supabase Storage Bucket: `practice_transcriptions`
+  ### 📁 Supabase Storage Bucket: `assessments`
 
 - **Purpose:**  
-  Stores JSON transcription files for each practice session.
+  Stores JSON transcription and assessment files for each practice session.
 
 - **Bucket Name:**  
-  `transcriptions`
+  `assessments`
 
 - **File Structure:**  
-  Each transcription is stored as `transcriptions/{session_id}/transcript.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
+  Each transcription is stored as `assessments/{session_id}/transcript.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
+  Each assessment is stored as `assessments/{session_id}/assessment.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
 
 - **Access Control (RLS Policies):**
   - **Read:** Allowed for users who are the `host` or `guest` of the session.
@@ -99,4 +101,4 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `practice_sessions.id` (UUID) is used as the folder name for each session’s transcription.
 
 **Example file path:**  
-`practice_transcriptions/123e4567-e89b-12d3-a456-426614174000/transcript.json`
+`assessments/123e4567-e89b-12d3-a456-426614174000/transcript.json`

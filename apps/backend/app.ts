@@ -3,7 +3,8 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import sessionRouter from './controllers/session'
-import recordingRouter from './controllers/recording';
+import recordingRouter from './controllers/recording'
+import assessmentRouter from './controllers/assessment'
 
 const app = express();
 
@@ -25,5 +26,6 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/sessions', sessionRouter)
 app.use('/api/recording', recordingRouter)
+app.use('/api/assessment', assessmentRouter)
 
 export default app

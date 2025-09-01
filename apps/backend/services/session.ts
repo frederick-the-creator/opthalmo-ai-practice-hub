@@ -1,6 +1,7 @@
 import axios from 'axios'
 import supabase from '../utils/supabase'
 
+
 /**
  * Insert a new practice session into the database.
  * @param fields - The fields for the new session (e.g., { host_id, date, time, type, room_url }).
@@ -102,39 +103,3 @@ export async function updatePracticeSession(
   }
   return { data, error: null };
 }
-
-/**
- * Upload a transcription JSON to Supabase Storage in a folder named after the session ID.
- * @param sessionId The practice session ID
- * @param transcriptionJson The transcription JSON object
- * @returns The public URL or storage path of the uploaded file
- */
-export async function uploadTranscriptionToStorage(sessionId: string, transcriptionJson: any): Promise<string> {
-  const bucket = 'transcriptions';
-  const filePath = `${sessionId}/transcript.json`;
-  // Use Buffer for Node.js compatibility
-  let file;
-  if (typeof Blob !== 'undefined') {
-    file = new Blob([JSON.stringify(transcriptionJson)], { type: 'application/json' });
-  } else {
-    file = Buffer.from(JSON.stringify(transcriptionJson), 'utf-8');
-  }
-
-  // Upload the file
-  const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
-    upsert: true,
-    contentType: 'application/json',
-  });
-  if (error) {
-    throw new Error(error.message || 'Failed to upload transcription to storage');
-  }
-
-  // Get the public URL (or signed URL if you prefer)
-  const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
-  return publicUrlData?.publicUrl || filePath;
-}
-
-
-
-
-
