@@ -71,7 +71,6 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
   const caseContent = (
     <div className="flex flex-col">
       {sortedCases.map(c => {
-        // console.log('case:', c);
         return (
           <div
             key={c.id}

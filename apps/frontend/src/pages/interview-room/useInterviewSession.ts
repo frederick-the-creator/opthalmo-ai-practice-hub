@@ -17,29 +17,29 @@ interface UseInterviewSessionResult {
 }
 
 // Add or update Session type for clarity
-interface Session {
-  id: string;
-  host_id: string;
-  guest_id?: string | null;
-  type: string;
-  created_at: string;
-  room_url?: string | null;
-  host_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  guest_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  datetime_utc: string;
-  private?: boolean;
-  // ...other fields as needed
-}
+// interface Session {
+//   id: string;
+//   host_id: string;
+//   guest_id?: string | null;
+//   type: string;
+//   created_at: string;
+//   room_url?: string | null;
+//   host_profile?: {
+//     user_id: string;
+//     first_name: string | null;
+//     last_name: string | null;
+//     avatar: string | null;
+//   } | null;
+//   guest_profile?: {
+//     user_id: string;
+//     first_name: string | null;
+//     last_name: string | null;
+//     avatar: string | null;
+//   } | null;
+//   datetime_utc: string;
+//   private?: boolean;
+//   // ...other fields as needed
+// }
 
 export function useInterviewSession(sessionId: string | null): UseInterviewSessionResult {
   const [session, setSession] = useState<any>(null); // TODO: type this properly

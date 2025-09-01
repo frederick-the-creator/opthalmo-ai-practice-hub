@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import HeaderBar from "./HeaderBar";
 import VideoPane from "./VideoPane";
 import PrepPanel from "./panels/PrepPanel";
@@ -40,6 +40,17 @@ const InterviewPracticeRoom: React.FC = () => {
     error,
   } = useInterviewSession(rawSessionId);
 
+  const filteredCases = useMemo(() => {
+    if (!session?.type) return cases;
+    return cases.filter(c => {
+      const domain = c?.domain;
+      if (domain === 'Clinical / Communication') return true;
+      if (session.type === 'Clinical') return domain === 'Clinical';
+      if (session.type === 'Communication') return domain === 'Communication';
+      return true;
+    });
+  }, [cases, session?.type]);
+
   useEffect(() => {
     setUpdating(false);
   }, [stage]);
@@ -80,7 +91,7 @@ const InterviewPracticeRoom: React.FC = () => {
     rightPanel = (
       <PrepPanel
         session={session}
-        cases={cases}
+        cases={filteredCases}
         role={role}
         updating={updating}
         onSelectCandidate={handleSelectCandidate}
@@ -91,7 +102,7 @@ const InterviewPracticeRoom: React.FC = () => {
     rightPanel = (
       <InterviewPanel
         session={session}
-        cases={cases}
+        cases={filteredCases}
         role={role}
         isCandidate={isCandidate}
         onFinishCase={handleFinishCase}

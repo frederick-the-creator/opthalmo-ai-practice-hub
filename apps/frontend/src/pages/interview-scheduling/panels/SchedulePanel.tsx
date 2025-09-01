@@ -66,8 +66,8 @@ const SchedulePanel: React.FC<Props> = ({
             <SelectValue placeholder="Select session type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Clinical Station">Clinical Station</SelectItem>
-            <SelectItem value="Communication Station">Communication Station</SelectItem>
+            <SelectItem value="Clinical">Clinical Station</SelectItem>
+            <SelectItem value="Communication">Communication Station</SelectItem>
           </SelectContent>
         </Select>
       </div>
