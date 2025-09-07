@@ -3,7 +3,7 @@ import { Assessment, AssessmentSchema } from "../schemas/assessment";
 import fs from "fs";
 import path from "path";
 import { transcribe } from "./transcription";
-import supabase from "../utils/supabase";
+import adminSupabase from "../utils/supabase";
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -50,7 +50,7 @@ export async function uploadAssessmentToStorage(sessionId: string, assessmentJso
     file = Buffer.from(JSON.stringify(assessmentJson), 'utf-8');
   }
 
-  const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
+  const { data, error } = await adminSupabase.storage.from(bucket).upload(filePath, file, {
     upsert: true,
     contentType: 'application/json',
   });
@@ -58,7 +58,7 @@ export async function uploadAssessmentToStorage(sessionId: string, assessmentJso
     throw new Error(error.message || 'Failed to upload assessment to storage');
   }
 
-  const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+  const { data: publicUrlData } = adminSupabase.storage.from(bucket).getPublicUrl(filePath);
   return publicUrlData?.publicUrl || filePath;
 }
 

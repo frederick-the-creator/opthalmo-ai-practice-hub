@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import sessionRouter from './controllers/session'
+import roomRouter from './controllers/room'
 import recordingRouter from './controllers/recording'
 import assessmentRouter from './controllers/assessment'
 
@@ -24,7 +24,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/sessions', sessionRouter)
+app.use('/api/room', roomRouter)
 app.use('/api/recording', recordingRouter)
 app.use('/api/assessment', assessmentRouter)
 

@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { startRecording, stopRecording } from '@/lib/api';
-import { Stage } from '@/supabase/types';
+import { Stage } from '../../types';
 import { Play } from 'lucide-react';
 
 type InterviewControlsProps = {
   roomUrl: string | null;
-  sessionId: string | null;
+  roomId: string | null;
   stage: Stage;
   onStartCase?: () => Promise<void> | void;
   canStart?: boolean;
   onFinishCase?: () => void;
 };
 
-const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionId, stage, onStartCase, canStart, onFinishCase }) => {
+const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, stage, onStartCase, canStart, onFinishCase }) => {
   const [recording, setRecording] = useState<null | any>(null);
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
@@ -125,7 +125,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, sessionI
     setRecordingError(null);
     setRecordingSuccess(null);
     try {
-      const result = await stopRecording({ room_url: roomUrl, sessionId: sessionId });
+      const result = await stopRecording({ room_url: roomUrl, roomId: roomId });
       setStopSuccess('Recording stopped.');
       setHasStoppedRecording(true);
     } catch (err: any) {

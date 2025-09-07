@@ -1,7 +1,9 @@
 import React from 'react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
-import { renderMarkdownToReact } from '@/supabase/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 type BriefProps = {
   title: string;
@@ -14,6 +16,24 @@ type BriefProps = {
   containerClassName?: string;
   contentClassName?: string;
 };
+
+/**
+ * Converts a markdown string to React elements for safe rendering in the UI.
+ * Can be used for candidate_brief, actor_brief, markscheme, etc.
+ * @param markdown - The markdown string to render
+ * @returns React element rendering the markdown
+ */
+function renderMarkdownToReact(markdown: string | undefined | null): React.ReactNode {
+
+  if (!markdown) return null;
+  // 1. Replace all literal \n with real newlines
+
+
+  // Debug: log the normalized string
+
+  return <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{markdown}</ReactMarkdown>;
+}
+
 
 const Brief: React.FC<BriefProps> = ({
   title,

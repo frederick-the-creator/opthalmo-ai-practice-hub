@@ -1,5 +1,5 @@
 import axios from 'axios';
-import supabase from '../utils/supabase'
+import adminSupabase from '../utils/supabase'
 
 /**
  * Get the latest recording ID for a Daily.co room.
@@ -167,7 +167,7 @@ export async function uploadTranscriptionToStorage(sessionId: string, transcript
   }
 
   // Upload the file
-  const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
+  const { data, error } = await adminSupabase.storage.from(bucket).upload(filePath, file, {
     upsert: true,
     contentType: 'application/json',
   });
@@ -176,7 +176,7 @@ export async function uploadTranscriptionToStorage(sessionId: string, transcript
   }
 
   // Get the public URL (or signed URL if you prefer)
-  const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+  const { data: publicUrlData } = adminSupabase.storage.from(bucket).getPublicUrl(filePath);
   return publicUrlData?.publicUrl || filePath;
 }
 

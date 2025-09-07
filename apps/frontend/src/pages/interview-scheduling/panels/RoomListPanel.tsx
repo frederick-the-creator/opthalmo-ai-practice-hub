@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 
-interface Session {
+interface Room {
   id: string;
   host_id: string;
   guest_id?: string | null;
@@ -29,16 +29,16 @@ interface Session {
 }
 
 interface Props {
-  sessions: Session[];
+  rooms: Room[];
   loading: boolean;
   error: string | null;
   currentUserId: string | null;
-  onAccept: (sessionId: string) => void;
-  onJoin: (session: Session) => void;
+  onAccept: (roomId: string) => void;
+  onJoin: (room: Room) => void;
 }
 
-const SessionListPanel: React.FC<Props> = ({
-  sessions,
+const RoomListPanel: React.FC<Props> = ({
+  rooms,
   loading,
   error,
   currentUserId,
@@ -46,13 +46,13 @@ const SessionListPanel: React.FC<Props> = ({
   onJoin,
 }) => {
   // Helper to get host and guest profile info
-  const getHostAndGuestProfiles = (session: Session, currentUserId: string | null) => {
-    const hostProfile = session.host_profile || null;
-    const guestProfile = session.guest_profile || null;
+  const getHostAndGuestProfiles = (room: Room, currentUserId: string | null) => {
+    const hostProfile = room.host_profile || null;
+    const guestProfile = room.guest_profile || null;
     const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
-      if (currentUserId && session.guest_id === currentUserId) {
+      if (currentUserId && room.guest_id === currentUserId) {
         guestName = 'You';
       } else {
         guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
@@ -64,25 +64,25 @@ const SessionListPanel: React.FC<Props> = ({
     return { hostName, guestName, hostAvatar };
   };
 
-  // Available sessions (not joined by user) and only public
-  const availableSessions = sessions.filter(
-    (session) =>
-      (!currentUserId || (session.host_id !== currentUserId && session.guest_id !== currentUserId)) &&
-      session.private !== true
+  // Available rooms (not joined by user) and only public
+  const availablerooms = rooms.filter(
+    (room) =>
+      (!currentUserId || (room.host_id !== currentUserId && room.guest_id !== currentUserId)) &&
+      room.private !== true
   );
 
-  // My sessions (joined or hosted by user)
-  const mySessions = sessions.filter(
-    (session) =>
+  // My rooms (joined or hosted by user)
+  const myrooms = rooms.filter(
+    (room) =>
       currentUserId &&
-      (session.host_id === currentUserId || session.guest_id === currentUserId)
+      (room.host_id === currentUserId || room.guest_id === currentUserId)
   );
 
   return (
     <Tabs defaultValue="schedule" className="p-0">
       <TabsList className="grid w-full grid-cols-2 mb-4">
-        <TabsTrigger value="schedule">Available Sessions</TabsTrigger>
-        <TabsTrigger value="my">My Upcoming Sessions</TabsTrigger>
+        <TabsTrigger value="schedule">Available rooms</TabsTrigger>
+        <TabsTrigger value="my">My Upcoming rooms</TabsTrigger>
       </TabsList>
       <TabsContent value="schedule">
         <ul className="divide-y">
@@ -90,14 +90,14 @@ const SessionListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">Loading...</li>
           ) : error ? (
             <li className="p-4 text-red-500 text-center">{error}</li>
-          ) : availableSessions.length === 0 ? (
-            <li className="p-4 text-gray-500 text-center">No available sessions.</li>
+          ) : availablerooms.length === 0 ? (
+            <li className="p-4 text-gray-500 text-center">No available rooms.</li>
           ) : (
-            availableSessions.map((session) => {
-              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(session, currentUserId);
-              const isGuestPresent = !!session.guest_id;
+            availablerooms.map((room) => {
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, currentUserId);
+              const isGuestPresent = !!room.guest_id;
               return (
-                <li key={session.id} className="flex items-center justify-between p-4">
+                <li key={room.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
                     <Avatar>
                       <AvatarFallback>{hostAvatar}</AvatarFallback>
@@ -106,16 +106,16 @@ const SessionListPanel: React.FC<Props> = ({
                       <p className="font-medium">{hostName}</p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{session.type}</span>
+                        <span>{room.type}</span>
                         <span className="mx-2">•</span>
                         <span>{
-                          new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                         {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-primary" onClick={() => onAccept(session.id)} disabled={isGuestPresent}>
+                  <Button size="sm" className="bg-primary" onClick={() => onAccept(room.id)} disabled={isGuestPresent}>
                     {isGuestPresent ? "Accepted" : "Accept Invitation"}
                   </Button>
                 </li>
@@ -130,14 +130,14 @@ const SessionListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">Loading...</li>
           ) : error ? (
             <li className="p-4 text-red-500 text-center">{error}</li>
-          ) : mySessions.length === 0 ? (
+          ) : myrooms.length === 0 ? (
             <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
           ) : (
-            mySessions.map((session) => {
-              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(session, currentUserId);
-              const isHost = currentUserId && session.host_id === currentUserId;
+            myrooms.map((room) => {
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, currentUserId);
+              const isHost = currentUserId && room.host_id === currentUserId;
               return (
-                <li key={session.id} className="flex items-center justify-between p-4">
+                <li key={room.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
                     <Avatar>
                       <AvatarFallback>{hostAvatar}</AvatarFallback>
@@ -145,41 +145,41 @@ const SessionListPanel: React.FC<Props> = ({
                     <div className="ml-3">
                       <p className="font-medium flex items-center gap-2">
                         {hostName}
-                        {session.private && (
+                        {room.private && (
                           <Badge className="bg-gray-200 text-gray-700 ml-2">Private</Badge>
                         )}
                       </p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{session.type}</span>
+                        <span>{room.type}</span>
                         <span className="mx-2">•</span>
                         <span>{
-                          new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {session.private && isHost && session.room_url && (
+                    {room.private && isHost && room.room_url && (
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
                         className="border-gray-300"
                         onClick={() => {
-                          navigator.clipboard.writeText(window.location.origin + '/invite/' + session.id);
+                          navigator.clipboard.writeText(window.location.origin + '/invite/' + room.id);
                           toast({ title: 'Invite link copied!' });
                         }}
                       >
                         Invite Link
                       </Button>
                     )}
-                    {session.room_url ? (
+                    {room.room_url ? (
                       <Button
-                        className={`bg-primary${!session.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
-                        aria-label={!session.guest_id ? 'Waiting for guest' : 'Join session'}
-                        title={!session.guest_id ? 'Waiting for guest to accept session' : 'Join session'}
-                        onClick={() => onJoin(session)}
+                        className={`bg-primary${!room.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
+                        aria-label={!room.guest_id ? 'Waiting for guest' : 'Join room'}
+                        title={!room.guest_id ? 'Waiting for guest to accept room' : 'Join room'}
+                        onClick={() => onJoin(room)}
                       >
                         Join
                       </Button>
@@ -197,4 +197,4 @@ const SessionListPanel: React.FC<Props> = ({
   );
 };
 
-export default SessionListPanel;
+export default RoomListPanel;

@@ -10,8 +10,8 @@ interface Props {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  sessionType: string;
-  setSessionType: (type: string) => void;
+  roomType: string;
+  setRoomType: (type: string) => void;
   scheduleError: string | null;
   scheduling: boolean;
   onSchedule: () => void;
@@ -24,8 +24,8 @@ const SchedulePanel: React.FC<Props> = ({
   setSelectedDate,
   selectedTime,
   setSelectedTime,
-  sessionType,
-  setSessionType,
+  roomType,
+  setRoomType,
   scheduleError,
   scheduling,
   onSchedule,
@@ -79,7 +79,7 @@ const SchedulePanel: React.FC<Props> = ({
         </div>
         <div className="space-y-2">
           <Label>Session Type</Label>
-          <Select value={sessionType} onValueChange={setSessionType}>
+          <Select value={roomType} onValueChange={setRoomType}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select session type" />
             </SelectTrigger>

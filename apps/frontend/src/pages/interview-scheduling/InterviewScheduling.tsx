@@ -1,28 +1,27 @@
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useInterviewScheduling } from "./useInterviewScheduling";
-import SessionListPanel from "./panels/SessionListPanel";
+import RoomListPanel from "./panels/RoomListPanel";
 import SchedulePanel from "./panels/SchedulePanel";
 import InvitePanel from "./panels/InvitePanel";
 
 const InterviewPractice: React.FC = () => {
   const {
-    sessions, loading, error, currentUserId,
+    rooms, loading, error, currentUserId,
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
-    sessionType, setSessionType,
+    roomType, setRoomType,
     scheduling, scheduleError,
-    handleAcceptInvitation, handleScheduleSession,
+    handleAcceptInvitation, handleScheduleRoom,
     handleCopyLink, copied,
     isPrivate, setIsPrivate,
   } = useInterviewScheduling();
   const navigate = useNavigate();
 
-  // Handler for joining a session
-  const handleJoin = (session: any) => {
-    if (session.room_url) {
-      navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}&sessionId=${session.id}`);
+  // Handler for joining a room
+  const handleJoin = (room: any) => {
+    if (room.room_url) {
+      navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(room.room_url)}&roomId=${room.id}`);
     }
   };
 
@@ -36,8 +35,8 @@ const InterviewPractice: React.FC = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <SessionListPanel
-            sessions={sessions}
+          <RoomListPanel
+            rooms={rooms}
             loading={loading}
             error={error}
             currentUserId={currentUserId}
@@ -50,11 +49,11 @@ const InterviewPractice: React.FC = () => {
           setSelectedDate={setSelectedDate}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
-          sessionType={sessionType}
-          setSessionType={setSessionType}
+          roomType={roomType}
+          setRoomType={setRoomType}
           scheduleError={scheduleError}
           scheduling={scheduling}
-          onSchedule={handleScheduleSession}
+          onSchedule={handleScheduleRoom}
           isPrivate={isPrivate}
           setIsPrivate={setIsPrivate}
         />

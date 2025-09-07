@@ -16,7 +16,7 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
   - `avatar`: text, optional (URL or reference to image)
 
 - **Relationships**:
-  - Linked as `host_id` and `guest_id` in `practice_sessions`
+  - Linked as `host_id` and `guest_id` in `practice_rooms`
 
 - **RLS Policies**:
   - ✅ `SELECT`: Allow all users to select profiles (e.g. for displaying upcoming sessions)
@@ -24,28 +24,25 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
 
 ---
 
-### 🗂️ Table: `practice_sessions`
+### 🗂️ Table: `practice_rooms`
 
-- Stores information about scheduled practice sessions  
+- Stores metadata on the rooms (rooms are synonymous to practice sessions)
 - **Columns**:
-  - `id`: UUID, primary key
-  - `host_id`: UUID, references `profiles(user_id)`
-  - `guest_id`: UUID, nullable, references `profiles(user_id)`
+  - `id`: Unique identifier - UUID, primary key
+  - `host_id`: Host of the session, the user who scheduled it - UUID, references `profiles(user_id)`
+  - `guest_id`: Guest of the session, the user who accepted the session - UUID, nullable, references `profiles(user_id)`
   - `datetime_utc`: Date and time of session
-  - `type`: text — type of session (e.g. mock, review)
-  - `room_url`: unique text — session room identifier or link
-  - `case_id`: UUID, nullable, references `cases(id)`
-  - `candidate_id`: UUID, nullable
-  - `version`: integer, defaults to 1
+  - `first_round_id`: FK to session_rounds table containing details of round 1 - UUID, references `session_rounds(id)`
+  - `second_round_id`: FK to session_rounds table containing details of round 2 -  UUID, references `session_rounds(id)`
+  - `type`: type of session (e.g. Clinical / Communication) - text
+  - `room_url`: session room identifier or link - unique text
+  - `stage`: Indicates which stage the session is at (1 / 2 / 3)
+  - `private`: Indicates if room is private / not available on scheduling board - Boolean
   - `created_at`: timestamp with time zone, defaults to `now() at time zone 'utc'`
-
-- **Indexes**:
-  - `host_id` — to query all sessions hosted by a user
-  - `guest_id` — to query all sessions where a user is a guest
 
 - **Constraints**:
   - `room_url` must be unique
-  - Foreign keys link to `profiles` and `cases`
+  - Foreign keys link to `profiles` and `session_rounds`
 
 - **RLS Policies**:
   - ✅ `SELECT`: Non-users can see sessions created by other users (e.g. for session discovery)
@@ -58,47 +55,35 @@ This document outlines the key database tables and Row-Level Security (RLS) poli
 
 ---
 
-### 🧾 Table: `cases`
+### 🗂️ Table: `practice_rounds`
+
+- Stores information about the rounds of practice carried out in a room. Expect no more than 2 rounds in a room
+- **Columns**:
+  - `id`: UUID, primary key
+  - `room_id`: Room in which practice round were carried out
+  - `candidate_id`: Candidate for that round - UUID, references `profiles(user_id)`
+  - `case_briefs_id`: Case brief for that round - UUID, nullable, references `case_briefs(id)`
+  - `transcript`: JSON containing the transcript for the session
+  - `assessment`: JSON containing the LLM assessment of the transcript
+
+- **Constraints**:
+  - Foreign keys link to `profiles` and `case_briefs`
+
+---
+
+### 🧾 Table: `case_briefs`
 
 - Stores case materials used during sessions  
 - **Columns**:
   - `id`: UUID, primary key (auto-generated)
-  - `candidate_brief`: text — visible to the candidate
-  - `actor_brief`: text — visible to the actor/assessor
   - `category`: text — thematic grouping of the case
   - `condition`: text — clinical or medical condition
   - `case_name`: text — descriptive name of the case for display in UI
-  - `case_name`" text - name of case for internal team reference
-  - `domain`: text — skill or competency domain (e.g. communication, ethics)
+  - `case_name_internal`: text - name of case for internal team reference
+  - `domain`: Clinical or Communication
+  - `candidate_brief`: text — visible to the candidate
+  - `actor_brief`: text — visible to the actor/assessor
 
 - **Usage**:
-  - Linked from `practice_sessions` via `case_id`
+  - Linked from `practice_rooms` via `case_id`
 
-
-  ### 📁 Supabase Storage Bucket: `assessments`
-
-- **Purpose:**  
-  Stores JSON transcription and assessment files for each practice session.
-
-- **Bucket Name:**  
-  `assessments`
-
-- **File Structure:**  
-  Each transcription is stored as `assessments/{session_id}/transcript.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
-  Each assessment is stored as `assessments/{session_id}/assessment.json`, where `{session_id}` matches the `id` in the `practice_sessions` table.
-
-- **Access Control (RLS Policies):**
-  - **Read:** Allowed for users who are the `host` or `guest` of the session.
-  - **Insert/Upload:** Allowed for the `host` of the session.
-  - **Delete:** Allowed for the `host` of the session.
-  - **Public:** **Not public** (private bucket).
-
-- **Security Implementation:**
-  - RLS (Row Level Security) is enabled on the `storage.objects` table.
-  - Policies use the session ID in the file path to match against the `practice_sessions` table and the authenticated user’s UID.
-
-- **Relevant Table Links:**
-  - `practice_sessions.id` (UUID) is used as the folder name for each session’s transcription.
-
-**Example file path:**  
-`assessments/123e4567-e89b-12d3-a456-426614174000/transcript.json`

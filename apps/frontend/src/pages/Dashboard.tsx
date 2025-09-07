@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
-import StatsOverview from "@/components/dashboard/StatsOverview";
 import QuickActions from "@/components/dashboard/QuickActions";
-import WeakAreas from "@/components/dashboard/WeakAreas";
-import RecentSessions from "@/components/dashboard/RecentSessions";
-import Notifications from "@/components/dashboard/Notifications";
 import { supabase } from "@/supabase/client";
-import type { Tables } from "@/supabase/types";
+import type { Tables } from "@/supabase/dbTypes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, onComplete: () => void, prefill?: { firstName?: string, lastName?: string, trainingLevel?: string } }) {
@@ -15,7 +11,6 @@ function CompleteProfileForm({ userId, onComplete, prefill }: { userId: string, 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('firstName', firstName)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +84,6 @@ const Dashboard: React.FC = () => {
     async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id || null);
-      console.log('userId', user)
       if (user) {
         const { data: fetchedProfile, error: profileFetchError } = await supabase
           .from('profiles')
@@ -99,7 +93,6 @@ const Dashboard: React.FC = () => {
         if (fetchedProfile) {
           setProfile(fetchedProfile);
           setProfileStatus('complete');
-          console.log('profile', fetchedProfile)
         } else if (profileFetchError && profileFetchError.code === "PGRST116") {
           // No profile exists
           const pendingProfile = localStorage.getItem('pendingProfile');

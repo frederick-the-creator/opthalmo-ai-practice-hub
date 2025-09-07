@@ -2,10 +2,7 @@ import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  Video, 
-  BookOpen, 
-  Brain, 
-  Users, 
+  Video,
   LogOut, 
   Eye
 } from "lucide-react";

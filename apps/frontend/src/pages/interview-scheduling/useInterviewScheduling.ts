@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/supabase/client";
-import { createSession, acceptInvitation } from "@/lib/api";
-import { fetchSessions as fetchSessionsUtil, subscribeToPracticeSessions } from "@/supabase/utils";
+import { createPracticeRoom, acceptInvitation } from "@/lib/api";
+import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/utils";
 
-// Types for session and profile
-export interface Session {
+// Types for room and profile
+export interface Room {
   id: string;
   host_id: string;
   guest_id?: string | null;
@@ -30,7 +30,7 @@ export interface Session {
 }
 
 export interface UseInterviewSchedulingResult {
-  sessions: Session[];
+  rooms: Room[];
   loading: boolean;
   error: string | null;
   currentUserId: string | null;
@@ -38,12 +38,12 @@ export interface UseInterviewSchedulingResult {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  sessionType: string;
-  setSessionType: (type: string) => void;
+  roomType: string;
+  setRoomType: (type: string) => void;
   scheduling: boolean;
   scheduleError: string | null;
-  handleAcceptInvitation: (sessionId: string) => Promise<void>;
-  handleScheduleSession: () => Promise<void>;
+  handleAcceptInvitation: (roomId: string) => Promise<void>;
+  handleScheduleRoom: () => Promise<void>;
   handleCopyLink: () => void;
   copied: boolean;
   isPrivate: boolean;
@@ -52,12 +52,12 @@ export interface UseInterviewSchedulingResult {
 
 export function useInterviewScheduling(): UseInterviewSchedulingResult {
   // State declarations
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [sessionType, setSessionType] = useState("");
+  const [roomType, setRoomType] = useState("");
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -65,37 +65,37 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [isPrivate, setIsPrivate] = useState(false);
 
 
-  // Initial fetch of user and sessions
+  // Initial fetch of user and rooms
   useEffect(() => {
     let isMounted = true;
-    const fetchUserAndSessions = async () => {
+    const fetchUserAndRooms = async () => {
       setLoading(true);
       setError(null);
       // Get current user
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (!isMounted) return;
       if (userError || !userData.user) {
-        setError("You must be logged in to view sessions.");
+        setError("You must be logged in to view rooms.");
         setLoading(false);
         return;
       }
       setCurrentUserId(userData.user.id);
-      await fetchSessions();
+      await fetchRooms();
     };
-    fetchUserAndSessions();
+    fetchUserAndRooms();
     return () => { isMounted = false; };
   }, []);
 
-  // Realtime subscription to sessions table
+  // Realtime subscription to rooms table
   useEffect(() => {
-    const cleanup = subscribeToPracticeSessions({
-      onChange: fetchSessions
+    const cleanup = subscribeToPracticeRoom({
+      onChange: fetchRooms
     });
     return cleanup;
   }, []);
 
   // Accept Invitation handler
-  const handleAcceptInvitation = async (sessionId: string) => {
+  const handleAcceptInvitation = async (roomId: string) => {
     if (!currentUserId) {
       setError("You must be logged in to accept an invitation.");
       return;
@@ -103,7 +103,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setLoading(true);
     setError(null);
     try {
-      await acceptInvitation({ sessionId, guestId: currentUserId });
+      await acceptInvitation({ roomId, guestId: currentUserId });
       setLoading(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
@@ -112,76 +112,72 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
   };
 
-  // Handle scheduling a new session
-  const handleScheduleSession = async () => {
+  // Handle scheduling a new room
+  const handleScheduleRoom = async () => {
     setScheduleError(null);
-    if (!selectedDate || !selectedTime || !sessionType) {
-      setScheduleError("Please select date, time, and session type.");
+    if (!selectedDate || !selectedTime || !roomType) {
+      setScheduleError("Please select date, time, and room type.");
       return;
     }
     setScheduling(true);
     // Get current user
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
-      setScheduleError("You must be logged in to schedule a session.");
+      setScheduleError("You must be logged in to schedule a room.");
       setScheduling(false);
       return;
     }
     const host_id = userData.user.id;
     try {
       // Debug logs for timezone issue
-      console.log('selectedDate:', selectedDate);
-      console.log('selectedTime:', selectedTime);
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth(); // 0-based
       const day = selectedDate.getDate();
       const [hours, minutes] = selectedTime.split(":").map(Number);
       const localDateTime = new Date(year, month, day, hours, minutes, 0, 0);
-      console.log('localDateTime (local):', localDateTime);
       const datetime_utc = localDateTime.toISOString();
-      console.log('datetime_utc (to send):', datetime_utc);
-      // Call backend to create session (creates Daily room and DB row)
-      const response = await createSession({
+      // Call backend to create room (creates Daily room and DB row)
+      const response = await createPracticeRoom({
         host_id,
-        type: sessionType,
+        type: roomType,
         datetime_utc,
         private: isPrivate,
       });
       if (response.error) {
-        setScheduleError(response.error || "Failed to schedule session.");
+        setScheduleError(response.error || "Failed to schedule room.");
         setScheduling(false);
         return;
       }
       // Success: reset form
       setSelectedDate(undefined);
       setSelectedTime("");
-      setSessionType("");
+      setRoomType("");
       setIsPrivate(false);
       setScheduling(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
-      setScheduleError("Failed to schedule session.");
+      setScheduleError("Failed to schedule room.");
       setScheduling(false);
     }
   };
 
 
-  // Helper to fetch sessions
-  const fetchSessions = async () => {
+  // Helper to fetch rooms
+  const fetchRooms = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchSessionsUtil();
-      // Filter out sessions that are more than 1 hour past start time
+      const data = await fetchRoomsUtil();
+      // Filter out rooms that are more than 1 hour past start time
       const now = new Date();
-      const filtered = (data as any[]).filter((session) => {
-        const sessionStart = new Date(session.datetime_utc);
-        return now < new Date(sessionStart.getTime() + 60 * 60 * 1000);
+      const filtered = (data as any[]).filter((room) => {
+        const roomStart = new Date(room.datetime_utc);
+        return now < new Date(roomStart.getTime() + 60 * 60 * 1000);
       });
-      setSessions(filtered);
+      setRooms(filtered);
       setLoading(false);
     } catch (err) {
-      setError("Failed to load sessions");
+      setError("Failed to load rooms");
       setLoading(false);
     }
   };
@@ -194,7 +190,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   };
 
   return {
-    sessions,
+    rooms,
     loading,
     error,
     currentUserId,
@@ -202,12 +198,12 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
-    sessionType,
-    setSessionType,
+    roomType,
+    setRoomType,
     scheduling,
     scheduleError,
     handleAcceptInvitation,
-    handleScheduleSession,
+    handleScheduleRoom,
     handleCopyLink,
     copied,
     isPrivate,

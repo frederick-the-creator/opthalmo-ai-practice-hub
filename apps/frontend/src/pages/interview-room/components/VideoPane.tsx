@@ -18,7 +18,7 @@ const VideoPane: React.FC<VideoPaneProps> = ({ roomUrl, error }) => {
       <iframe
         src={roomUrl}
         title="Video Call"
-        allow="camera; microphone; fullscreen; speaker; display-capture"
+        allow="camera; microphone; fullscreen; display-capture"
         style={{ width: '100%', height: '100%', border: 0, borderRadius: '1rem' }}
       />
     );

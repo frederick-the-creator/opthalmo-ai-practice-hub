@@ -1,70 +1,79 @@
 import React, { useState, useEffect, useMemo } from "react";
-import HeaderBar from "./HeaderBar";
-import VideoPane from "./VideoPane";
-import PrepPanel from "./panels/PrepPanel";
-import InterviewPanel from "./panels/InterviewPanel";
-import WrapUpPanel from "./panels/WrapUpPanel";
-import InterviewControls from "./panels/InterviewControls";
+import HeaderBar from "./components/HeaderBar";
+import VideoPane from "./components/VideoPane";
+import PrepPanel from "./components/panels/PrepPanel";
+import InterviewPanel from "./components/panels/InterviewPanel";
+import WrapUpPanel from "./components/panels/WrapUpPanel";
+import InterviewControls from "./components/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
 import { assessCandidatePerformance } from "@/lib/api";
-import { useInterviewSession } from "@/pages/interview-room/useInterviewSession";
-import { fetchCases } from "@/supabase/utils";
-import { Stage } from "@/supabase/types";
+import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
+import { fetchCaseBriefs } from "@/supabase/utils";
+import { Stage } from "./types";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
-  const [rawSessionId, setRawSessionId] = useState<string | null>(null);
-  const [cases, setCases] = useState<any[]>([]);
+  const [rawRoomId, setrawRoomId] = useState<string | null>(null);
+  const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
 
+  // Set rawRoomId
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const session_id = params.get('sessionId');
-    const roomUrlParam = params.get('roomUrl');
-    if (session_id) setRawSessionId(session_id);
+    const room_id = params.get('roomId');
+    if (room_id) setrawRoomId(room_id);
   }, []);
 
-  useEffect(() => {
-    fetchCases().then(fetched => {
-      setCases(fetched);
-    });
-  }, []);
-
+  // Retrieve useful functions from helper module
   const {
-    session,
+    room,
+    round,
     stage,
-    role,
+    isHost,
     isCandidate,
     updateStage,
-    setCase: setCaseDb,
-    setCandidate: setCandidateDb,
     error,
-  } = useInterviewSession(rawSessionId);
+    setCase,
+    setCandidate,
+  } = useInterviewRoom(rawRoomId);
 
-  const filteredCases = useMemo(() => {
-    if (!session?.type) return cases;
-    return cases.filter(c => {
-      const domain = c?.domain;
-      if (domain === 'Clinical / Communication') return true;
-      if (session.type === 'Clinical') return domain === 'Clinical';
-      if (session.type === 'Communication') return domain === 'Communication';
-      return true;
+  // Set caseBriefs as all available case briefs filtered on room case type
+  useEffect(() => {
+    if (!room) return;
+    fetchCaseBriefs().then(
+      fetched => {
+      const filteredCaseBriefs = fetched.filter(c => {
+        const type = c?.type;
+        if (type === 'Clinical / Communication') return true;
+        if (room.type === 'Clinical') return type === 'Clinical';
+        if (room.type === 'Communication') return type === 'Communication';
+        return true;
+      })
+      const sortedCaseBriefs = filteredCaseBriefs.sort((a, b) => {
+        const aName = (a?.case_name ?? '').toString();
+        const bName = (b?.case_name ?? '').toString();
+        const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+        if (cmp !== 0) return cmp;
+        const aId = (a?.id ?? '').toString();
+        const bId = (b?.id ?? '').toString();
+        return aId.localeCompare(bId);
+      })
+      setCaseBriefs(sortedCaseBriefs);
     });
-  }, [cases, session?.type]);
+  }, [room]);
 
   useEffect(() => {
     setUpdating(false);
   }, [stage]);
 
-
   // Handlers for host actions
-  const handleSelectCandidate = (userId: string) => {
+  const handleSelectCandidate = (roundId: string, userId: string) => {
     setUpdating(true);
-    setCandidateDb(userId).finally(() => setUpdating(false));
+    setCandidate(roundId, userId).finally(() => setUpdating(false));
   };
-  const handleSelectCase = (caseId: string) => {
+  const handleSelectCase = (roundId: string, caseBriefId: string) => {
     setUpdating(true);
-    setCaseDb(caseId).finally(() => setUpdating(false));
+    setCase(roundId, caseBriefId).finally(() => setUpdating(false));
   };
   const handleStartCase = () => {
     setUpdating(true);
@@ -87,10 +96,10 @@ const InterviewPracticeRoom: React.FC = () => {
   const handleExit = () => navigate("/dashboard");
 
   const handleTranscript = async () => {
-    if (!session?.room_url || !session?.id) return;
+    if (!room?.room_url || !room?.id) return;
     try {
-      const sessionCase = cases.find(c => c.id === session?.case_id)
-      await assessCandidatePerformance({ room_url: session.room_url, sessionId: session.id, case_name: sessionCase.case_name});
+      const roundCase = caseBriefs.find(c => c.id === round?.case_brief_id)
+      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, case_name: roundCase.case_name});
     } catch (e) {
       // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
       console.error('Failed to start transcription', e);
@@ -102,9 +111,10 @@ const InterviewPracticeRoom: React.FC = () => {
   if (stage === Stage.PREP) {
     rightPanel = (
       <PrepPanel
-        session={session}
-        cases={filteredCases}
-        role={role}
+        room={room}
+        round={round}
+        cases={caseBriefs}
+        isHost={isHost}
         updating={updating}
         onSelectCandidate={handleSelectCandidate}
         onSelectCase={handleSelectCase}
@@ -113,9 +123,9 @@ const InterviewPracticeRoom: React.FC = () => {
   } else if (stage === Stage.INTERVIEW) {
     rightPanel = (
       <InterviewPanel
-        session={session}
-        cases={filteredCases}
-        role={role}
+        round={round}
+        cases={caseBriefs}
+        isHost={isHost}
         isCandidate={isCandidate}
         onFinishCase={handleFinishCase}
         onBack={handleBackToPrep}
@@ -124,7 +134,7 @@ const InterviewPracticeRoom: React.FC = () => {
   } else if (stage === Stage.WRAP_UP) {
     rightPanel = (
       <WrapUpPanel
-        role={role}
+        isHost={isHost}
         onExit={handleExit}
         onDoAnother={handleBackToPrep}
         onTranscript={handleTranscript}
@@ -136,7 +146,7 @@ const InterviewPracticeRoom: React.FC = () => {
     <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
       <HeaderBar
         stage={stage}
-        role={role}
+        isHost={isHost}
         onExit={handleExit}
         onBack={
           stage === Stage.INTERVIEW
@@ -149,20 +159,20 @@ const InterviewPracticeRoom: React.FC = () => {
       <div className="max-w-full w-full">
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex-1 max-md:ml-0 max-md:w-full">
-            <VideoPane roomUrl={session?.room_url ?? null} error={error} />
+            <VideoPane roomUrl={room?.room_url ?? null} error={error} />
           </div>
           <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
             {rightPanel}
           </div>
         </div>
-        {role === 'host' && (stage === Stage.PREP || stage === Stage.INTERVIEW) && (
+        {isHost === 'host' && (stage === Stage.PREP || stage === Stage.INTERVIEW) && (
           <div className="mt-4 flex justify-center">
             <InterviewControls
-              roomUrl={session?.room_url ?? null}
-              sessionId={session?.id ?? null}
+              roomUrl={room?.room_url ?? null}
+              roomId={room?.id ?? null}
               stage={stage}
               onStartCase={handleStartCase}
-              canStart={Boolean(session?.candidate_id && session?.case_id)}
+              canStart={Boolean(round?.candidate_id && round?.case_brief_id)}
               onFinishCase={handleFinishCase}
             />
           </div>

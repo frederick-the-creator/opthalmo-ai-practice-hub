@@ -2,15 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 type WrapUpPanelProps = {
-  role: 'host' | 'guest' | null;
+  isHost: 'host' | 'guest' | null;
   updating?: boolean;
   onExit: () => void;
   onDoAnother: () => void;
   onTranscript: () => void;
 };
 
-const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ role, onExit, onDoAnother, onTranscript }) => {
-  const isHost = role === 'host';
+const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ isHost, onExit, onDoAnother, onTranscript }) => {
   const handleRedo = () => {
     const confirmed = window.confirm(
       'This will overwrite your previous recording and you will not receive feedback on your performance.'
@@ -21,7 +20,7 @@ const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ role, onExit, onDoAnother, on
   };
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full justify-center">
-      {isHost ? (
+      {isHost === 'host' ? (
         <>
           <Button className="mb-4 w-64 text-lg self-center" onClick={() => { onTranscript(); onExit(); }}>Finish</Button>
           <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={handleRedo}>Redo</Button>

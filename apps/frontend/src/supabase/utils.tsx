@@ -1,34 +1,47 @@
 import { supabase } from "./client";
-import type { Tables } from "./types";
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
+import { Room, Round, Case, Profile } from "./types"
 
-export type Session = Tables<"practice_sessions"> & {
-  profiles?: any; // adjust as needed for joined profile info
-};
-
-export type Case = Tables<"cases">;
-export type Profile = Tables<"profiles">;
 
 /**
- * Fetch all sessions or a single session if sessionId is provided.
+ * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host info.s
  */
-export const fetchSessions = async (sessionId?: string): Promise<Session[] | Session | null> => {
+export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null> => {
+  // console.log('fetchRooms')
   let query = supabase
-    .from('practice_sessions')
-    .select('id, host_id, guest_id, candidate_id, case_id, datetime_utc, type, created_at, room_url, version, private, host_profile:profiles!practice_sessions_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_sessions_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .from('practice_rooms')
+    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, type, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .order('datetime_utc', { ascending: true });
 
-  if (sessionId) {
-    // Fetch a single session
-    const { data, error } = await query.eq('id', sessionId).single();
+  if (roomId) {
+    // Fetch a single room
+    const { data, error } = await query.eq('id', roomId).single();
     if (error || !data) return null;
     return data;
   } else {
-    // Fetch all sessions
+    // Fetch all rooms
+    const { data, error } = await query;
+    if (error || !data) return [];
+    return data;
+  }
+};
+
+/**
+ * Fetch all rooms or a single room if roomId is provided.
+ * Joins profiles for host info.s
+ */
+export const fetchRound = async (roomId?: string): Promise<Round[] | Round | null> => {
+  let query = supabase
+    .from('practice_rounds')
+    .select('id, host_id, room_id, candidate_id, case_brief_id, transcript, assessment, created_at')
+
+  if (roomId) {
+    // Fetch a single room
+    const { data, count, error } = await query.eq('room_id', roomId).single();
+    if (error || !data) return null;
+    return data;
+  } else {
+    // Fetch all rooms
     const { data, error } = await query;
     if (error || !data) return [];
     return data;
@@ -38,10 +51,11 @@ export const fetchSessions = async (sessionId?: string): Promise<Session[] | Ses
 /**
  * Fetch all cases.
  */
-export const fetchCases = async (): Promise<Case[]> => {
+export const fetchCaseBriefs = async (): Promise<Case[]> => {
+  // console.log('fetchCaseBriefs')
   const { data, error } = await supabase
-    .from('cases')
-    .select('id, case_name, actor_brief, candidate_brief, category, condition, domain');
+    .from('case_briefs')
+    .select('id, category, condition, case_name, case_name_internal, type, actor_brief, candidate_brief');
   return data || [];
 };
 
@@ -59,43 +73,27 @@ export const fetchProfile = async (userId: string): Promise<Profile | null> => {
 };
 
 /**
- * Converts a markdown string to React elements for safe rendering in the UI.
- * Can be used for candidate_brief, actor_brief, markscheme, etc.
- * @param markdown - The markdown string to render
- * @returns React element rendering the markdown
- */
-export function renderMarkdownToReact(markdown: string | undefined | null): React.ReactNode {
-
-  if (!markdown) return null;
-  // 1. Replace all literal \n with real newlines
-
-
-  // Debug: log the normalized string
-
-  return <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{markdown}</ReactMarkdown>;
-}
-
-/**
- * Subscribe to realtime changes on the practice_sessions table.
- * If sessionId is provided, only subscribe to that session; otherwise, subscribe to all.
+ * Subscribe to realtime changes on the practice_rooms table.
+ * If roomId is provided, only subscribe to that room; otherwise, subscribe to all.
  * Returns a cleanup function to remove the channel.
  */
-export function subscribeToPracticeSessions({
-  sessionId,
+export function subscribeToPracticeRoom({
+  roomId,
   onChange,
 }: {
-  sessionId?: string;
+  roomId?: string;
   onChange: () => void;
 }) {
-  const filter = sessionId ? `id=eq.${sessionId}` : undefined;
+  // console.log('subscribeToPracticeRoom')
+  const filter = roomId ? `id=eq.${roomId}` : undefined;
   const channel = supabase.channel(
-    sessionId ? `practice_sessions:${sessionId}` : "practice_sessions:all"
+    roomId ? `practice_rooms:${roomId}` : "practice_rooms:all"
   ).on(
     "postgres_changes",
     {
       event: "*",
       schema: "public",
-      table: "practice_sessions",
+      table: "practice_rooms",
       ...(filter ? { filter } : {}),
     },
     onChange

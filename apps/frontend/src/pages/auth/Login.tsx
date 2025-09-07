@@ -45,11 +45,7 @@ const Login: React.FC = () => {
         .select('user_id')
         .eq('user_id', user.id)
         .single();
-      console.log('[Login] User:', user);
-      console.log('[Login] Profile:', profile);
-      console.log('[Login] ProfileFetchError:', profileFetchError);
       if (!profile && (!profileFetchError || profileFetchError.code === "PGRST116")) {
-        console.log('[Login] Redirecting to /complete-profile');
         // No profile exists, redirect to profile completion page
         navigate('/complete-profile');
         setIsLoading(false);

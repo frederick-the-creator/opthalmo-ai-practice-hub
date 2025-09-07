@@ -39,7 +39,7 @@ const InviteAcceptPage: React.FC = () => {
       setCurrentUserId(userData.user.id);
       // Fetch session from Supabase
       const { data, error } = await supabase
-        .from("practice_sessions")
+        .from("practice_rooms")
         .select("id, host_id, guest_id, type, datetime_utc, private, room_url")
         .eq("id", sessionId)
         .single();

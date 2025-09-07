@@ -30,7 +30,7 @@ Move all business logic and state management related to interview session schedu
 
 #### 1.5. Move API Calls into the Hook
 - Move all direct calls to Supabase or backend APIs into the hook.
-- If needed, import utility functions (e.g., `createSession`) inside the hook.
+- If needed, import utility functions (e.g., `createPracticeRoom`) inside the hook.
 
 #### 1.6. Expose State and Handlers
 - Return all state variables and handler functions from the hook so they can be used in the main component and passed as props to panels.
@@ -60,7 +60,7 @@ Move all business logic and state management related to interview session schedu
 ```ts
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createSession } from "@/lib/api";
+import { createPracticeRoom } from "@/lib/api";
 // import types as needed
 
 export function useInterviewScheduling() {

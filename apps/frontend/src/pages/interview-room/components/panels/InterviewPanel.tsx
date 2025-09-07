@@ -1,34 +1,34 @@
 import React, { useState, useCallback } from 'react';
-import Brief from '../briefs/Brief';
+import Brief from './PanelBriefs';
 
 type InterviewPanelProps = {
-  session: any;
+  round: any;
   cases: any[];
-  role: 'host' | 'guest' | null;
+  isHost: 'host' | 'guest' | null;
   isCandidate: boolean;
   updating?: boolean;
   onFinishCase: () => void;
   onBack: () => void;
 };
 
-const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, isCandidate, onFinishCase }) => {
-  const foundCase = cases.find(c => c.id === session?.case_id);
+const InterviewPanel: React.FC<InterviewPanelProps> = ({ round, cases, isHost, isCandidate, onFinishCase }) => {
+  const selectedCase = cases.find(c => c.id === round?.case_brief_id);
 
   if (isCandidate) {
     return (
       <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
         <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
           <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
-            {foundCase?.case_name}
+            {selectedCase?.case_name}
           </div>
         </div>
         <div className="flex-1 mt-2 max-w-full text-black w-[462px]">
           <Brief
             title="Candidate Brief"
-            markdown={foundCase?.candidate_brief ?? null}
-            placeholder={!session?.case_id ? 'Select a case to view the candidate brief.' : 'No candidate brief available for this case.'}
+            markdown={selectedCase?.candidate_brief ?? null}
+            placeholder={!round?.case_brief_id ? 'Select a case to view the candidate brief.' : 'No candidate brief available for this case.'}
           />
-          {/* Controls moved to InterviewPracticeRoom */}
+          {/* Controls moved to InterviewPracticeround */}
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
       <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
         <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
-        {foundCase?.case_name}
+        {selectedCase?.case_name}
         </div>
       </div>
       <div className="flex-1 mt-2 max-w-full text-black w-[462px] flex flex-col min-h-0">
@@ -56,8 +56,8 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ session, cases, role, i
         <div className={actorOpen ? "flex-1 min-h-0 flex flex-col" : "flex-none"}>
           <Brief
             title="Actor Brief"
-            markdown={foundCase?.actor_brief ?? null}
-            placeholder={!session?.case_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
+            markdown={selectedCase?.actor_brief ?? null}
+            placeholder={!round?.case_brief_id ? 'Select a case to view the actor brief.' : 'No actor brief available for this case.'}
             open={actorOpen}
             onOpenChange={handleActorChange}
           />

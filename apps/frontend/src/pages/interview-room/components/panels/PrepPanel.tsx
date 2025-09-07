@@ -1,35 +1,33 @@
 import React from 'react';
-import Brief from '../briefs/Brief';
+import Brief from './PanelBriefs';
+import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
 
 type PrepPanelProps = {
-  session: any;
+  room: any;
+  round: any;
   cases: any[];
-  role: 'host' | 'guest' | null;
+  isHost: 'host' | 'guest' | null;
   updating?: boolean;
-  onSelectCandidate: (id: string) => void;
-  onSelectCase: (id: string) => void;
+  onSelectCandidate: (roundId: string, candidateId: string) => void;
+  onSelectCase: (roundId: string, caseId: string) => void;
 };
 
-const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, onSelectCandidate, onSelectCase }) => {
 
-  // Candidate selection content
+const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSelectCandidate, onSelectCase }) => {
+
+
+  // Create array of candidates to select from
   const candidates = [
-    session?.host_id
+    room?.host_id
       ? {
-          id: session.host_id,
-          name:
-            session.host_profile && (session.host_profile.first_name || session.host_profile.last_name)
-              ? `${session.host_profile.first_name || ''} ${session.host_profile.last_name || ''}`.trim() || 'Host'
-              : 'Host',
+          id: room.host_id,
+          name:`${room.host_profile.first_name || ''} ${room.host_profile.last_name || ''}`.trim()
         }
       : null,
-    session?.guest_id
+    room?.guest_id
       ? {
-          id: session.guest_id,
-          name:
-            session.guest_profile && (session.guest_profile.first_name || session.guest_profile.last_name)
-              ? `${session.guest_profile.first_name || ''} ${session.guest_profile.last_name || ''}`.trim() || 'Guest'
-              : 'Guest',
+          id: room.guest_id,
+          name:`${room.guest_profile.first_name || ''} ${room.guest_profile.last_name || ''}`.trim()
         }
       : null,
   ].filter(Boolean);
@@ -40,9 +38,9 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
         return (
           <div
             key={user.id}
-            onClick={() => onSelectCandidate(user.id)}
+            onClick={() => onSelectCandidate(round.id, user.id)}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-              ${session?.candidate_id === user.id
+              ${round?.candidate_id === user.id
                 ? 'bg-primary-foreground text-black'
                 : 'bg-transparent text-black hover:bg-gray-100'}
             `}
@@ -55,28 +53,15 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
     </div>
   );
 
-  // Case selection content (sorted alphabetically by case_name)
-  const sortedCases = React.useMemo(() => {
-    return [...(cases || [])].sort((a, b) => {
-      const aName = (a?.case_name ?? '').toString();
-      const bName = (b?.case_name ?? '').toString();
-      const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
-      if (cmp !== 0) return cmp;
-      const aId = (a?.id ?? '').toString();
-      const bId = (b?.id ?? '').toString();
-      return aId.localeCompare(bId);
-    });
-  }, [cases]);
-
   const caseContent = (
     <div className="flex flex-col">
-      {sortedCases.map(c => {
+      {cases.map(c => {
         return (
           <div
             key={c.id}
-            onClick={() => onSelectCase(c.id)}
+            onClick={() => onSelectCase(round.id, c.id)}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-              ${session?.case_id === c.id
+              ${round?.case_brief_id === c.id
                 ? 'bg-primary-foreground text-black'
                 : 'bg-transparent text-black hover:bg-gray-100'}
             `}
@@ -95,7 +80,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
   const guestCandidatePlaceholder = <span className="text-gray-400">Waiting for host to select candidate...</span>;
   const guestCasePlaceholder = <span className="text-gray-400">Waiting for host to select case...</span>;
 
-  // console.log('role for rendering:', role);
+  // console.log('isHost for rendering:', isHost);
 
   return (
     <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
@@ -108,7 +93,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
               placeholder={''}
               defaultOpen={true}
             >
-              {role === 'host' ? candidateContent : guestCandidatePlaceholder}
+              {isHost === 'host' ? candidateContent : guestCandidatePlaceholder}
             </Brief>
           </div>
           <div className="flex-1 min-h-0 flex flex-col">
@@ -118,7 +103,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ session, cases, role, updating, o
               placeholder={''}
               defaultOpen={true}
             >
-              {role === 'host' ? caseContent : guestCasePlaceholder}
+              {isHost === 'host' ? caseContent : guestCasePlaceholder}
             </Brief>
           </div>
         </div>
