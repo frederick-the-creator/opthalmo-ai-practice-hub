@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { startRecording, stopRecording } from '@/lib/api';
-import { Stage } from '../../types';
 import { Play } from 'lucide-react';
 
 type InterviewControlsProps = {
   roomUrl: string | null;
   roomId: string | null;
-  stage: Stage;
+  stage: string;
   onStartCase?: () => Promise<void> | void;
   canStart?: boolean;
   onFinishCase?: () => void;
@@ -150,7 +149,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, 
     }
   };
 
-  if (stage === Stage.PREP) {
+  if (stage === "Prep") {
     return (
       <div className="w-full mt-6">
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">

@@ -39,7 +39,7 @@ export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, 
   return response.data;
 }
 
-export async function setStage({ roomId, stage }: { roomId: string, stage: number }) {
+export async function setStage({ roomId, stage }: { roomId: string, stage: string }) {
   const response = await api.post("/room/set-stage", { roomId, stage });
   return response.data;
 }

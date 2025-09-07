@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { assessCandidatePerformance } from "@/lib/api";
 import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
 import { fetchCaseBriefs } from "@/supabase/utils";
-import { Stage } from "./types";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -77,19 +76,19 @@ const InterviewPracticeRoom: React.FC = () => {
   };
   const handleStartCase = () => {
     setUpdating(true);
-    updateStage(Stage.INTERVIEW).finally(() => setUpdating(false));
+    updateStage("Interview").finally(() => setUpdating(false));
   };
   const handleBackToPrep = () => {
     setUpdating(true);
-    updateStage(Stage.PREP).finally(() => setUpdating(false));
+    updateStage("Prep").finally(() => setUpdating(false));
   };
   const handleBackToInterview = () => {
     setUpdating(true);
-    updateStage(Stage.INTERVIEW).finally(() => setUpdating(false));
+    updateStage("Interview").finally(() => setUpdating(false));
   };
   const handleFinishCase = () => {
     setUpdating(true);
-    updateStage(Stage.WRAP_UP).finally(() => setUpdating(false));
+    updateStage("WrapUp").finally(() => setUpdating(false));
   };
 
   // Navigation handlers
@@ -108,7 +107,7 @@ const InterviewPracticeRoom: React.FC = () => {
 
   // Panel selection
   let rightPanel = null;
-  if (stage === Stage.PREP) {
+  if (stage === "Prep") {
     rightPanel = (
       <PrepPanel
         room={room}
@@ -120,7 +119,7 @@ const InterviewPracticeRoom: React.FC = () => {
         onSelectCase={handleSelectCase}
       />
     );
-  } else if (stage === Stage.INTERVIEW) {
+  } else if (stage === "Interview") {
     rightPanel = (
       <InterviewPanel
         round={round}
@@ -131,7 +130,7 @@ const InterviewPracticeRoom: React.FC = () => {
         onBack={handleBackToPrep}
       />
     );
-  } else if (stage === Stage.WRAP_UP) {
+  } else if (stage === "WrapUp") {
     rightPanel = (
       <WrapUpPanel
         isHost={isHost}
@@ -149,9 +148,9 @@ const InterviewPracticeRoom: React.FC = () => {
         isHost={isHost}
         onExit={handleExit}
         onBack={
-          stage === Stage.INTERVIEW
+          stage === "Interview"
             ? handleBackToPrep
-            : stage === Stage.WRAP_UP
+            : stage === "WrapUp"
             ? handleBackToInterview
             : undefined
         }
@@ -165,7 +164,7 @@ const InterviewPracticeRoom: React.FC = () => {
             {rightPanel}
           </div>
         </div>
-        {isHost === 'host' && (stage === Stage.PREP || stage === Stage.INTERVIEW) && (
+        {isHost === 'host' && (stage === "Prep" || stage === "Interview") && (
           <div className="mt-4 flex justify-center">
             <InterviewControls
               roomUrl={room?.room_url ?? null}

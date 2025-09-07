@@ -58,7 +58,7 @@ export type Database = {
           private: boolean
           room_url: string | null
           second_round_id: string | null
-          stage: number
+          stage: string | null
           type: string
         }
         Insert: {
@@ -71,7 +71,7 @@ export type Database = {
           private?: boolean
           room_url?: string | null
           second_round_id?: string | null
-          stage?: number
+          stage?: string | null
           type: string
         }
         Update: {
@@ -84,7 +84,7 @@ export type Database = {
           private?: boolean
           room_url?: string | null
           second_round_id?: string | null
-          stage?: number
+          stage?: string | null
           type?: string
         }
         Relationships: [

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Stage } from './types';
 import { fetchRooms,  fetchRound, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/utils';
 import { supabase } from '@/supabase/client';
 import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
@@ -8,10 +7,10 @@ import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 interface UseInterviewRoomResult {
   room: any; // TODO: type this properly
   round:  any;
-  stage: Stage;
+  stage: string;
   isHost: 'host' | 'guest' | null;
   isCandidate: boolean;
-  updateStage: (nextStage: Stage) => Promise<void>;
+  updateStage: (nextStage: string) => Promise<void>;
   setCase: (roundId: string, caseBriefId: string) => Promise<void>;
   setCandidate: (roundId: string, userId: string) => Promise<void>;
   error: string | null;
@@ -92,11 +91,11 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   }, [roomId]);
 
   // Derive stage from supabase
-  let stage: Stage = Stage.PREP;
+  let stage = "Prep";
   if (room && room.stage) {
-    if (room.stage === Stage.PREP) stage = Stage.PREP;
-    else if (room.stage === Stage.INTERVIEW) stage = Stage.INTERVIEW;
-    else if (room.stage === Stage.WRAP_UP) stage = Stage.WRAP_UP;
+    if (room.stage === "Prep") stage = "Prep";
+    else if (room.stage === "Interview") stage = "Interview";
+    else if (room.stage === "WrapUp") stage = "WrapUp";
   }
 
   // Derive isHosts of current user (host / guest / candidate)
@@ -109,39 +108,11 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   }
 
   // Helper: updateStage
-  const updateStage = async (nextStage: Stage) => {
+  const updateStage = async (nextStage: string) => {
     setError(null);
     if (!roomId || !room) {
       setError('No room loaded');
       return Promise.reject('No room loaded');
-    }
-    if (isHost !== 'host') {
-      setError('Only the host can change the stage');
-      return Promise.reject('Only the host can change the stage');
-    }
-    // Business rules
-    if (nextStage === Stage.INTERVIEW) {
-      // START_INTERVIEW
-      if (stage !== Stage.PREP) {
-        setError('Can only start interview from PREP stage');
-        return Promise.reject('Can only start interview from PREP stage');
-      }
-      if (!round.candidate_id || !round.case_brief_id) {
-        setError('Candidate and case must be set before starting interview');
-        return Promise.reject('Candidate and case must be set before starting interview');
-      }
-    } else if (nextStage === Stage.WRAP_UP) {
-      // FINISH_INTERVIEW
-      if (stage !== Stage.INTERVIEW) {
-        setError('Can only finish interview from INTERVIEW stage');
-        return Promise.reject('Can only finish interview from INTERVIEW stage');
-      }
-    } else if (nextStage === Stage.PREP) {
-      // RESET_TO_PREP
-      if (stage !== Stage.INTERVIEW && stage !== Stage.WRAP_UP) {
-        setError('Can only reset to PREP from INTERVIEW or WRAP_UP');
-        return Promise.reject('Can only reset to PREP from INTERVIEW or WRAP_UP');
-      }
     }
     try {
       await setStage({ roomId, stage: nextStage });
@@ -158,14 +129,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     if (!roomId || !room) {
       setError('No room loaded');
       return Promise.reject('No room loaded');
-    }
-    if (isHost !== 'host') {
-      setError('Only the host can set the case');
-      return Promise.reject('Only the host can set the case');
-    }
-    if (stage !== Stage.PREP) {
-      setError('Can only set case in PREP stage');
-      return Promise.reject('Can only set case in PREP stage');
     }
     try {
       await setRoundCase({ roundId, caseBriefId });
@@ -184,14 +147,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     if (!roomId || !room) {
       setError('No room loaded');
       return Promise.reject('No room loaded');
-    }
-    if (isHost !== 'host') {
-      setError('Only the host can set the candidate');
-      return Promise.reject('Only the host can set the candidate');
-    }
-    if (stage !== Stage.PREP) {
-      setError('Can only set candidate in PREP stage');
-      return Promise.reject('Can only set candidate in PREP stage');
     }
     try {
       await setRoundCandidate({ roundId, candidateId });

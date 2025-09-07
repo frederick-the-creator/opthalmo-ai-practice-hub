@@ -1,9 +1,8 @@
 import React from 'react';
-import { Stage } from '../types';
 import { Button } from '@/components/ui/button';
 
 type HeaderBarProps = {
-  stage: Stage;
+  stage: string;
   isHost: 'host' | 'guest' | null;
   updating?: boolean;
   onExit: () => void;
@@ -20,7 +19,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ stage, isHost, onExit, onBack }) 
         Exit
       </Button>
       {/* Show Back only for host and not PREP or WRAP_UP stage */}
-      {isHost === 'host' && stage !== Stage.PREP && stage !== Stage.WRAP_UP && onBack && (
+      {isHost === 'host' && stage !== "Prep" && stage !== "WrapUp" && onBack && (
         <Button
           className="font-bold text-white bg-primary hover:bg-accent border-none"
           onClick={onBack}

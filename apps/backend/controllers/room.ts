@@ -72,7 +72,7 @@ roomRouter.post('/set-round-case', async (req: Request, res: Response) => {
   
 roomRouter.post('/set-stage', async (req: Request, res: Response) => {
     const { roomId, stage } = req.body;
-    if (!roomId || typeof stage !== 'number') {
+    if (!roomId || typeof stage !== 'string') {
       return res.status(400).json({ error: 'Missing roomId or stage' });
     }
     try {
