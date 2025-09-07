@@ -44,6 +44,27 @@ const SchedulePanel: React.FC<Props> = ({
     return options;
   }, []);
 
+  // Ensure the selected time is centered when opening the dropdown
+  const timeContentRef = React.useRef<HTMLDivElement | null>(null);
+  const handleTimeOpenChange = (open: boolean) => {
+    if (!open) return;
+    // Wait for content to render, then center the selected item in the viewport
+    requestAnimationFrame(() => {
+      const contentEl = timeContentRef.current;
+      if (!contentEl) return;
+      const viewport = contentEl.querySelector(
+        '[data-radix-select-viewport]'
+      ) as HTMLElement | null;
+      const selectedItem = contentEl.querySelector(
+        '[data-state="checked"]'
+      ) as HTMLElement | null;
+      if (!viewport || !selectedItem) return;
+      const targetScrollTop =
+        selectedItem.offsetTop - viewport.clientHeight / 2 + selectedItem.offsetHeight / 2;
+      viewport.scrollTop = Math.max(0, targetScrollTop);
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -64,11 +85,11 @@ const SchedulePanel: React.FC<Props> = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="time">Time</Label>
-          <Select value={selectedTime} onValueChange={setSelectedTime}>
+          <Select value={selectedTime} onValueChange={setSelectedTime} onOpenChange={handleTimeOpenChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent ref={timeContentRef}>
               {timeOptions.map((time) => (
                 <SelectItem key={time} value={time}>
                   {time}

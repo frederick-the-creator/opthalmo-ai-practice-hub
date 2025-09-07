@@ -56,7 +56,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedTime, setSelectedTime] = useState("12:00");
   const [roomType, setRoomType] = useState("");
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
@@ -150,7 +150,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       }
       // Success: reset form
       setSelectedDate(undefined);
-      setSelectedTime("");
+      setSelectedTime("12:00");
       setRoomType("");
       setIsPrivate(false);
       setScheduling(false);
