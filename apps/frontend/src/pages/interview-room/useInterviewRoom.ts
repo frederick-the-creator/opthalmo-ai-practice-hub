@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Stage } from './types';
-import { fetchRooms,  fetchRound, subscribeToPracticeRoom } from '@/supabase/utils';
+import { fetchRooms,  fetchRound, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/utils';
 import { supabase } from '@/supabase/client';
 import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 
@@ -39,6 +39,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return () => { isMounted = false; };
   }, [roomId]);
 
+
   // Initial fetch of room and round from Supabase
   useEffect(() => {
     let isMounted = true;
@@ -56,7 +57,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return () => { isMounted = false; };
   }, [roomId]);
 
-  // Set up Realtime subscription so room can react to changes in the DB by the other user.
+  // // Set up Realtime subscription so room can react to changes in the DB by the other user.
   useEffect(() => {
     if (!roomId) return;
     const cleanup = subscribeToPracticeRoom({
@@ -65,9 +66,25 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         try {
           const result = await fetchRooms(roomId);
           setRoom(result);
-          console.log('Realtime subscription room', result)
         } catch (err) {
           setError('Failed to update room from realtime');
+        }
+      }
+    });
+    return cleanup;
+  }, [roomId]);
+
+  // Subscribe to any round changes for this room so guest gets updates instantly
+  useEffect(() => {
+    if (!roomId) return;
+    const cleanup = subscribeToPracticeRoundsByRoomId({
+      roomId,
+      onChange: async () => {
+        try {
+          const result = await fetchRound(roomId);
+          setRound(result);
+        } catch (err) {
+          setError('Failed to update round from realtime');
         }
       }
     });

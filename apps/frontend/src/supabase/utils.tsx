@@ -102,4 +102,36 @@ export function subscribeToPracticeRoom({
   return () => {
     supabase.removeChannel(channel);
   };
-} 
+}
+
+
+/**
+ * Subscribe to realtime changes on practice_rounds filtered by room_id.
+ * Useful when you only know the roomId and want any round changes for that room.
+ */
+export function subscribeToPracticeRoundsByRoomId({
+  roomId,
+  onChange,
+}: {
+  roomId: string;
+  onChange: () => void;
+}) {
+  const filter = `room_id=eq.${roomId}`;
+  const channel = supabase
+    .channel(`practice_rounds:room:${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "practice_rounds",
+        filter,
+      },
+      onChange
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
