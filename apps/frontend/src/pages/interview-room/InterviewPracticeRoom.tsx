@@ -33,6 +33,7 @@ const InterviewPracticeRoom: React.FC = () => {
     error,
     setCase,
     setCandidate,
+    roundNumber,
     setRoundNumber
   } = useInterviewRoom(rawRoomId);
 
@@ -86,7 +87,7 @@ const InterviewPracticeRoom: React.FC = () => {
     setUpdating(true);
     updateStage("Interview").finally(() => setUpdating(false));
   };
-  const handleFinishCase = () => {
+  const handleFinishRound = () => {
     setUpdating(true);
     updateStage("WrapUp").finally(() => setUpdating(false));
   };
@@ -94,6 +95,11 @@ const InterviewPracticeRoom: React.FC = () => {
     setUpdating(true);
     setRoundNumber(2)
     updateStage("Prep").finally(() => setUpdating(false));
+  };
+  const handleFinishRoom = () => {
+    setUpdating(true);
+    updateStage("Finished").finally(() => setUpdating(false));
+    navigate("/dashboard");
   };
 
   // Navigation handlers
@@ -118,9 +124,7 @@ const InterviewPracticeRoom: React.FC = () => {
       <InterviewPanel
         round={round}
         cases={caseBriefs}
-        isHost={isHost}
         isCandidate={isCandidate}
-        onFinishCase={handleFinishCase}
         onBack={handleBackToPrep}
       />
     );
@@ -128,8 +132,9 @@ const InterviewPracticeRoom: React.FC = () => {
     rightPanel = (
       <WrapUpPanel
         isHost={isHost}
-        onExit={handleExit}
+        roundNumber={roundNumber}
         onNextRound={handleNextRound}
+        onFinishRoom={handleFinishRoom}
       />
     );
   }
@@ -166,7 +171,7 @@ const InterviewPracticeRoom: React.FC = () => {
               stage={stage}
               onStartCase={handleStartCase}
               canStart={Boolean(round?.candidate_id && round?.case_brief_id)}
-              onFinishCase={handleFinishCase}
+              onFinishRound={handleFinishRound}
             />
           </div>
         )}

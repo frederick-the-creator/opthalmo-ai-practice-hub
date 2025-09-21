@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useInterviewScheduling } from "./useInterviewScheduling";
 import RoomListPanel from "./panels/RoomListPanel";
 import SchedulePanel from "./panels/SchedulePanel";
-import InvitePanel from "./panels/InvitePanel";
 
 const InterviewPractice: React.FC = () => {
   const {
@@ -13,7 +12,6 @@ const InterviewPractice: React.FC = () => {
     roomType, setRoomType,
     scheduling, scheduleError,
     handleAcceptInvitation, handleScheduleRoom,
-    handleCopyLink, copied,
     isPrivate, setIsPrivate,
   } = useInterviewScheduling();
   const navigate = useNavigate();

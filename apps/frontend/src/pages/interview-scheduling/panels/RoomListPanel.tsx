@@ -26,6 +26,7 @@ interface Room {
   } | null;
   datetime_utc: string;
   private?: boolean;
+  stage?: string;
 }
 
 interface Props {
@@ -176,12 +177,21 @@ const RoomListPanel: React.FC<Props> = ({
                     )}
                     {room.room_url ? (
                       <Button
-                        className={`bg-primary${!room.guest_id ? ' opacity-50 cursor-pointer' : ''}`}
-                        aria-label={!room.guest_id ? 'Waiting for guest' : 'Join room'}
-                        title={!room.guest_id ? 'Waiting for guest to accept room' : 'Join room'}
+                        className={`bg-primary${!room.guest_id ? ' opacity-50 cursor-pointer' : ''}${room.stage === 'Finished' ? ' opacity-50 cursor-not-allowed' : ''}`}
+                        aria-label={
+                          room.stage === 'Finished'
+                            ? 'Interview finished'
+                            : (!room.guest_id ? 'Waiting for guest' : 'Join room')
+                        }
+                        title={
+                          room.stage === 'Finished'
+                            ? 'This interview is finished'
+                            : (!room.guest_id ? 'Waiting for guest to accept room' : 'Join room')
+                        }
+                        disabled={room.stage === 'Finished'}
                         onClick={() => onJoin(room)}
                       >
-                        Join
+                        {room.stage === 'Finished' ? 'Finished' : 'Join'}
                       </Button>
                     ) : (
                       <Badge className="bg-green-100 text-green-800">Upcoming</Badge>

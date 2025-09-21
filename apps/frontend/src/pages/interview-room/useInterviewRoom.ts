@@ -13,6 +13,7 @@ interface UseInterviewRoomResult {
   updateStage: (nextStage: string) => Promise<void>;
   setCase: (roundId: string, caseBriefId: string) => Promise<void>;
   setCandidate: (roundId: string, userId: string) => Promise<void>;
+  roundNumber: number;
   setRoundNumber: any;
   error: string | null;
 }
@@ -171,6 +172,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     updateStage,
     setCase,
     setCandidate,
+    roundNumber,
     setRoundNumber,
     error,
   };

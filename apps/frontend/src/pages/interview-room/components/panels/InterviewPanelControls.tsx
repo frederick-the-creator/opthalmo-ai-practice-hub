@@ -10,10 +10,10 @@ type InterviewControlsProps = {
   stage: string;
   onStartCase?: () => Promise<void> | void;
   canStart?: boolean;
-  onFinishCase?: () => void;
+  onFinishRound?: () => void;
 };
 
-const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, caseBriefs, stage, onStartCase, canStart, onFinishCase }) => {
+const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, caseBriefs, stage, onStartCase, canStart, onFinishRound }) => {
   const [recording, setRecording] = useState<null | any>(null);
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
@@ -218,7 +218,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
           const onClick = showStop
             ? handleStopRecording
             : showFinish
-            ? () => onFinishCase?.()
+            ? () => onFinishRound?.()
             : handleStartRecording;
           const disabled = isStarting || isStopping;
           const label = isStarting
@@ -228,7 +228,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
             : showStop
             ? 'Stop Recording'
             : showFinish
-            ? 'Finish Case'
+            ? 'Finish Round'
             : 'Start Recording';
           const variant = showStop ? 'destructive' : showFinish ? 'default' : 'secondary';
           return (
@@ -237,7 +237,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
             </Button>
           );
         })()}
-        <Button className="text-lg" onClick={() => onFinishCase?.()}>Temp Finish Case</Button>
+        <Button className="text-lg" onClick={() => onFinishRound?.()}>Temp Finish Round</Button>
       </div>
       {(recordingError || recordingSuccess || stopError || stopSuccess || (editingTimer && timerInputError)) && (
         <div className="mt-2 text-center">

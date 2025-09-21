@@ -4,14 +4,12 @@ import Brief from './PanelBriefs';
 type InterviewPanelProps = {
   round: any;
   cases: any[];
-  isHost: 'host' | 'guest' | null;
   isCandidate: boolean;
   updating?: boolean;
-  onFinishCase: () => void;
   onBack: () => void;
 };
 
-const InterviewPanel: React.FC<InterviewPanelProps> = ({ round, cases, isHost, isCandidate, onFinishCase }) => {
+const InterviewPanel: React.FC<InterviewPanelProps> = ({ round, cases, isCandidate }) => {
   const selectedCase = cases.find(c => c.id === round?.case_brief_id);
 
   if (isCandidate) {
