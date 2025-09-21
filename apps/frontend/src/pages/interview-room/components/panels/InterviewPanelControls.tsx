@@ -140,7 +140,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     setRecordingError(null);
     setRecordingSuccess(null);
     try {
-      const result = await stopRecording({ room_url: roomUrl, roomId: roomId });
+      await stopRecording({ room_url: roomUrl, roomId: roomId });
       setStopSuccess('Recording stopped.');
       setHasStoppedRecording(true);
     } catch (err: any) {
@@ -176,7 +176,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
             disabled={!canStart || startLoading}
             aria-disabled={startLoading}
           >
-            <Play className="w-5 h-5 mr-2" /> {startLoading ? 'Starting...' : 'Start Case'}
+          Start Case
           </Button>
         </div>
       </div>
