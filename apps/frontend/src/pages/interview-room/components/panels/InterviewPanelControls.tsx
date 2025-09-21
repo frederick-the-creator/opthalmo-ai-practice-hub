@@ -1,18 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { startRecording, stopRecording } from '@/lib/api';
+import { startRecording, stopRecording, assessCandidatePerformance } from '@/lib/api';
 import { Play } from 'lucide-react';
 
 type InterviewControlsProps = {
-  roomUrl: string | null;
-  roomId: string | null;
+  room: any | null;
+  round: any | null;
+  caseBriefs: any[] | null;
   stage: string;
   onStartCase?: () => Promise<void> | void;
   canStart?: boolean;
   onFinishCase?: () => void;
 };
 
-const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, stage, onStartCase, canStart, onFinishCase }) => {
+const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, caseBriefs, stage, onStartCase, canStart, onFinishCase }) => {
   const [recording, setRecording] = useState<null | any>(null);
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
@@ -28,6 +29,9 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, 
   const [timerInputError, setTimerInputError] = useState<string | null>(null);
   const [hasStoppedRecording, setHasStoppedRecording] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
+
+  const roomUrl = room?.room_url ?? null
+  const roomId = room?.id ?? null
 
   useEffect(() => {
     if (timerActive && timer > 0) {
@@ -113,6 +117,18 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, 
     }
   };
 
+  const submitAssessment = async () => {
+    if (!room?.room_url || !room?.id) return;
+    try {
+      const roundCase = caseBriefs.find(c => c.id === round?.case_brief_id)
+      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, case_name: roundCase.case_name});
+    } catch (e) {
+      // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
+      console.error('Failed to start transcription', e);
+    }
+  };
+
+
   const handleStopRecording = async () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -137,6 +153,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ roomUrl, roomId, 
     } finally {
       setStopLoading(false);
     }
+    await submitAssessment();
   };
 
   const handleStartCaseClick = async () => {

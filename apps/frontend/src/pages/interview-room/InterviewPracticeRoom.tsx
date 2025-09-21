@@ -94,17 +94,6 @@ const InterviewPracticeRoom: React.FC = () => {
   // Navigation handlers
   const handleExit = () => navigate("/dashboard");
 
-  const handleTranscript = async () => {
-    if (!room?.room_url || !room?.id) return;
-    try {
-      const roundCase = caseBriefs.find(c => c.id === round?.case_brief_id)
-      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, case_name: roundCase.case_name});
-    } catch (e) {
-      // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
-      console.error('Failed to start transcription', e);
-    }
-  };
-
   // Panel selection
   let rightPanel = null;
   if (stage === "Prep") {
@@ -136,7 +125,6 @@ const InterviewPracticeRoom: React.FC = () => {
         isHost={isHost}
         onExit={handleExit}
         onDoAnother={handleBackToPrep}
-        onTranscript={handleTranscript}
       />
     );
   }
@@ -167,8 +155,9 @@ const InterviewPracticeRoom: React.FC = () => {
         {isHost === 'host' && (stage === "Prep" || stage === "Interview") && (
           <div className="mt-4 flex justify-center">
             <InterviewControls
-              roomUrl={room?.room_url ?? null}
-              roomId={room?.id ?? null}
+              room={room ?? null}
+              round = {round ?? null}
+              caseBriefs={caseBriefs}
               stage={stage}
               onStartCase={handleStartCase}
               canStart={Boolean(round?.candidate_id && round?.case_brief_id)}
