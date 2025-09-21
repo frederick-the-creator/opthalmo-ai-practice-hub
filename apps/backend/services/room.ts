@@ -74,8 +74,6 @@ export async function createSupabaseRound(input: createRoundInput): Promise<any>
   return { data, error: null };
 }
 
-
-
 export interface createPracticeRoomInput {
   host_id: string;
   type: string;

@@ -17,7 +17,6 @@ export async function getLatestRecordingId(roomName: string): Promise<string> {
         },
       }
     );
-    console.log('res:', res.data);
     // res.data.data is the array of recordings
     if (!res.data || !Array.isArray(res.data.data) || res.data.data.length === 0) {
       throw new Error('No recordings found');
@@ -150,34 +149,31 @@ export async function fetchTranscriptionJson(transcriptionResult: any): Promise<
 }
 
 /**
- * Upload a transcription JSON to Supabase Storage in a folder named after the session ID.
- * @param sessionId The practice session ID
+ * Save a transcription JSON to the database under practice_rounds.transcript by round id.
+ * @param roundId The practice round ID (matches practice_rounds.id)
  * @param transcriptionJson The transcription JSON object
- * @returns The public URL or storage path of the uploaded file
+ * @returns The updated round id
  */
-export async function uploadTranscriptionToStorage(sessionId: string, transcriptionJson: any): Promise<string> {
-  const bucket = 'assessments';
-  const filePath = `${sessionId}/transcript.json`;
-  // Use Buffer for Node.js compatibility
-  let file;
-  if (typeof Blob !== 'undefined') {
-    file = new Blob([JSON.stringify(transcriptionJson)], { type: 'application/json' });
-  } else {
-    file = Buffer.from(JSON.stringify(transcriptionJson), 'utf-8');
+export async function uploadTranscription(roundId: string, transcriptionJson: any): Promise<string> {
+  if (!roundId) {
+    throw new Error('roundId is required');
   }
 
-  // Upload the file
-  const { data, error } = await adminSupabase.storage.from(bucket).upload(filePath, file, {
-    upsert: true,
-    contentType: 'application/json',
-  });
+  const { data, error } = await adminSupabase
+    .from('practice_rounds')
+    .update({ transcript: transcriptionJson })
+    .eq('id', roundId)
+    .select('id')
+    .single();
+
   if (error) {
-    throw new Error(error.message || 'Failed to upload transcription to storage');
+    throw new Error(error.message || 'Failed to save transcription to database');
+  }
+  if (!data) {
+    throw new Error('No practice_rounds row updated for the given roundId');
   }
 
-  // Get the public URL (or signed URL if you prefer)
-  const { data: publicUrlData } = adminSupabase.storage.from(bucket).getPublicUrl(filePath);
-  return publicUrlData?.publicUrl || filePath;
+  return data.id as string;
 }
 
 /**
@@ -188,7 +184,7 @@ export async function uploadTranscriptionToStorage(sessionId: string, transcript
  * - Fetches transcript JSON
  * - Uploads to Supabase Storage under the session ID
  */
-export async function transcribe(roomName: string, sessionId: string): Promise<any> {
+export async function transcribe(roomName: string, roomId: string, roundId: string): Promise<any> {
     try {
       // 1) Find latest recording ID for the room
       const recordingId = await getLatestRecordingId(roomName);
@@ -212,8 +208,8 @@ export async function transcribe(roomName: string, sessionId: string): Promise<a
       console.log('transcriptionJson:', transcriptionJson);
   
       // 5) Upload transcript to Supabase Storage
-      console.log('Uploading transcription to Supabase Storage for session:', sessionId);
-      const storageUrl = await uploadTranscriptionToStorage(sessionId, transcriptionJson);
+      console.log('Uploading transcription to Supabase Storage for room:', roomId, 'and round:', roundId);
+      const storageUrl = await uploadTranscription(roundId, transcriptionJson);
   
       // 6) Log completion
       console.log('Transcription and upload complete:', {

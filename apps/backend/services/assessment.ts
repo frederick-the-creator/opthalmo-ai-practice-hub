@@ -62,16 +62,17 @@ export async function uploadAssessmentToStorage(sessionId: string, assessmentJso
   return publicUrlData?.publicUrl || filePath;
 }
 
-export async function runAssessment(case_name: string, roomName: string, sessionId: string): Promise<Assessment> {
-  const transcriptionJson = await transcribe(roomName, sessionId);
+export async function runAssessment(roomName: string, roomId: string, roundId: string, case_name: string): Promise<any> {
+  const transcriptionJson = await transcribe(roomName, roomId, roundId);
   const transcript = transcriptionJson?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript;
   if (!transcript) {
     throw new Error('Transcript not found in transcription JSON');
   }
-  const assessment = await geminiAssessTranscript(case_name, transcript);
-  const storageUrl = await uploadAssessmentToStorage(sessionId, assessment);
-  console.log('Assessment upload complete:', { storageUrl });
-  return assessment;
+  return transcript
+  // const assessment = await geminiAssessTranscript(case_name, transcript);
+  // const storageUrl = await uploadAssessmentToStorage(roomId, assessment);
+  // console.log('Assessment upload complete:', { storageUrl });
+  // return assessment;
 }
 
 // // Test Run

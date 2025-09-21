@@ -121,7 +121,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     if (!room?.room_url || !room?.id) return;
     try {
       const roundCase = caseBriefs.find(c => c.id === round?.case_brief_id)
-      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, case_name: roundCase.case_name});
+      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, roundId: round.id, case_name: roundCase.case_name});
     } catch (e) {
       // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
       console.error('Failed to start transcription', e);

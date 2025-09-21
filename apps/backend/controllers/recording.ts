@@ -32,11 +32,11 @@ recordingRouter.post('/start', async (req: Request, res: Response) => {
   
 // Stop recording endpoint: stops a Daily.co recording for a given room_url
 recordingRouter.post('/stop', async (req: Request, res: Response) => {
-  const { room_url, sessionId } = req.body;
+  const { room_url, roomId } = req.body;
 
-  if (!room_url || !sessionId) {
-    console.log('Missing room_url or sessionId');
-    return res.status(400).json({ error: 'Missing room_url or sessionId' });
+  if (!room_url || !roomId) {
+    console.log('Missing room_url or roomId');
+    return res.status(400).json({ error: 'Missing room_url or roomId' });
   }
 
   try {
