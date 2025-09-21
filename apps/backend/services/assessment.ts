@@ -34,32 +34,22 @@ export async function geminiAssessTranscript(case_name: string, transcript: stri
 
   const text = (res as any)?.response?.text?.() ?? (res as any)?.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
 
-  const outPath = path.join(__dirname, `${slug(case_name)}.txt`);
-  await fs.promises.writeFile(outPath, text, "utf8");
-
   return JSON.parse(text) as Assessment;
 }
 
-export async function uploadAssessmentToStorage(sessionId: string, assessmentJson: any): Promise<string> {
-  const bucket = 'assessments';
-  const filePath = `${sessionId}/assessment.json`;
-  let file;
-  if (typeof Blob !== 'undefined') {
-    file = new Blob([JSON.stringify(assessmentJson)], { type: 'application/json' });
-  } else {
-    file = Buffer.from(JSON.stringify(assessmentJson), 'utf-8');
-  }
-
-  const { data, error } = await adminSupabase.storage.from(bucket).upload(filePath, file, {
-    upsert: true,
-    contentType: 'application/json',
-  });
+export async function uploadAssessmentToStorage(roundId: string, assessmentJson: any): Promise<string> {
+  const { data, error } = await adminSupabase
+    .from('practice_rounds')
+    .update({ assessment: assessmentJson })
+    .eq('id', roundId)
+    .select('id');
   if (error) {
-    throw new Error(error.message || 'Failed to upload assessment to storage');
+    throw new Error(error.message || 'Failed to update assessment on practice_rounds');
   }
-
-  const { data: publicUrlData } = adminSupabase.storage.from(bucket).getPublicUrl(filePath);
-  return publicUrlData?.publicUrl || filePath;
+  if (!data || !data[0]) {
+    throw new Error('No practice_round found or updated');
+  }
+  return data[0].id as string;
 }
 
 export async function runAssessment(roomName: string, roomId: string, roundId: string, case_name: string): Promise<any> {
@@ -68,19 +58,8 @@ export async function runAssessment(roomName: string, roomId: string, roundId: s
   if (!transcript) {
     throw new Error('Transcript not found in transcription JSON');
   }
-  return transcript
-  // const assessment = await geminiAssessTranscript(case_name, transcript);
-  // const storageUrl = await uploadAssessmentToStorage(roomId, assessment);
-  // console.log('Assessment upload complete:', { storageUrl });
-  // return assessment;
+  const assessment = await geminiAssessTranscript(case_name, transcript);
+  await uploadAssessmentToStorage(roundId, assessment);
+  console.log('Assessment saved to practice_rounds:', { roundId });
+  return assessment;
 }
-
-// // Test Run
-// const filePath = path.join(__dirname, "transcript.json");
-// const raw = fs.readFileSync(filePath, "utf8");
-// const json = JSON.parse(raw);
-// const case_name = "Red Eye - Acute Angle Closure Glaucoma"
-// const transcript = json.results.channels[0].alternatives[0].paragraphs.transcript;
-// (async () => {
-//     await assessTranscript(case_name, transcript);
-// })();
