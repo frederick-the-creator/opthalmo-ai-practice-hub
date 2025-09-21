@@ -214,7 +214,12 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
           const isStarting = recordingLoading;
           const isStopping = stopLoading;
           const showStop = isRecordingActive || isStopping;
-          const onClick = showStop ? handleStopRecording : handleStartRecording;
+          const showFinish = !isStarting && !isStopping && hasStoppedRecording;
+          const onClick = showStop
+            ? handleStopRecording
+            : showFinish
+            ? () => onFinishCase?.()
+            : handleStartRecording;
           const disabled = isStarting || isStopping;
           const label = isStarting
             ? 'Starting Recording...'
@@ -222,17 +227,16 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
             ? 'Stopping...'
             : showStop
             ? 'Stop Recording'
+            : showFinish
+            ? 'Finish Case'
             : 'Start Recording';
-          const variant = showStop ? 'destructive' : 'secondary';
+          const variant = showStop ? 'destructive' : showFinish ? 'default' : 'secondary';
           return (
             <Button className="text-lg" onClick={onClick} disabled={disabled} variant={variant as any}>
               {label}
             </Button>
           );
         })()}
-        <Button className="text-lg" onClick={() => onFinishCase?.()}>
-          Finish Case
-        </Button>
       </div>
       {(recordingError || recordingSuccess || stopError || stopSuccess || (editingTimer && timerInputError)) && (
         <div className="mt-2 text-center">
