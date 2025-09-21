@@ -6,7 +6,6 @@ import InterviewPanel from "./components/panels/InterviewPanel";
 import WrapUpPanel from "./components/panels/WrapUpPanel";
 import InterviewControls from "./components/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
-import { assessCandidatePerformance } from "@/lib/api";
 import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
 import { fetchCaseBriefs } from "@/supabase/utils";
 
@@ -34,6 +33,7 @@ const InterviewPracticeRoom: React.FC = () => {
     error,
     setCase,
     setCandidate,
+    setRoundNumber
   } = useInterviewRoom(rawRoomId);
 
   // Set caseBriefs as all available case briefs filtered on room case type
@@ -90,6 +90,11 @@ const InterviewPracticeRoom: React.FC = () => {
     setUpdating(true);
     updateStage("WrapUp").finally(() => setUpdating(false));
   };
+  const handleNextRound = () => {
+    setUpdating(true);
+    setRoundNumber(2)
+    updateStage("Prep").finally(() => setUpdating(false));
+  };
 
   // Navigation handlers
   const handleExit = () => navigate("/dashboard");
@@ -124,7 +129,7 @@ const InterviewPracticeRoom: React.FC = () => {
       <WrapUpPanel
         isHost={isHost}
         onExit={handleExit}
-        onDoAnother={handleBackToPrep}
+        onNextRound={handleNextRound}
       />
     );
   }

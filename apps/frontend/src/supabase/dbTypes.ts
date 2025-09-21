@@ -127,6 +127,7 @@ export type Database = {
           host_id: string | null
           id: string
           room_id: string | null
+          round_number: number | null
           transcript: Json | null
         }
         Insert: {
@@ -137,6 +138,7 @@ export type Database = {
           host_id?: string | null
           id?: string
           room_id?: string | null
+          round_number?: number | null
           transcript?: Json | null
         }
         Update: {
@@ -147,6 +149,7 @@ export type Database = {
           host_id?: string | null
           id?: string
           room_id?: string | null
+          round_number?: number | null
           transcript?: Json | null
         }
         Relationships: [

@@ -237,6 +237,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
             </Button>
           );
         })()}
+        <Button className="text-lg" onClick={() => onFinishCase?.()}>Temp Finish Case</Button>
       </div>
       {(recordingError || recordingSuccess || stopError || stopSuccess || (editingTimer && timerInputError)) && (
         <div className="mt-2 text-center">

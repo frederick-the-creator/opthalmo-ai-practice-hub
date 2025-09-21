@@ -47,6 +47,7 @@ export async function createDailyRoom(): Promise<string> {
 }
 
 export interface createRoundInput {
+  round_number: number;
   room_id: string;
   host_id: string;
 }
@@ -103,10 +104,12 @@ export async function createPracticeRoom(input: createPracticeRoomInput): Promis
   });
 
   const room_id = roomData[0].id
-  const { data: roundData } = await createSupabaseRound({ room_id, host_id })
+  const { data: firstRoundData } = await createSupabaseRound({ round_number: 1, room_id, host_id })
+  const { data: secondRoundData } = await createSupabaseRound({ round_number: 2, room_id, host_id })
 
-  const round_id = roundData[0].id
-  const { data: updatedRoomData } = await updateSupabaseRoom(room_id, { first_round_id: round_id})
+  const first_round_id = firstRoundData[0].id
+  const second_round_id = secondRoundData[0].id
+  const { data: updatedRoomData } = await updateSupabaseRoom(room_id, { first_round_id, second_round_id})
 
   return updatedRoomData[0];
 }

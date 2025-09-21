@@ -30,12 +30,22 @@ export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null>
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host info.s
  */
-export const fetchRound = async (roomId?: string): Promise<Round[] | Round | null> => {
+export const fetchRound = async (roomId?: string, roundNumber?: number): Promise<Round[] | Round | null> => {
+
+  // If round number = 1, return row with round number = 1
   let query = supabase
     .from('practice_rounds')
-    .select('id, host_id, room_id, candidate_id, case_brief_id, transcript, assessment, created_at')
+    .select('id, host_id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
 
-  if (roomId) {
+  if (roomId && typeof roundNumber !== 'undefined') {
+    // Fetch a single round for the given room and round number
+    const { data, error } = await query
+      .eq('room_id', roomId)
+      .eq('round_number', roundNumber)
+      .single();
+    if (error || !data) return null;
+    return data;
+  } else if (roomId) {
     // Fetch a single room
     const { data, count, error } = await query.eq('room_id', roomId).single();
     if (error || !data) return null;

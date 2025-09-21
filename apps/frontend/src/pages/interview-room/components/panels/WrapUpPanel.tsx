@@ -5,24 +5,16 @@ type WrapUpPanelProps = {
   isHost: 'host' | 'guest' | null;
   updating?: boolean;
   onExit: () => void;
-  onDoAnother: () => void;
+  onNextRound: () => void;
 };
 
-const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ isHost, onExit, onDoAnother }) => {
-  const handleRedo = () => {
-    const confirmed = window.confirm(
-      'This will overwrite your previous recording and you will not receive feedback on your performance.'
-    );
-    if (confirmed) {
-      onDoAnother();
-    }
-  };
+const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ isHost, onExit, onNextRound }) => {
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full justify-center">
       {isHost === 'host' ? (
         <>
-          <Button className="mb-4 w-64 text-lg self-center" onClick={() => { onExit(); }}>Finish</Button>
-          <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={handleRedo}>Redo</Button>
+          <Button className="mb-4 w-64 text-lg self-center" onClick={() => { onNextRound() }}>Next Round</Button>
+          <Button className="mb-4 w-64 text-lg self-center" variant="outline" onClick={() => { onExit() }}>Finish</Button>
         </>
       ) : (
         <div className="text-center text-gray-500">

@@ -13,15 +13,18 @@ interface UseInterviewRoomResult {
   updateStage: (nextStage: string) => Promise<void>;
   setCase: (roundId: string, caseBriefId: string) => Promise<void>;
   setCandidate: (roundId: string, userId: string) => Promise<void>;
+  setRoundNumber: any;
   error: string | null;
 }
 
 
 export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult {
   const [room, setRoom] = useState<any>(null);
+  const [roundNumber, setRoundNumber] = useState<number>(1);
   const [round, setRound] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  console.log('roundNumber', roundNumber)
 
   // Fetch current user ID
   useEffect(() => {
@@ -45,7 +48,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const fetch = async () => {
       try {
         const roomResult = roomId ? await fetchRooms(roomId) : null;
-        const roundResult = roomId ? await fetchRound(roomId) : null;
+        const roundResult = roomId ? await fetchRound(roomId, roundNumber) : null;
         if (isMounted) setRoom(roomResult);
         if (isMounted) setRound(roundResult);
       } catch (err: any) {
@@ -54,7 +57,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     };
     fetch();
     return () => { isMounted = false; };
-  }, [roomId]);
+  }, [roomId, roundNumber]);
 
   // // Set up Realtime subscription so room can react to changes in the DB by the other user.
   useEffect(() => {
@@ -80,7 +83,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       roomId,
       onChange: async () => {
         try {
-          const result = await fetchRound(roomId);
+          const result = await fetchRound(roomId, roundNumber);
           setRound(result);
         } catch (err) {
           setError('Failed to update round from realtime');
@@ -88,7 +91,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       }
     });
     return cleanup;
-  }, [roomId]);
+  }, [roomId, roundNumber]);
 
   // Derive stage from supabase
   let stage = "Prep";
@@ -132,7 +135,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       await setRoundCase({ roundId, caseBriefId });
-      const roundResult = await fetchRound(roomId);
+      const roundResult = await fetchRound(roomId, roundNumber);
       await setRound(roundResult);
       setError(null);
     } catch (err: any) {
@@ -150,7 +153,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       await setRoundCandidate({ roundId, candidateId });
-      const roundResult = await fetchRound(roomId);
+      const roundResult = await fetchRound(roomId, roundNumber);
       await setRound(roundResult);
       setError(null);
     } catch (err: any) {
@@ -168,6 +171,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     updateStage,
     setCase,
     setCandidate,
+    setRoundNumber,
     error,
   };
 } 
