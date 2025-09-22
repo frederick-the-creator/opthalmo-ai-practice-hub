@@ -4,7 +4,8 @@ import {
   LayoutDashboard, 
   Video,
   LogOut, 
-  Eye
+  Eye,
+  ListChecks
 } from "lucide-react";
 import { supabase } from '@/supabase/client';
 
@@ -15,6 +16,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { path: "/interview-practice", name: "Interview Practice", icon: <Video className="w-5 h-5" /> },
+    { path: "/assessments", name: "Assessments", icon: <ListChecks className="w-5 h-5" /> },
     // { path: "/curriculum", name: "Curriculum", icon: <BookOpen className="w-5 h-5" /> },
     // { path: "/knowledge-tutor", name: "Knowledge Tutor", icon: <Brain className="w-5 h-5" /> },
     // { path: "/community", name: "Community", icon: <Users className="w-5 h-5" /> }

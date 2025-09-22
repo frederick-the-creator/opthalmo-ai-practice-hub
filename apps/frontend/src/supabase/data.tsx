@@ -26,6 +26,24 @@ export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null>
   }
 };
 
+/**
+ * Fetch rooms for a specific user (as host or guest), newest first.
+ * Includes joined host/guest profile info for display.
+ */
+export const fetchRoomsForUser = async (userId: string): Promise<Room[]> => {
+  const { data, error } = await supabase
+    .from('practice_rooms')
+    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, type, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+    .order('datetime_utc', { ascending: false });
+
+  if (error) {
+    console.error('[fetchRoomsForUser] Database error:', error);
+    throw new Error(error.message || 'Unkown Database Error');
+  }
+  return data ?? [];
+};
+
 export const fetchRoundByRoomAndRoundNumber = async (roomId?: string, roundNumber?: number): Promise<Round[] | Round | null> => {
 
   // If round number = 1, return row with round number = 1
