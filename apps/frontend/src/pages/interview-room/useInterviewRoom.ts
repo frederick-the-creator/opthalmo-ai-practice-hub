@@ -25,7 +25,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   const [round, setRound] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  console.log('roundNumber', roundNumber)
+
 
   // Fetch current user ID
   useEffect(() => {

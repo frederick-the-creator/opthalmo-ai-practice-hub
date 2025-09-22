@@ -7,7 +7,6 @@ import { Room, Round, Case, Profile } from "./types"
  * Joins profiles for host info.s
  */
 export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null> => {
-  // console.log('fetchRooms')
   let query = supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, type, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')

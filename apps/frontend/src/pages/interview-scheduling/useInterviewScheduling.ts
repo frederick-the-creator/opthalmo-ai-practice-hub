@@ -6,7 +6,7 @@ import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabas
 // Types for room and profile
 export interface Room {
   id: string;
-  host_id: string;
+  hostId: string;
   guest_id?: string | null;
   date: string;
   time: string;
@@ -25,7 +25,7 @@ export interface Room {
     last_name: string | null;
     avatar: string | null;
   } | null;
-  datetime_utc: string;
+  datetimeUtc: string;
   private?: boolean;
 }
 
@@ -127,7 +127,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       setScheduling(false);
       return;
     }
-    const host_id = userData.user.id;
+    const hostId = userData.user.id;
     try {
       // Debug logs for timezone issue
       const year = selectedDate.getFullYear();
@@ -135,12 +135,12 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       const day = selectedDate.getDate();
       const [hours, minutes] = selectedTime.split(":").map(Number);
       const localDateTime = new Date(year, month, day, hours, minutes, 0, 0);
-      const datetime_utc = localDateTime.toISOString();
+      const datetimeUtc = localDateTime.toISOString();
       // Call backend to create room (creates Daily room and DB row)
       const response = await createPracticeRoom({
-        host_id,
+        hostId,
         type: roomType,
-        datetime_utc,
+        datetimeUtc,
         private: isPrivate,
       });
       if (response.error) {

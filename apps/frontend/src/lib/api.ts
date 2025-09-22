@@ -12,37 +12,39 @@ const api = axios.create({
 });
 
 
-export async function createPracticeRoom({ host_id, type, datetime_utc, private: isPrivate }: { host_id: string, type: string, datetime_utc: string, private: boolean }) {
-  console.log('Frontend API Call - datetime_utc', datetime_utc);
+export async function createPracticeRoom({ hostId, type, datetimeUtc, private: isPrivate }: { hostId: string, type: string, datetimeUtc: string, private: boolean }) {
 
-  const response = await api.post("/room/create-room", {
-    host_id,
-    type,
-    datetime_utc,
-    private: isPrivate,
-  });
+  const createFields = { hostId, type, datetimeUtc, private: isPrivate }
+
+  const response = await api.post("/practice-room/create", { createFields });
   return response.data;
 }
 
 export async function acceptInvitation({ roomId, guestId }: { roomId: string, guestId: string }) {
-  const response = await api.post("/room/accept-invite", { roomId, guestId });
-  return response.data;
-}
-
-export async function setRoundCandidate({ roundId, candidateId }: { roundId: string, candidateId: string }) {
-  const response = await api.post("/room/set-round-candidate", { roundId, candidateId });
-  return response.data;
-}
-
-export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, caseBriefId: string }) {
-  const response = await api.post("/room/set-round-case", { roundId, caseBriefId });
+  const updateFields = {roomId, guestId}
+  const response = await api.post("/practice-room/update", { updateFields });
   return response.data;
 }
 
 export async function setStage({ roomId, stage }: { roomId: string, stage: string }) {
-  const response = await api.post("/room/set-stage", { roomId, stage });
+  const updateFields = { roomId, stage }
+  const response = await api.post("/practice-room/update", { updateFields });
   return response.data;
 }
+
+
+
+export async function setRoundCandidate({ roundId, candidateId }: { roundId: string, candidateId: string }) {
+  const response = await api.post("/practice-round/set-candidate", { roundId, candidateId });
+  return response.data;
+}
+
+export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, caseBriefId: string }) {
+  const response = await api.post("/practice-round/set-case", { roundId, caseBriefId });
+  return response.data;
+}
+
+
 
 export async function startRecording({ room_url }: { room_url: string }) {
   const response = await api.post("/recording/start", { room_url });
