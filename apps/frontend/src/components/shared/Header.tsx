@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/supabase/client";
-import { fetchProfile } from "@/supabase/utils";
+import { fetchProfile } from "@/supabase/data";
 
 interface HeaderProps {
   toggleSidebar?: () => void;

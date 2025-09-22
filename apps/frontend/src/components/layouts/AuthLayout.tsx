@@ -4,7 +4,7 @@ import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
-import { fetchProfile } from '@/supabase/utils';
+import { fetchProfile } from '@/supabase/data';
 
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();

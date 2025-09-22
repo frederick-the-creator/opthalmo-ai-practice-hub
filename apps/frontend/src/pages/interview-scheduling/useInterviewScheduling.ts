@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/supabase/client";
 import { createPracticeRoom, acceptInvitation } from "@/lib/api";
-import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/utils";
+import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/data";
 
 // Types for room and profile
 export interface Room {

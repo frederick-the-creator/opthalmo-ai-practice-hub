@@ -7,7 +7,7 @@ import WrapUpPanel from "./components/panels/WrapUpPanel";
 import InterviewControls from "./components/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
 import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
-import { fetchCaseBriefs } from "@/supabase/utils";
+import { fetchCaseBriefs } from "@/supabase/data";
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();

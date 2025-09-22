@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { startRecording, stopRecording, assessCandidatePerformance } from '@/lib/api';
-import { Play } from 'lucide-react';
 
 type InterviewControlsProps = {
   room: any | null;

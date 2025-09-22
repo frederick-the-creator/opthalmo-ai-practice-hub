@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { supabase } from '@/supabase/client';
-import { fetchProfile } from '@/supabase/utils';
+import { fetchProfile } from '@/supabase/data';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");

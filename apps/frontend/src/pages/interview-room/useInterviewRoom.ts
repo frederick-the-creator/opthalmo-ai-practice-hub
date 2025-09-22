@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchRooms,  fetchRound, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/utils';
+import { fetchRooms,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/data';
 import { supabase } from '@/supabase/client';
 import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 
@@ -49,7 +49,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const fetch = async () => {
       try {
         const roomResult = roomId ? await fetchRooms(roomId) : null;
-        const roundResult = roomId ? await fetchRound(roomId, roundNumber) : null;
+        const roundResult = roomId ? await fetchRoundByRoomAndRoundNumber(roomId, roundNumber) : null;
         if (isMounted) setRoom(roomResult);
         if (isMounted) setRound(roundResult);
       } catch (err: any) {
@@ -84,7 +84,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       roomId,
       onChange: async () => {
         try {
-          const result = await fetchRound(roomId, roundNumber);
+          const result = await fetchRoundByRoomAndRoundNumber(roomId, roundNumber);
           setRound(result);
         } catch (err) {
           setError('Failed to update round from realtime');
@@ -136,7 +136,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       await setRoundCase({ roundId, caseBriefId });
-      const roundResult = await fetchRound(roomId, roundNumber);
+      const roundResult = await fetchRoundByRoomAndRoundNumber(roomId, roundNumber);
       await setRound(roundResult);
       setError(null);
     } catch (err: any) {
@@ -154,7 +154,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       await setRoundCandidate({ roundId, candidateId });
-      const roundResult = await fetchRound(roomId, roundNumber);
+      const roundResult = await fetchRoundByRoomAndRoundNumber(roomId, roundNumber);
       await setRound(roundResult);
       setError(null);
     } catch (err: any) {
