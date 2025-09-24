@@ -15,6 +15,7 @@ import Register from "./pages/auth/Register";
 import CompleteProfile from "./pages/auth/CompleteProfile";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import Landing from "./pages/Landing";
 
 import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
@@ -51,7 +52,7 @@ const App = () => (
         <Routes>
           {/* Guest Routes */}
           <Route element={<GuestLayout />}>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

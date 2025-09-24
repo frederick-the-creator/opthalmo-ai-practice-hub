@@ -60,7 +60,7 @@ const Login: React.FC = () => {
       description: 'You have successfully logged in',
     });
     setIsLoading(false);
-    navigate('/interview-practice');
+    navigate('/dashboard');
   };
 
   const toggleShowPassword = () => {

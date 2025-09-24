@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import Footer from "../shared/Footer";
 import { supabase } from '@/supabase/client';
 
 const GuestLayout: React.FC = () => {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -22,8 +23,8 @@ const GuestLayout: React.FC = () => {
   }, []);
 
   if (loading) return null; // or a spinner
-  if (isAuthenticated) {
-    return <Navigate to="/interview-practice" replace />;
+  if (isAuthenticated && location.pathname !== "/") {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
