@@ -33,6 +33,10 @@ const Register: React.FC = () => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Ensures confirmation email links back to the same origin you're on (dev/prod)
+        emailRedirectTo: `${window.location.origin}/complete-profile`,
+      },
     });
 
     if (error) {

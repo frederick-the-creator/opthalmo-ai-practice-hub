@@ -16,13 +16,47 @@ const AuthLayout: React.FC = () => {
   const [profileChecked, setProfileChecked] = useState(false);
 
   useEffect(() => {
-    // Skip profile check if already on /complete-profile
-    if (location.pathname === "/complete-profile") {
-      setProfileChecked(true);
-      setLoading(false);
-      return;
-    }
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const isOnCompleteProfile = location.pathname === "/complete-profile";
+
+    const handleAuthFromUrl = async () => {
+      try {
+        const url = new URL(window.location.href);
+        const hasCodeParam = !!url.searchParams.get('code');
+        const errorDescription = url.searchParams.get('error_description');
+
+        if (errorDescription) {
+          toast({
+            title: 'Authentication error',
+            description: errorDescription,
+            variant: 'destructive',
+          });
+        }
+
+        if (hasCodeParam) {
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (error) {
+            toast({
+              title: 'Authentication failed',
+              description: error.message,
+              variant: 'destructive',
+            });
+          } else {
+            // Clean up auth params and any trailing hash from the URL
+            window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
+          }
+        } else if (url.hash) {
+          // Remove empty or leftover hash fragments like '#'
+          window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.search}`);
+        }
+      } catch (_err) {
+        // ignore URL parsing errors
+      }
+    };
+
+    (async () => {
+      await handleAuthFromUrl();
+
+      const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
       setLoading(false);
       if (!session) {
@@ -37,7 +71,7 @@ const AuthLayout: React.FC = () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             const profile = await fetchProfile(user.id);
-            if (!profile) {
+            if (!profile && !isOnCompleteProfile) {
               navigate('/complete-profile');
               return;
             }
@@ -47,7 +81,7 @@ const AuthLayout: React.FC = () => {
       } else {
         setProfileChecked(true);
       }
-    });
+    })();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
       if (!session) {
@@ -62,7 +96,7 @@ const AuthLayout: React.FC = () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             const profile = await fetchProfile(user.id);
-            if (!profile) {
+            if (!profile && !isOnCompleteProfile) {
               navigate('/complete-profile');
               return;
             }

@@ -12,6 +12,7 @@ import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import CompleteProfile from "./pages/auth/CompleteProfile";
 
 import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/interview-practice" element={<InterviewPractice />} />
             <Route path="/assessments" element={<AssessmentHistory />} />
             <Route path="/invite/:sessionId" element={<InviteAcceptPage />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
           </Route>
 
           {/* Full-screen Protected Route */}
