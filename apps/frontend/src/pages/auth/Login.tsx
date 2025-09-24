@@ -55,10 +55,6 @@ const Login: React.FC = () => {
       }
     }
 
-    toast({
-      title: 'Success',
-      description: 'You have successfully logged in',
-    });
     setIsLoading(false);
     navigate('/dashboard');
   };

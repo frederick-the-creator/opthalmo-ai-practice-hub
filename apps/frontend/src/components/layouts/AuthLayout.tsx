@@ -99,14 +99,17 @@ const AuthLayout: React.FC = () => {
         setProfileChecked(true);
       }
     })();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
       if (!session) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to access this page',
-          variant: 'destructive',
-        });
+        // Suppress auth-required toast on intentional logout
+        if (event !== 'SIGNED_OUT') {
+          toast({
+            title: 'Authentication required',
+            description: 'Please log in to access this page',
+            variant: 'destructive',
+          });
+        }
       }
       if (session) {
         (async () => {
@@ -130,7 +133,7 @@ const AuthLayout: React.FC = () => {
   }, [toast, navigate, location.pathname]);
 
   if (loading || !profileChecked) return null; // or a spinner
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
 
   return (
     <div className="flex h-screen bg-gray-50">

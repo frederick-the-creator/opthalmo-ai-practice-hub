@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Video,
@@ -26,15 +26,15 @@ const Sidebar: React.FC = () => {
     await supabase.auth.signOut();
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/");
   };
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
-      <div className="flex items-center justify-center h-16 border-b border-gray-200">
+      <Link to="/" className="flex items-center justify-center h-16 border-b border-gray-200">
         <Eye className="h-8 w-8 text-primary" />
         <span className="ml-2 text-xl font-bold">OphthalmoPrep</span>
-      </div>
+      </Link>
       <div className="flex-1 overflow-y-auto py-6 px-3">
         <nav className="space-y-1">
           {navItems.map((item) => (

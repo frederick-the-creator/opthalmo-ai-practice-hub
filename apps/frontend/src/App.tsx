@@ -40,7 +40,7 @@ function ProtectedInterviewPracticeRoom() {
     };
   }, []);
   if (loading) return null; // or a spinner
-  return isAuthenticated ? <InterviewPracticeRoom /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <InterviewPracticeRoom /> : <Navigate to="/" replace />;
 }
 
 const App = () => (
