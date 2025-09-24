@@ -13,6 +13,8 @@ import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import CompleteProfile from "./pages/auth/CompleteProfile";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom";
 import NotFound from "./pages/NotFound";
@@ -52,7 +54,11 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Route>
+
+          {/* Public route to support Supabase password recovery */}
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes */}
           <Route element={<AuthLayout />}>
