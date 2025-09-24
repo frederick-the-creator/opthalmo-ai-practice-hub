@@ -45,7 +45,24 @@ const AuthLayout: React.FC = () => {
             window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
           }
         } else if (url.hash) {
-          // Remove empty or leftover hash fragments like '#'
+          // Handle hash-based tokens (e.g., access_token/refresh_token) if present
+          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          if (accessToken && refreshToken) {
+            try {
+              const { error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              if (error) {
+                toast({ title: 'Authentication failed', description: error.message, variant: 'destructive' });
+              }
+            } catch (_e) {
+              // ignore setSession errors here; downstream checks will handle
+            }
+          }
+          // Remove leftover hash fragments from URL regardless
           window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.search}`);
         }
       } catch (_err) {
