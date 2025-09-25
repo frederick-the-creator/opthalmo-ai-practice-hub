@@ -2,25 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import Footer from "../shared/Footer";
-import { supabase } from '@/supabase/client';
+import { useAuth } from '@/supabase/AuthProvider';
 
 const GuestLayout: React.FC = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { session, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setLoading(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+    setIsAuthenticated(!!session);
+    if (!authLoading) setLoading(false);
+  }, [session, authLoading]);
 
   if (loading) return null; // or a spinner
   if (isAuthenticated && location.pathname !== "/") {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/supabase/client";
+import { useAuth } from "@/supabase/AuthProvider";
 import { createPracticeRoom, acceptInvitation } from "@/lib/api";
 import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/data";
 
@@ -57,6 +58,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { user } = useAuth();
   const [isPrivate, setIsPrivate] = useState(false);
 
 
@@ -66,20 +68,18 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     const fetchUserAndRooms = async () => {
       setLoading(true);
       setError(null);
-      // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (!isMounted) return;
-      if (userError || !userData.user) {
+      if (!user) {
+        if (!isMounted) return;
         setError("You must be logged in to view rooms.");
         setLoading(false);
         return;
       }
-      setCurrentUserId(userData.user.id);
+      setCurrentUserId(user.id);
       await fetchRooms();
     };
     fetchUserAndRooms();
     return () => { isMounted = false; };
-  }, []);
+  }, [user?.id]);
 
   // Realtime subscription to rooms table
   useEffect(() => {
@@ -116,13 +116,12 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
     setScheduling(true);
     // Get current user
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) {
+    if (!user) {
       setScheduleError("You must be logged in to schedule a room.");
       setScheduling(false);
       return;
     }
-    const hostId = userData.user.id;
+    const hostId = user.id;
     try {
       // Debug logs for timezone issue
       const year = selectedDate.getFullYear();

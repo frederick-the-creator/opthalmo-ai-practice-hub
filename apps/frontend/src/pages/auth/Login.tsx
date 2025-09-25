@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
+import { fetchProfile } from '@/supabase/data';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -40,24 +41,13 @@ const Login: React.FC = () => {
       localStorage.setItem('loginAt', String(Date.now()));
     } catch (_e) {}
 
-    // After login, check if profile exists
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile, error: profileFetchError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .single();
-      if (!profile && (!profileFetchError || profileFetchError.code === "PGRST116")) {
-        // No profile exists, redirect to profile completion page
-        navigate('/complete-profile');
-        setIsLoading(false);
-        return;
-      } else {
-        console.log('[Login] Profile exists or error is not PGRST116, navigating to dashboard');
-      }
+    // After login, check if profile exists using shared fetchProfile
+    const userId = data?.user?.id ?? data?.session?.user?.id ?? null;
+    const profile = await fetchProfile(userId || undefined);
+    if (!profile) {
+      navigate('/complete-profile');
+      setIsLoading(false);
+      return;
     }
 
     setIsLoading(false);

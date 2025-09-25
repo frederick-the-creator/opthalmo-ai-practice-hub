@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
+import { AuthFromUrl, useAuth } from "@/supabase/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 
 const ResetPassword: React.FC = () => {
@@ -14,55 +15,14 @@ const ResetPassword: React.FC = () => {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    const handleAuthFromUrl = async () => {
-      try {
-        const url = new URL(window.location.href);
-        const hasCodeParam = !!url.searchParams.get('code');
-        const errorDescription = url.searchParams.get('error_description');
-
-        if (errorDescription) {
-          toast({ title: 'Authentication error', description: errorDescription, variant: 'destructive' });
-        }
-
-        if (hasCodeParam) {
-          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            toast({ title: 'Authentication failed', description: error.message, variant: 'destructive' });
-          } else {
-            window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
-          }
-        } else if (url.hash) {
-          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          if (accessToken && refreshToken) {
-            try {
-              const { error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
-              if (error) {
-                toast({ title: 'Authentication failed', description: error.message, variant: 'destructive' });
-              }
-            } catch (_e) {
-              // ignore errors; downstream checks will handle
-            }
-          }
-          window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.search}`);
-        }
-      } catch (_err) {
-        // ignore URL parsing errors
-      }
-    };
-
     (async () => {
-      await handleAuthFromUrl();
-      const { data: { session } } = await supabase.auth.getSession();
+      await AuthFromUrl(toast);
       setHasSession(!!session);
     })();
-  }, [toast]);
+  }, [toast, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +50,7 @@ const ResetPassword: React.FC = () => {
     navigate("/login");
   };
 
-  if (hasSession === false) {
+  if (!loading && hasSession === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">

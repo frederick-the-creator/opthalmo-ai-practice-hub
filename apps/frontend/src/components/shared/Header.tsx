@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/supabase/client";
+import { useAuth } from "@/supabase/AuthProvider";
 import { fetchProfile } from "@/supabase/data";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Eye, LayoutDashboard, Video, ListChecks, LogOut } from "lucide-react";
@@ -9,6 +9,7 @@ const Header: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("");
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
 
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -17,7 +18,7 @@ const Header: React.FC = () => {
   ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
     localStorage.removeItem('loginAt');
@@ -26,7 +27,8 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      const profile = await fetchProfile();
+      const userId = user?.id || null;
+      const profile = await fetchProfile(userId || undefined);
       if (profile) {
         setUserName(`${profile.first_name} ${profile.last_name}`.trim());
         setUserInitials(`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase());
@@ -45,7 +47,7 @@ const Header: React.FC = () => {
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdated);
     };
-  }, []);
+  }, [user?.id]);
 
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6 flex items-center justify-between">

@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import InviteAcceptPage from "./components/interviewScheduling/InviteAcceptPage";
 import AssessmentHistory from "./pages/AssessmentHistory";
 import Profile from "./pages/Profile";
+import { AuthProvider } from "./supabase/AuthProvider";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+        <AuthProvider>
+          <Routes>
           {/* Guest Routes */}
           <Route element={<GuestLayout />}>
             <Route path="/" element={<Landing />} />
@@ -44,7 +46,7 @@ const App = () => (
             <Route path="/interview-scheduling" element={<InterviewScheduling />} />
             <Route path="/assessments" element={<AssessmentHistory />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/invite/:sessionId" element={<InviteAcceptPage />} />
+            <Route path="/invite/:roomId" element={<InviteAcceptPage />} />
             <Route path="/complete-profile" element={<CompleteProfile />} />
           </Route>
 
@@ -56,7 +58,8 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

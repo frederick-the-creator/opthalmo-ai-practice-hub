@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { supabase } from '@/supabase/client';
+import { useAuth } from '@/supabase/AuthProvider';
 import { fetchProfile } from '@/supabase/data';
 
 const CompleteProfile: React.FC = () => {
@@ -15,19 +15,19 @@ const CompleteProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setError("You must be logged in to complete your profile.");
       setIsLoading(false);
       return;
     }
     // Check if profile exists first
-    const existingProfile = await fetchProfile();
+    const existingProfile = await fetchProfile(user.id);
     if (!existingProfile) {
       const { error: profileError } = await supabase.from('profiles').insert({
         user_id: user.id,

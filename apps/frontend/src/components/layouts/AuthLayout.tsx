@@ -3,6 +3,7 @@ import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
+import { AuthFromUrl, useAuth } from '@/supabase/AuthProvider';
 import { fetchProfile } from '@/supabase/data';
 
 // Hard session time-to-live (e.g., 3 days) regardless of token refreshes
@@ -14,6 +15,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { session, loading: authLoading, signOut } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,70 +24,20 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
   useEffect(() => {
     const isOnCompleteProfile = location.pathname === "/complete-profile";
 
-    const handleAuthFromUrl = async () => {
-      try {
-        const url = new URL(window.location.href);
-        const hasCodeParam = !!url.searchParams.get('code');
-        const errorDescription = url.searchParams.get('error_description');
-
-        if (errorDescription) {
-          toast({
-            title: 'Authentication error',
-            description: errorDescription,
-            variant: 'destructive',
-          });
-        }
-
-        if (hasCodeParam) {
-          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            toast({
-              title: 'Authentication failed',
-              description: error.message,
-              variant: 'destructive',
-            });
-          } else {
-            // Clean up auth params and any trailing hash from the URL
-            window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
-          }
-        } else if (url.hash) {
-          // Handle hash-based tokens (e.g., access_token/refresh_token) if present
-          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          if (accessToken && refreshToken) {
-            try {
-              const { error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
-              if (error) {
-                toast({ title: 'Authentication failed', description: error.message, variant: 'destructive' });
-              }
-            } catch (_e) {
-              // ignore setSession errors here; downstream checks will handle
-            }
-          }
-          // Remove leftover hash fragments from URL regardless
-          window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.search}`);
-        }
-      } catch (_err) {
-        // ignore URL parsing errors
-      }
-    };
+    // Extract authorisation from URL to handle supabase email link
 
     (async () => {
-      await handleAuthFromUrl();
+      await AuthFromUrl(toast);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const currentSession = session ?? null;
       // Enforce hard session TTL
-      if (session) {
+      if (currentSession) {
         const now = Date.now();
         const loginAtRaw = localStorage.getItem('loginAt');
         if (loginAtRaw) {
           const loginAt = Number(loginAtRaw);
           if (Number.isFinite(loginAt) && now - loginAt > SESSION_TTL_MS) {
-            await supabase.auth.signOut();
+            await signOut();
             localStorage.removeItem('loginAt');
             toast({ title: 'Session expired', description: 'Please log in again.', variant: 'destructive' });
             setIsAuthenticated(false);
@@ -98,18 +50,18 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
           localStorage.setItem('loginAt', String(now));
         }
       }
-      setIsAuthenticated(!!session);
+      setIsAuthenticated(!!currentSession);
       setLoading(false);
-      if (!session) {
+      if (!currentSession) {
         toast({
           title: 'Authentication required',
           description: 'Please log in to access this page',
           variant: 'destructive',
         });
       }
-      if (session) {
+      if (currentSession) {
         (async () => {
-          const profile = await fetchProfile();
+          const profile = await fetchProfile(currentSession.user.id);
           if (!profile && !isOnCompleteProfile) {
             navigate('/complete-profile');
             return;
@@ -129,7 +81,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
         if (loginAtRaw) {
           const loginAt = Number(loginAtRaw);
           if (Number.isFinite(loginAt) && now - loginAt > SESSION_TTL_MS) {
-            await supabase.auth.signOut();
+            await signOut();
             localStorage.removeItem('loginAt');
             toast({ title: 'Session expired', description: 'Please log in again.', variant: 'destructive' });
             setIsAuthenticated(false);
@@ -154,7 +106,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
       }
       if (session) {
         (async () => {
-          const profile = await fetchProfile();
+          const profile = await fetchProfile(session.user.id);
           if (!profile && !isOnCompleteProfile) {
             navigate('/complete-profile');
             return;
@@ -168,9 +120,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [toast, navigate, location.pathname]);
+  }, [toast, navigate, location.pathname, session, signOut]);
 
-  if (loading || !profileChecked) return null; // or a spinner
+  if (authLoading || loading || !profileChecked) return null; // or a spinner
   if (!isAuthenticated) return <Navigate to="/" replace />;
 
   if (fullscreen) {

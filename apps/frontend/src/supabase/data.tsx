@@ -126,9 +126,7 @@ export const fetchCaseBriefs = async (): Promise<Case[]> => {
  * Fetch the current user's profile.
  * Returns null if no authenticated user or profile not found.
  */
-export const fetchProfile = async (): Promise<Profile | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+export const fetchProfile = async (userId?: string): Promise<Profile | null> => {
   if (!userId) return null;
 
   const { data, error } = await supabase

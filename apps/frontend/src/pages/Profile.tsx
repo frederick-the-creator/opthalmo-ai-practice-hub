@@ -8,8 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import type { Tables } from "@/supabase/dbTypes";
 import { fetchProfile } from "@/supabase/data";
+import { useAuth } from "@/supabase/AuthProvider";
 
-type ProfileRow = Tables<"profiles">;
 
 const Profile: React.FC = () => {
   const { toast } = useToast();
@@ -33,16 +33,17 @@ const Profile: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
+  const { user } = useAuth();
+
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!isMounted) return;
         setUserId(user?.id || null);
         setUserEmail(user?.email || "");
         if (user?.id) {
-          const profile = await fetchProfile();
+          const profile = await fetchProfile(user.id);
           if (!isMounted) return;
           if (profile) {
             setFirstName(profile.first_name || "");
@@ -58,7 +59,7 @@ const Profile: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [user?.id]);
 
   const profileChanged = useMemo(() => {
     return Boolean(firstName || lastName);

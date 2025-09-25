@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/supabase/client";
+import { useAuth } from "@/supabase/AuthProvider";
 import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
 import type { Room, Round, Case, Profile } from "@/supabase/types";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,13 @@ const AssessmentHistory: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [dialogState, setDialogState] = useState<{ open: boolean; round: Round | null }>({ open: false, round: null });
 
+  const { user } = useAuth();
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         const userId = user?.id ?? null;
         setCurrentUserId(userId);
         if (!userId) {
@@ -73,7 +74,7 @@ const AssessmentHistory: React.FC = () => {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user?.id]);
 
   const handleOpenAssessment = (round: Round) => {
     setDialogState({ open: true, round });
@@ -165,7 +166,7 @@ const AssessmentHistory: React.FC = () => {
                                 <div>
                                   <h2 className="text-lg font-semibold">Assessment Overview</h2>
                                   <p className="text-sm text-muted-foreground">
-                                    {dialogRoom?.type || 'Interview'} • {dialogRoom?.datetime_utc ? new Date(dialogRoom.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
+                                    Interview • {dialogRoom?.datetime_utc ? new Date(dialogRoom.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
                                   </p>
                                 </div>
                                 <div className="text-right">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchRooms,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/data';
-import { supabase } from '@/supabase/client';
+import { useAuth } from '@/supabase/AuthProvider';
 import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 
 // Define the return type for clarity (can be expanded later)
@@ -25,22 +25,13 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   const [round, setRound] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
 
 
-  // Fetch current user ID
+  // Set current user ID from context
   useEffect(() => {
-    let isMounted = true;
-    const fetchUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (isMounted) setUserId(user?.id || null);
-      } catch (err: any) {
-        if (isMounted) setUserId(null);
-      }
-    };
-    fetchUser();
-    return () => { isMounted = false; };
-  }, [roomId]);
+    setUserId(user?.id || null);
+  }, [user?.id]);
 
 
   // Initial fetch of room and round from Supabase
