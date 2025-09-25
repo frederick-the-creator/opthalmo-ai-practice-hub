@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase/client";
-import { fetchRoomsForUser, fetchRoundsByCandidate } from "@/supabase/data";
-import type { Room, Round } from "@/supabase/types";
+import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
+import type { Room, Round, Case, Profile } from "@/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,10 +12,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const AssessmentHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [roundsByRoom, setRoundsByRoom] = useState<Record<string, Round[]>>({});
+  const [rounds, setRounds] = useState<Round[]>([]);
+  const [roomsById, setRoomsById] = useState<Record<string, Room & { host_profile?: Profile; guest_profile?: Profile }>>({});
+  const [casesById, setCasesById] = useState<Record<string, Case>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [dialogState, setDialogState] = useState<{ open: boolean; roomId: string | null; round: Round | null }>({ open: false, roomId: null, round: null });
+  const [dialogState, setDialogState] = useState<{ open: boolean; round: Round | null }>({ open: false, round: null });
 
   useEffect(() => {
     (async () => {
@@ -26,27 +27,46 @@ const AssessmentHistory: React.FC = () => {
         const userId = user?.id ?? null;
         setCurrentUserId(userId);
         if (!userId) {
-          setRooms([]);
-          setRoundsByRoom({});
+          setRounds([]);
+          setRoomsById({});
+          setCasesById({});
           setLoading(false);
           return;
         }
-        const [userRooms, userRounds] = await Promise.all([
-          fetchRoomsForUser(userId),
-          fetchRoundsByCandidate(userId),
-        ]);
 
-        // Sort rooms by datetime_utc desc (fetch already desc, but ensure)
-        const sortedRooms = [...userRooms].sort((a, b) => new Date(b.datetime_utc).getTime() - new Date(a.datetime_utc).getTime());
-        setRooms(sortedRooms);
+        // Fetch rounds for the current user
+        const userRounds = await fetchRoundsByCandidate(userId);
+        setRounds(userRounds);
 
-        const grouped: Record<string, Round[]> = {};
+        // Build unique maps so we don't refetch the same room/case repeatedly
+        const uniqueRoomIdToRoundId = new Map<string, string>();
         for (const r of userRounds) {
-          const key = r.room_id as unknown as string;
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key].push(r);
+          const rid = (r.room_id as string) || '';
+          if (rid && !uniqueRoomIdToRoundId.has(rid)) uniqueRoomIdToRoundId.set(rid, r.id);
         }
-        setRoundsByRoom(grouped);
+        const uniqueCaseIds = Array.from(new Set(userRounds.map(r => r.case_brief_id).filter(Boolean) as string[]));
+
+        // Fetch rooms by a representative roundId for each room_id
+        const fetchedRooms = await Promise.all(
+          Array.from(uniqueRoomIdToRoundId.values()).map(async (roundId) => {
+            const room = await fetchRoomByRoundId(roundId);
+            return room ?? null;
+          })
+        );
+        const roomsMap: Record<string, any> = {};
+        for (const r of fetchedRooms) if (r) roomsMap[r.id] = r;
+        setRoomsById(roomsMap);
+
+        // Fetch case briefs by case id
+        const fetchedCases = await Promise.all(
+          uniqueCaseIds.map(async (caseId) => {
+            const c = await fetchCasebyCaseId(caseId);
+            return c ?? null;
+          })
+        );
+        const casesMap: Record<string, any> = {};
+        for (const c of fetchedCases) if (c) casesMap[c.id] = c;
+        setCasesById(casesMap);
       } catch (e: any) {
         setError(e?.message || "Failed to load assessments");
       } finally {
@@ -55,11 +75,8 @@ const AssessmentHistory: React.FC = () => {
     })();
   }, []);
 
-  const handleOpenAssessment = (roomId: string) => {
-    const rounds = roundsByRoom[roomId] || [];
-    // Select the round where current user is the candidate (there will be at most one)
-    const round = rounds.find(r => r.candidate_id === currentUserId) || rounds[0] || null;
-    setDialogState({ open: true, roomId, round });
+  const handleOpenAssessment = (round: Round) => {
+    setDialogState({ open: true, round });
   };
 
   const getHostAndGuestProfiles = (room: Room, userId: string | null) => {
@@ -85,35 +102,47 @@ const AssessmentHistory: React.FC = () => {
           <li className="p-4 text-gray-500 text-center">Loading...</li>
         ) : error ? (
           <li className="p-4 text-red-500 text-center">{error}</li>
-        ) : rooms.length === 0 ? (
-          <li className="p-4 text-gray-500 text-center">No interviews found.</li>
+        ) : rounds.length === 0 ? (
+          <li className="p-4 text-gray-500 text-center">No rounds found.</li>
         ) : (
-          rooms.map((room) => {
-            const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, currentUserId);
-            const rounds = roundsByRoom[room.id] || [];
-            const candidateRound = rounds.find(r => r.candidate_id === currentUserId) || rounds[0] || null;
-            const hasAssessment = Boolean(candidateRound?.assessment);
+          [...rounds]
+            .sort((a, b) => {
+              const ra = roomsById[a.room_id as string];
+              const rb = roomsById[b.room_id as string];
+              const da = ra?.datetime_utc ? new Date(ra.datetime_utc).getTime() : 0;
+              const db = rb?.datetime_utc ? new Date(rb.datetime_utc).getTime() : 0;
+              return db - da;
+            })
+            .map((round) => {
+            const room = roomsById[round.room_id as string];
+            const caseBrief = casesById[round.case_brief_id as string];
+            const { hostName, guestName, hostAvatar } = room ? getHostAndGuestProfiles(room, currentUserId) : { hostName: 'Unknown', guestName: 'Unknown', hostAvatar: 'U' };
+            const hasAssessment = Boolean(round?.assessment);
+            const caseName = caseBrief?.case_name || caseBrief?.case_name_internal || 'Unknown Case';
+            const caseType = caseBrief?.type || 'Unknown';
             return (
-              <li key={room.id} className="flex items-center justify-between p-4">
+              <li key={round.id} className="flex items-center justify-between p-4">
                 <div className="flex items-center">
                   <Avatar>
                     <AvatarFallback>{hostAvatar}</AvatarFallback>
                   </Avatar>
                   <div className="ml-3">
-                    <p className="font-medium">{hostName}</p>
-                    <p className="text-sm text-gray-600">Guest: {guestName}</p>
+                    <p className="font-medium">{caseName}</p>
+                    <p className="text-sm text-gray-600">Type: {caseType}</p>
                     <div className="flex text-sm text-gray-500">
-                      <span>{room.type}</span>
+                      <span>Host: {hostName}</span>
                       <span className="mx-2">•</span>
-                      <span>{new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
-                      {room.stage === 'Finished' && <span className="ml-2 text-green-600">Finished</span>}
+                      <span>Guest: {guestName}</span>
+                      <span className="mx-2">•</span>
+                      <span>{room?.datetime_utc ? new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}</span>
+                      {room?.stage === 'Finished' && <span className="ml-2 text-green-600">Finished</span>}
                     </div>
                   </div>
                 </div>
                 {hasAssessment ? (
-                  <Dialog open={dialogState.open && dialogState.roomId === room.id} onOpenChange={(open) => setDialogState((prev) => ({ ...prev, open }))}>
+                  <Dialog open={dialogState.open && dialogState.round?.id === round.id} onOpenChange={(open) => setDialogState((prev) => ({ ...prev, open }))}>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="bg-primary" onClick={() => handleOpenAssessment(room.id)}>
+                      <Button size="sm" className="bg-primary" onClick={() => handleOpenAssessment(round)}>
                         Show Assessment
                       </Button>
                     </DialogTrigger>
@@ -125,11 +154,7 @@ const AssessmentHistory: React.FC = () => {
                         {(() => {
                           const assessment: any = dialogState.round?.assessment || null;
                           if (!assessment) return null;
-                          const percentage = Math.round(
-                            assessment?.totals?.percentage ?? (
-                              assessment?.max_total ? ((assessment?.totals?.total_score || 0) / (assessment.max_total || 1)) * 100 : 0
-                            )
-                          );
+                          const dialogRoom = dialogState.round?.room_id ? roomsById[dialogState.round.room_id as string] : null;
                           const dims: any[] = Array.isArray(assessment?.dimensions) ? assessment.dimensions : [];
                           const hasInsufficient = dims.some((d: any) => d?.insufficient_evidence);
                           const hasRedFlags = dims.some((d: any) => Array.isArray(d?.red_flags) && d.red_flags.length > 0);
@@ -140,15 +165,11 @@ const AssessmentHistory: React.FC = () => {
                                 <div>
                                   <h2 className="text-lg font-semibold">Assessment Overview</h2>
                                   <p className="text-sm text-muted-foreground">
-                                    {room.type} • {new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                                    {dialogRoom?.type || 'Interview'} • {dialogRoom?.datetime_utc ? new Date(dialogRoom.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-2xl font-bold">{percentage}%</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {(assessment?.totals?.total_score ?? 0)} / {(assessment?.max_total ?? 0)}
-                                  </div>
-                                  <div className="flex justify-end gap-2 mt-2">
+                                  <div className="flex justify-end gap-2">
                                     {hasInsufficient && (
                                       <Badge variant="destructive">Insufficient evidence</Badge>
                                     )}
@@ -191,16 +212,13 @@ const AssessmentHistory: React.FC = () => {
                                       <div className="flex items-center justify-between w-full">
                                         <div className="text-left">
                                           <div className="font-medium">{d?.name}</div>
-                                          <div className="text-xs text-muted-foreground">
-                                            Raw {d?.raw_score_0_to_100 ?? 0} • Weighted {d?.weighted_score ?? 0}
-                                          </div>
                                         </div>
                                         <div className="flex gap-2">
                                           {d?.insufficient_evidence && (
                                             <Badge variant="destructive">Insufficient evidence</Badge>
                                           )}
                                           {Array.isArray(d?.red_flags) && d.red_flags.length > 0 && (
-                                            <Badge variant="destructive">{d.red_flags.length} red flag{d.red_flags.length > 1 ? 's' : ''}</Badge>
+                                            <Badge variant="destructive">Red flags</Badge>
                                           )}
                                         </div>
                                       </div>

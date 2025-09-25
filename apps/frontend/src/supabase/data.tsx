@@ -77,6 +77,41 @@ export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round
 };
 
 /**
+ * Fetch the room (with joined host/guest profiles) associated with a given round ID.
+ */
+export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> => {
+  const { data: round, error: roundError } = await supabase
+    .from('practice_rounds')
+    .select('room_id')
+    .eq('id', roundId)
+    .single();
+
+  if (roundError || !round?.room_id) return null;
+
+  const { data: room, error: roomError } = await supabase
+    .from('practice_rooms')
+    .select('id, host_id, guest_id, datetime_utc, type, stage, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .eq('id', round.room_id as string)
+    .single();
+
+  if (roomError || !room) return null;
+  return room as unknown as Room;
+};
+
+/**
+ * Fetch the case brief for a given case ID.
+ */
+export const fetchCasebyCaseId = async (caseId: string): Promise<Case | null> => {
+  const { data, error } = await supabase
+    .from('case_briefs')
+    .select('id, case_name, case_name_internal, type')
+    .eq('id', caseId)
+    .single();
+  if (error || !data) return null;
+  return data as Case;
+};
+
+/**
  * Fetch all cases.
  */
 export const fetchCaseBriefs = async (): Promise<Case[]> => {
