@@ -41,6 +41,8 @@ const CompleteProfile: React.FC = () => {
         return;
       }
     }
+    // Notify the app that the profile has been updated so listeners can refresh
+    window.dispatchEvent(new Event('profileUpdated'));
     navigate('/dashboard');
   };
 

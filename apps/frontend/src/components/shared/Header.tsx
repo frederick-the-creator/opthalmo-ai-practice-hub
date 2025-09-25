@@ -34,7 +34,19 @@ const Header: React.FC = () => {
         }
       }
     };
+
+    // Initial fetch
     fetchProfileData();
+
+    // Listen for profile updates
+    const handleProfileUpdated = () => {
+      fetchProfileData();
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener('profileUpdated', handleProfileUpdated);
+    };
   }, []);
 
   return (
