@@ -5,6 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
 import { fetchProfile } from '@/supabase/data';
 
+// Hard session time-to-live (e.g., 3 days) regardless of token refreshes
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 2;
+
 const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -73,6 +76,26 @@ const AuthLayout: React.FC = () => {
       await handleAuthFromUrl();
 
       const { data: { session } } = await supabase.auth.getSession();
+      // Enforce hard session TTL
+      if (session) {
+        const now = Date.now();
+        const loginAtRaw = localStorage.getItem('loginAt');
+        if (loginAtRaw) {
+          const loginAt = Number(loginAtRaw);
+          if (Number.isFinite(loginAt) && now - loginAt > SESSION_TTL_MS) {
+            await supabase.auth.signOut();
+            localStorage.removeItem('loginAt');
+            toast({ title: 'Session expired', description: 'Please log in again.', variant: 'destructive' });
+            setIsAuthenticated(false);
+            setLoading(false);
+            setProfileChecked(true);
+            navigate('/');
+            return;
+          }
+        } else {
+          localStorage.setItem('loginAt', String(now));
+        }
+      }
       setIsAuthenticated(!!session);
       setLoading(false);
       if (!session) {
@@ -98,7 +121,26 @@ const AuthLayout: React.FC = () => {
         setProfileChecked(true);
       }
     })();
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Enforce hard session TTL on any auth state change
+      if (session) {
+        const now = Date.now();
+        const loginAtRaw = localStorage.getItem('loginAt');
+        if (loginAtRaw) {
+          const loginAt = Number(loginAtRaw);
+          if (Number.isFinite(loginAt) && now - loginAt > SESSION_TTL_MS) {
+            await supabase.auth.signOut();
+            localStorage.removeItem('loginAt');
+            toast({ title: 'Session expired', description: 'Please log in again.', variant: 'destructive' });
+            setIsAuthenticated(false);
+            setProfileChecked(true);
+            navigate('/');
+            return;
+          }
+        } else {
+          localStorage.setItem('loginAt', String(now));
+        }
+      }
       setIsAuthenticated(!!session);
       if (!session) {
         // Suppress auth-required toast on intentional logout

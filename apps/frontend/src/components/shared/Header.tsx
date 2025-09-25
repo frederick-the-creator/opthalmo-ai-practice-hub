@@ -20,6 +20,7 @@ const Header: React.FC = () => {
     await supabase.auth.signOut();
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
+    localStorage.removeItem('loginAt');
     navigate("/");
   };
 

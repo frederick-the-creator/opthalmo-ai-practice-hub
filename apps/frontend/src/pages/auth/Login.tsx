@@ -35,6 +35,11 @@ const Login: React.FC = () => {
       return;
     }
 
+    // Record login timestamp for TTL enforcement
+    try {
+      localStorage.setItem('loginAt', String(Date.now()));
+    } catch (_e) {}
+
     // After login, check if profile exists
     const {
       data: { user },
