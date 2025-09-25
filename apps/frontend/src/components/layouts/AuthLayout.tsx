@@ -8,7 +8,9 @@ import { fetchProfile } from '@/supabase/data';
 // Hard session time-to-live (e.g., 3 days) regardless of token refreshes
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 2;
 
-const AuthLayout: React.FC = () => {
+interface AuthLayoutProps { fullscreen?: boolean }
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -107,13 +109,10 @@ const AuthLayout: React.FC = () => {
       }
       if (session) {
         (async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const profile = await fetchProfile(user.id);
-            if (!profile && !isOnCompleteProfile) {
-              navigate('/complete-profile');
-              return;
-            }
+          const profile = await fetchProfile();
+          if (!profile && !isOnCompleteProfile) {
+            navigate('/complete-profile');
+            return;
           }
           setProfileChecked(true);
         })();
@@ -121,6 +120,7 @@ const AuthLayout: React.FC = () => {
         setProfileChecked(true);
       }
     })();
+    
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Enforce hard session TTL on any auth state change
       if (session) {
@@ -154,13 +154,10 @@ const AuthLayout: React.FC = () => {
       }
       if (session) {
         (async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const profile = await fetchProfile(user.id);
-            if (!profile && !isOnCompleteProfile) {
-              navigate('/complete-profile');
-              return;
-            }
+          const profile = await fetchProfile();
+          if (!profile && !isOnCompleteProfile) {
+            navigate('/complete-profile');
+            return;
           }
           setProfileChecked(true);
         })();
@@ -175,6 +172,10 @@ const AuthLayout: React.FC = () => {
 
   if (loading || !profileChecked) return null; // or a spinner
   if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  if (fullscreen) {
+    return <Outlet />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">

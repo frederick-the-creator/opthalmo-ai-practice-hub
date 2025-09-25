@@ -52,7 +52,7 @@ const Profile: React.FC = () => {
         setUserId(user?.id || null);
         setUserEmail(user?.email || "");
         if (user?.id) {
-          const profile = await fetchProfile(user.id);
+          const profile = await fetchProfile();
           if (!isMounted) return;
           if (profile) {
             setFirstName(profile.first_name || "");

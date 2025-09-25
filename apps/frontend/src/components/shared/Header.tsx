@@ -12,7 +12,7 @@ const Header: React.FC = () => {
 
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-    { path: "/interview-practice", name: "Interview Practice", icon: <Video className="w-4 h-4" /> },
+    { path: "/interview-scheduling", name: "Interview Practice", icon: <Video className="w-4 h-4" /> },
     { path: "/assessments", name: "Assessments", icon: <ListChecks className="w-4 h-4" /> },
   ];
 
@@ -26,13 +26,10 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const profile = await fetchProfile(userData.user.id);
-        if (profile) {
-          setUserName(`${profile.first_name} ${profile.last_name}`.trim());
-          setUserInitials(`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase());
-        }
+      const profile = await fetchProfile();
+      if (profile) {
+        setUserName(`${profile.first_name} ${profile.last_name}`.trim());
+        setUserInitials(`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase());
       }
     };
 

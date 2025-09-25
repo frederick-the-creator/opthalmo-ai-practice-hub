@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useInterviewScheduling } from "./useInterviewScheduling";
-import RoomListPanel from "./panels/RoomListPanel";
-import SchedulePanel from "./panels/SchedulePanel";
+import { useInterviewScheduling } from "../hooks/useInterviewScheduling";
+import RoomListPanel from "../components/interviewScheduling/RoomListPanel";
+import SchedulePanel from "../components/interviewScheduling/SchedulePanel";
 
-const InterviewPractice: React.FC = () => {
+const InterviewScheduling: React.FC = () => {
   const {
     rooms, loading, error, currentUserId,
     selectedDate, setSelectedDate,
@@ -60,4 +60,4 @@ const InterviewPractice: React.FC = () => {
   );
 };
 
-export default InterviewPractice;
+export default InterviewScheduling;

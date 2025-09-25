@@ -88,9 +88,14 @@ export const fetchCaseBriefs = async (): Promise<Case[]> => {
 };
 
 /**
- * Fetch a single profile by userId.
+ * Fetch the current user's profile.
+ * Returns null if no authenticated user or profile not found.
  */
-export const fetchProfile = async (userId: string): Promise<Profile | null> => {
+export const fetchProfile = async (): Promise<Profile | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+  if (!userId) return null;
+
   const { data, error } = await supabase
     .from('profiles')
     .select('user_id, first_name, last_name, avatar, training_level')

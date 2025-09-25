@@ -64,7 +64,7 @@ const InviteAcceptPage: React.FC = () => {
       if (session?.room_url) {
         navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(session.room_url)}&sessionId=${sessionId}`);
       } else {
-        navigate("/interview-practice");
+        navigate("/interview-scheduling");
       }
     } catch (err: any) {
       toast({ title: "Failed to accept session.", description: err?.message || "" });

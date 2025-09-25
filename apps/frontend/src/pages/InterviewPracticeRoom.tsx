@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import HeaderBar from "./components/HeaderBar";
-import VideoPane from "./components/VideoPane";
-import PrepPanel from "./components/panels/PrepPanel";
-import InterviewPanel from "./components/panels/InterviewPanel";
-import WrapUpPanel from "./components/panels/WrapUpPanel";
-import InterviewControls from "./components/panels/InterviewPanelControls";
+import HeaderBar from "../components/interviewRoom/HeaderBar";
+import VideoPane from "../components/interviewRoom/VideoPane";
+import PrepPanel from "../components/interviewRoom/panels/PrepPanel";
+import InterviewPanel from "../components/interviewRoom/panels/InterviewPanel";
+import WrapUpPanel from "../components/interviewRoom/panels/WrapUpPanel";
+import InterviewControls from "../components/interviewRoom/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
-import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
+import { useInterviewRoom } from "@/hooks/useInterviewRoom";
 import { fetchCaseBriefs } from "@/supabase/data";
 
 const InterviewPracticeRoom: React.FC = () => {

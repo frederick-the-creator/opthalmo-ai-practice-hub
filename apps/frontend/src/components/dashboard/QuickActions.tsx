@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 const QuickActions: React.FC = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-      <Link to="/interview-practice" className="col-span-1 lg:col-span-2">
+      <Link to="/interview-scheduling" className="col-span-1 lg:col-span-2">
         <Button className="bg-primary w-full py-8 text-lg h-auto hover:bg-accent group">
           <Video className="mr-2 h-6 w-6 group-hover:scale-110 transition-transform" />
           Start Interview Practice

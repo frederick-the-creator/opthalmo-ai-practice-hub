@@ -1,6 +1,6 @@
 import React from 'react';
 import Brief from './PanelBriefs';
-import { useInterviewRoom } from "@/pages/interview-room/useInterviewRoom";
+import { useInterviewRoom } from "@/hooks/useInterviewRoom";
 
 type PrepPanelProps = {
   room: any;

@@ -27,7 +27,7 @@ const CompleteProfile: React.FC = () => {
       return;
     }
     // Check if profile exists first
-    const existingProfile = await fetchProfile(user.id);
+    const existingProfile = await fetchProfile();
     if (!existingProfile) {
       const { error: profileError } = await supabase.from('profiles').insert({
         user_id: user.id,
