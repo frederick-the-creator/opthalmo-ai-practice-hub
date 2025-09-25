@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/supabase/client";
 import { fetchProfile } from "@/supabase/data";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -49,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
         </Button> */}
         
-        <div className="flex items-center">
+        <Link to="/profile" className="flex items-center hover:opacity-80 transition-opacity">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary text-white">{userInitials || "JD"}</AvatarFallback>
           </Avatar>
@@ -57,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <p className="text-sm font-medium text-gray-900">{userName || "Jane Doe"}</p>
             <p className="text-xs text-gray-500">ST2 Trainee</p>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

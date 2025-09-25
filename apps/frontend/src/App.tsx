@@ -21,6 +21,7 @@ import InterviewPracticeRoom from "./pages/interview-room/InterviewPracticeRoom"
 import NotFound from "./pages/NotFound";
 import InviteAcceptPage from "./pages/interview-scheduling/InviteAcceptPage";
 import AssessmentHistory from "./pages/AssessmentHistory";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview-practice" element={<InterviewPractice />} />
             <Route path="/assessments" element={<AssessmentHistory />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/invite/:sessionId" element={<InviteAcceptPage />} />
             <Route path="/complete-profile" element={<CompleteProfile />} />
           </Route>
