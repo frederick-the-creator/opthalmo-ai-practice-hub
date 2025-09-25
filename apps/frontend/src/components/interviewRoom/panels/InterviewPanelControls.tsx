@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Plus, Minus } from 'lucide-react';
 import { startRecording, stopRecording, assessCandidatePerformance } from '@/lib/api';
 
 type InterviewControlsProps = {
@@ -23,9 +24,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
   const [timer, setTimer] = useState(8 * 60); // 8 minutes in seconds
   const [timerActive, setTimerActive] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [editingTimer, setEditingTimer] = useState(false);
-  const timerInputRef = useRef<HTMLInputElement | null>(null);
-  const [timerInputError, setTimerInputError] = useState<string | null>(null);
+  // Timer adjustments are now controlled via +/- buttons (no direct typing)
   const [hasStoppedRecording, setHasStoppedRecording] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
 
@@ -61,37 +60,17 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     return `${m}:${s}`;
   };
 
-  const parseTimeInput = (value: string) => {
-    const match = value.match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) return null;
-    const min = parseInt(match[1], 10);
-    const sec = parseInt(match[2], 10);
-    if (isNaN(min) || isNaN(sec) || sec > 59) return null;
-    return min * 60 + sec;
-  };
-
-  const handleTimerInputSubmit = (e?: React.FormEvent | React.FocusEvent) => {
-    if (e) e.preventDefault();
-    if (timerInputRef.current) {
-      const value = timerInputRef.current.value;
-      const seconds = parseTimeInput(value);
-      if (seconds !== null) {
-        setTimer(seconds);
-        setTimerInputError(null);
-        setEditingTimer(false);
-        return;
-      } else {
-        setTimerInputError('Please enter time as MM:SS');
-      }
+  const incrementTimerByMinute = () => {
+    if (!timerActive && !recordingLoading && !stopLoading) {
+      setTimer(prev => prev + 60);
     }
   };
 
-  useEffect(() => {
-    if (editingTimer && timerInputRef.current) {
-      timerInputRef.current.focus();
-      timerInputRef.current.select();
+  const decrementTimerByMinute = () => {
+    if (!timerActive && !recordingLoading && !stopLoading) {
+      setTimer(prev => Math.max(0, prev - 60));
     }
-  }, [editingTimer]);
+  };
 
   const handleStartRecording = async () => {
     setRecordingLoading(true);
@@ -185,28 +164,30 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
   return (
     <div className="w-full mt-6">
       <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-        <div
-          className="text-2xl font-mono text-black cursor-pointer"
-          onClick={() => {
-            if (!timerActive && !recordingLoading && !stopLoading) setEditingTimer(true);
-          }}
-        >
-          {editingTimer ? (
-            <form onSubmit={handleTimerInputSubmit} style={{ display: 'inline' }}>
-              <input
-                ref={timerInputRef}
-                type="text"
-                defaultValue={formatTimer(timer)}
-                onBlur={handleTimerInputSubmit}
-                maxLength={5}
-                className="w-20 text-2xl font-mono text-center border border-primary rounded px-1"
-                disabled={timerActive || recordingLoading || stopLoading}
-                aria-label="Set timer in MM:SS"
-              />
-            </form>
-          ) : (
-            <>Timer: {formatTimer(timer)}</>
-          )}
+        <div className="flex items-center gap-2">
+          <div className="text-2xl font-mono text-black" aria-live="polite" aria-atomic="true">
+            {formatTimer(timer)}
+          </div>
+          <div className="flex flex-col gap-1">
+            <Button
+              size="icon"
+              className="h-6 w-6"
+              onClick={incrementTimerByMinute}
+              disabled={timerActive || recordingLoading || stopLoading}
+              aria-label="Increase timer by 1 minute"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              className="h-6 w-6"
+              onClick={decrementTimerByMinute}
+              disabled={timerActive || recordingLoading || stopLoading}
+              aria-label="Decrease timer by 1 minute"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         {(() => {
           const isRecordingActive = timerActive || (!!recording && !hasStoppedRecording);
@@ -238,11 +219,8 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
         })()}
         <Button className="text-lg" onClick={() => onFinishRound?.()}>Temp Finish Round</Button>
       </div>
-      {(recordingError || recordingSuccess || stopError || stopSuccess || (editingTimer && timerInputError)) && (
+      {(recordingError || recordingSuccess || stopError || stopSuccess) && (
         <div className="mt-2 text-center">
-          {editingTimer && timerInputError && (
-            <div className="text-red-500 text-xs">{timerInputError}</div>
-          )}
           {recordingError && <div className="text-red-500 text-sm">{recordingError}</div>}
           {recordingSuccess && <div className="text-green-600 text-sm">{recordingSuccess}</div>}
           {stopError && <div className="text-red-500 text-sm">{stopError}</div>}
