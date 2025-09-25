@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
-import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
@@ -137,7 +136,6 @@ const AuthLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
