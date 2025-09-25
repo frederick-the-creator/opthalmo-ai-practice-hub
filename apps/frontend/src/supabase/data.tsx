@@ -133,7 +133,7 @@ export const fetchProfile = async (): Promise<Profile | null> => {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('user_id, first_name, last_name, avatar, training_level')
+    .select('user_id, first_name, last_name, avatar')
     .eq('user_id', userId)
     .single();
   if (error || !data) return null;

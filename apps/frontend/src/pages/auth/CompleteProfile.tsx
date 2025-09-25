@@ -11,7 +11,7 @@ import { fetchProfile } from '@/supabase/data';
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [trainingLevel, setTrainingLevel] = useState("");
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -33,7 +33,6 @@ const CompleteProfile: React.FC = () => {
         user_id: user.id,
         first_name: firstName,
         last_name: lastName,
-        training_level: trainingLevel,
       });
       if (profileError) {
         setError(profileError.message);
@@ -73,23 +72,7 @@ const CompleteProfile: React.FC = () => {
                 required
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="trainingLevel">Training Level</Label>
-              <Select onValueChange={setTrainingLevel} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your training level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="medical-student">Medical Student</SelectItem>
-                  <SelectItem value="foundation">Foundation Doctor</SelectItem>
-                  <SelectItem value="st1-applicant">ST1 Applicant</SelectItem>
-                  <SelectItem value="st1">ST1</SelectItem>
-                  <SelectItem value="st2">ST2</SelectItem>
-                  <SelectItem value="st3">ST3</SelectItem>
-                  <SelectItem value="st4-and-above">ST4 and above</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            
             {error && <div className="text-red-600 text-sm">{error}</div>}
             <Button type="submit" className="w-full bg-primary mt-6" disabled={isLoading}>
               {isLoading ? "Saving..." : "Save Profile"}

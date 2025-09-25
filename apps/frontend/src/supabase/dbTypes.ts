@@ -188,21 +188,18 @@ export type Database = {
           avatar: string | null
           first_name: string
           last_name: string
-          training_level: string
           user_id: string
         }
         Insert: {
           avatar?: string | null
           first_name: string
           last_name: string
-          training_level: string
           user_id?: string
         }
         Update: {
           avatar?: string | null
           first_name?: string
           last_name?: string
-          training_level?: string
           user_id?: string
         }
         Relationships: []

@@ -11,16 +11,6 @@ import { fetchProfile } from "@/supabase/data";
 
 type ProfileRow = Tables<"profiles">;
 
-const trainingLevelItems = [
-  { value: "medical-student", label: "Medical Student" },
-  { value: "foundation", label: "Foundation Doctor" },
-  { value: "st1-applicant", label: "ST1 Applicant" },
-  { value: "st1", label: "ST1" },
-  { value: "st2", label: "ST2" },
-  { value: "st3", label: "ST3" },
-  { value: "st4-and-above", label: "ST4 and above" },
-];
-
 const Profile: React.FC = () => {
   const { toast } = useToast();
 
@@ -34,7 +24,7 @@ const Profile: React.FC = () => {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [trainingLevel, setTrainingLevel] = useState<string>("");
+  
 
   const [newEmail, setNewEmail] = useState("");
   const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState("");
@@ -57,7 +47,6 @@ const Profile: React.FC = () => {
           if (profile) {
             setFirstName(profile.first_name || "");
             setLastName(profile.last_name || "");
-            setTrainingLevel((profile as ProfileRow).training_level || "");
           }
         }
       } catch (_err) {
@@ -72,8 +61,8 @@ const Profile: React.FC = () => {
   }, []);
 
   const profileChanged = useMemo(() => {
-    return Boolean(firstName || lastName || trainingLevel);
-  }, [firstName, lastName, trainingLevel]);
+    return Boolean(firstName || lastName);
+  }, [firstName, lastName]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +76,6 @@ const Profile: React.FC = () => {
           user_id: userId,
           first_name: firstName,
           last_name: lastName,
-          training_level: trainingLevel,
         }, { onConflict: "user_id" });
       if (updateError) throw updateError;
       toast({ title: "Profile updated" });
@@ -168,7 +156,7 @@ const Profile: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Personal information</CardTitle>
-          <CardDescription>Update your name and training level.</CardDescription>
+          <CardDescription>Update your name.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSaveProfile}>
@@ -180,19 +168,7 @@ const Profile: React.FC = () => {
               <Label htmlFor="lastName">Last name</Label>
               <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
             </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Training level</Label>
-              <Select value={trainingLevel || undefined} onValueChange={setTrainingLevel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your training level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trainingLevelItems.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            
             <div className="md:col-span-2">
               <Button type="submit" disabled={savingProfile}>{savingProfile ? "Saving..." : "Save changes"}</Button>
             </div>

@@ -79,7 +79,6 @@ const Header: React.FC = () => {
           </Avatar>
           <div className="ml-3 hidden md:block">
             <p className="text-sm font-medium text-gray-900">{userName || "Jane Doe"}</p>
-            <p className="text-xs text-gray-500">ST2 Trainee</p>
           </div>
         </Link>
         <button
