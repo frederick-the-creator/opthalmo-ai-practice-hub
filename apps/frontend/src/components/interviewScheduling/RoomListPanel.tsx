@@ -9,7 +9,6 @@ interface Room {
   id: string;
   host_id: string;
   guest_id?: string | null;
-  type: string;
   created_at: string;
   room_url?: string | null;
   host_profile?: {
@@ -107,8 +106,6 @@ const RoomListPanel: React.FC<Props> = ({
                       <p className="font-medium">{hostName}</p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{room.type}</span>
-                        <span className="mx-2">•</span>
                         <span>{
                           new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
@@ -152,8 +149,6 @@ const RoomListPanel: React.FC<Props> = ({
                       </p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{room.type}</span>
-                        <span className="mx-2">•</span>
                         <span>{
                           new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>

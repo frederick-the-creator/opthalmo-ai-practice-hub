@@ -9,7 +9,7 @@ import { Room, Round, Case, Profile } from "./types"
 export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null> => {
   let query = supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, type, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .order('datetime_utc', { ascending: true });
 
   if (roomId) {
@@ -32,7 +32,7 @@ export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null>
 export const fetchRoomsForUser = async (userId: string): Promise<Room[]> => {
   const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, type, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
     .order('datetime_utc', { ascending: false });
 
@@ -90,7 +90,7 @@ export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> 
 
   const { data: room, error: roomError } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, type, stage, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, datetime_utc, stage, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .eq('id', round.room_id as string)
     .single();
 

@@ -53,9 +53,43 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
     </div>
   );
 
+  const [selectedType, setSelectedType] = React.useState<string | null>(null);
+  const distinctTypes: string[] = React.useMemo(() => {
+    const types = new Set<string>();
+    cases.forEach(c => { if (c?.type) types.add(c.type); });
+    return Array.from(types).sort();
+  }, [cases]);
+
+  const filteredCases = React.useMemo(() => {
+    if (!selectedType) return cases;
+    return cases.filter(c => c?.type === selectedType);
+  }, [cases, selectedType]);
+
+  const filterContent = (
+    <div className="flex flex-col">
+      {distinctTypes.map(t => (
+        <div
+          key={t}
+          onClick={() => setSelectedType(prev => prev === t ? null : t)}
+          className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
+            ${selectedType === t
+              ? 'bg-primary-foreground text-black'
+              : 'bg-transparent text-black hover:bg-gray-100'}
+          `}
+          style={{ minWidth: 120 }}
+        >
+          {t}
+        </div>
+      ))}
+      {distinctTypes.length === 0 && (
+        <span className="text-gray-400">No types available</span>
+      )}
+    </div>
+  );
+
   const caseContent = (
     <div className="flex flex-col">
-      {cases.map(c => {
+      {filteredCases.map(c => {
         return (
           <div
             key={c.id}
@@ -71,6 +105,9 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
           </div>
         );
       })}
+      {filteredCases.length === 0 && (
+        <span className="text-gray-400">No cases match this filter</span>
+      )}
     </div>
   );
 
@@ -96,6 +133,16 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               {isHost === 'host' ? candidateContent : guestCandidatePlaceholder}
             </Brief>
           </div>
+          <div className="flex-none mt-2">
+            <Brief
+              title="Filter available cases"
+              markdown={null}
+              placeholder={''}
+              defaultOpen={true}
+            >
+              {isHost === 'host' ? filterContent : <span className="text-gray-400">Waiting for host to select filter...</span>}
+            </Brief>
+        </div>
           <div className="flex-1 min-h-0 flex flex-col">
             <Brief
               title="Please select your case"

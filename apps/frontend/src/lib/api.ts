@@ -12,9 +12,9 @@ const api = axios.create({
 });
 
 
-export async function createPracticeRoom({ hostId, type, datetimeUtc, private: isPrivate }: { hostId: string, type: string, datetimeUtc: string, private: boolean }) {
+export async function createPracticeRoom({ hostId, datetimeUtc, private: isPrivate }: { hostId: string, datetimeUtc: string, private: boolean }) {
 
-  const createFields = { hostId, type, datetimeUtc, private: isPrivate }
+  const createFields = { hostId, datetimeUtc, private: isPrivate }
 
   const response = await api.post("/practice-room/create", { createFields });
   return response.data;

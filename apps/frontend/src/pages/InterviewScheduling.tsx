@@ -9,7 +9,6 @@ const InterviewScheduling: React.FC = () => {
     rooms, loading, error, currentUserId,
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
-    roomType, setRoomType,
     scheduling, scheduleError,
     handleAcceptInvitation, handleScheduleRoom,
     isPrivate, setIsPrivate,
@@ -47,8 +46,6 @@ const InterviewScheduling: React.FC = () => {
           setSelectedDate={setSelectedDate}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
-          roomType={roomType}
-          setRoomType={setRoomType}
           scheduleError={scheduleError}
           scheduling={scheduling}
           onSchedule={handleScheduleRoom}

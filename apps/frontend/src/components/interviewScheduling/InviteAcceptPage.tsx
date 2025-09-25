@@ -10,7 +10,6 @@ interface Session {
   id: string;
   host_id: string;
   guest_id?: string | null;
-  type: string;
   datetime_utc: string;
   private?: boolean;
   room_url?: string | null;
@@ -40,7 +39,7 @@ const InviteAcceptPage: React.FC = () => {
       // Fetch session from Supabase
       const { data, error } = await supabase
         .from("practice_rooms")
-        .select("id, host_id, guest_id, type, datetime_utc, private, room_url")
+        .select("id, host_id, guest_id, datetime_utc, private, room_url")
         .eq("id", sessionId)
         .single();
       if (error || !data) {
@@ -58,7 +57,7 @@ const InviteAcceptPage: React.FC = () => {
     if (!sessionId || !currentUserId) return;
     setAccepting(true);
     try {
-      await acceptInvitation({ sessionId, guestId: currentUserId });
+      await acceptInvitation({ roomId: sessionId, guestId: currentUserId });
       toast({ title: "Session accepted!" });
       // If the session has a room_url, send the user straight to the interview room
       if (session?.room_url) {
@@ -87,9 +86,7 @@ const InviteAcceptPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <div className="font-semibold">Session Type:</div>
-            <div>{session.type}</div>
-            <div className="font-semibold mt-2">Date & Time:</div>
+          <div className="font-semibold">Date & Time:</div>
             <div>{new Date(session.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
           </div>
           {isHost && <div className="text-accent mb-2">You are the host of this session.</div>}

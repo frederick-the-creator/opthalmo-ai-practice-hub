@@ -6,11 +6,8 @@ import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabas
 // Types for room and profile
 export interface Room {
   id: string;
-  hostId: string;
+  host_id: string;
   guest_id?: string | null;
-  date: string;
-  time: string;
-  type: string;
   created_at: string;
   room_url?: string | null;
   host_profile?: {
@@ -25,8 +22,9 @@ export interface Room {
     last_name: string | null;
     avatar: string | null;
   } | null;
-  datetimeUtc: string;
+  datetime_utc: string;
   private?: boolean;
+  stage?: string | null;
 }
 
 export interface UseInterviewSchedulingResult {
@@ -38,8 +36,6 @@ export interface UseInterviewSchedulingResult {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  roomType: string;
-  setRoomType: (type: string) => void;
   scheduling: boolean;
   scheduleError: string | null;
   handleAcceptInvitation: (roomId: string) => Promise<void>;
@@ -57,7 +53,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("12:00");
-  const [roomType, setRoomType] = useState("");
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -115,8 +110,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   // Handle scheduling a new room
   const handleScheduleRoom = async () => {
     setScheduleError(null);
-    if (!selectedDate || !selectedTime || !roomType) {
-      setScheduleError("Please select date, time, and room type.");
+    if (!selectedDate || !selectedTime) {
+      setScheduleError("Please select date and time.");
       return;
     }
     setScheduling(true);
@@ -139,7 +134,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Call backend to create room (creates Daily room and DB row)
       const response = await createPracticeRoom({
         hostId,
-        type: roomType,
         datetimeUtc,
         private: isPrivate,
       });
@@ -151,7 +145,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Success: reset form
       setSelectedDate(undefined);
       setSelectedTime("12:00");
-      setRoomType("");
       setIsPrivate(false);
       setScheduling(false);
       // No need to refetch, realtime will update
@@ -198,8 +191,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
-    roomType,
-    setRoomType,
     scheduling,
     scheduleError,
     handleAcceptInvitation,

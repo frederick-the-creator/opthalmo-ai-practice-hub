@@ -35,9 +35,9 @@ export async function createDailyRoom(): Promise<string> {
 * @returns The created room object
 */
 export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any> {
-  const { hostId, type, datetimeUtc, private: isPrivate } = input;
+  const { hostId, datetimeUtc, private: isPrivate } = input;
 
-  if (!hostId || !type || !datetimeUtc) {
+  if (!hostId || !datetimeUtc) {
     throw new Error('Missing required fields');
   }
 
@@ -45,7 +45,6 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
 
   const roomData = await createRoomWithReturn({
     hostId,
-    type,
     roomUrl,
     datetimeUtc,
     private: !!isPrivate,

@@ -59,7 +59,6 @@ export type Database = {
           room_url: string | null
           second_round_id: string | null
           stage: string | null
-          type: string
         }
         Insert: {
           created_at?: string | null
@@ -72,7 +71,6 @@ export type Database = {
           room_url?: string | null
           second_round_id?: string | null
           stage?: string | null
-          type: string
         }
         Update: {
           created_at?: string | null
@@ -85,7 +83,6 @@ export type Database = {
           room_url?: string | null
           second_round_id?: string | null
           stage?: string | null
-          type?: string
         }
         Relationships: [
           {

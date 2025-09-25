@@ -37,19 +37,11 @@ const InterviewPracticeRoom: React.FC = () => {
     setRoundNumber
   } = useInterviewRoom(rawRoomId);
 
-  // Set caseBriefs as all available case briefs filtered on room case type
+  // Load all case briefs (filtering now handled in PrepPanel)
   useEffect(() => {
-    if (!room) return;
     fetchCaseBriefs().then(
       fetched => {
-      const filteredCaseBriefs = fetched.filter(c => {
-        const type = c?.type;
-        if (type === 'Clinical / Communication') return true;
-        if (room.type === 'Clinical') return type === 'Clinical';
-        if (room.type === 'Communication') return type === 'Communication';
-        return true;
-      })
-      const sortedCaseBriefs = filteredCaseBriefs.sort((a, b) => {
+      const sortedCaseBriefs = fetched.sort((a, b) => {
         const aName = (a?.case_name ?? '').toString();
         const bName = (b?.case_name ?? '').toString();
         const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
@@ -60,7 +52,7 @@ const InterviewPracticeRoom: React.FC = () => {
       })
       setCaseBriefs(sortedCaseBriefs);
     });
-  }, [room]);
+  }, []);
 
   useEffect(() => {
     setUpdating(false);

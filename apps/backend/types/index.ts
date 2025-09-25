@@ -11,7 +11,6 @@ export type PracticeRoom = {
 	stage: string | null
 	roomUrl: string | null
 	private: boolean
-	type: string
 	createdAt: string | null
 	datetimeUtc: string | null
 }
@@ -24,7 +23,6 @@ export type PracticeRoomInsert = {
 	stage?: string | null
 	roomUrl?: string | null
 	private?: boolean
-	type: string
 	createdAt?: string | null
 	datetimeUtc?: string | null
 }
@@ -38,7 +36,6 @@ export type PracticeRoomUpdate = {
 	stage?: string | null
 	roomUrl?: string | null
 	private?: boolean
-	type?: string
 	createdAt?: string | null
 	datetimeUtc?: string | null
 }
@@ -53,7 +50,6 @@ export const PracticeRoomMapper = {
 			stage: insert.stage ?? null,
 			room_url: insert.roomUrl ?? null,
 			private: insert.private ?? false,
-			type: insert.type,
 			created_at: insert.createdAt ?? null,
 			datetime_utc: insert.datetimeUtc ?? null,
 		}
@@ -69,7 +65,6 @@ export const PracticeRoomMapper = {
 			stage: row.stage,
 			roomUrl: row.room_url,
 			private: row.private,
-			type: row.type,
 			createdAt: row.created_at,
 			datetimeUtc: row.datetime_utc,
 		}
@@ -85,7 +80,6 @@ export const PracticeRoomMapper = {
             ...(update.stage !== undefined && { stage: update.stage }),
             ...(update.roomUrl !== undefined && { room_url: update.roomUrl }),
             ...(update.private !== undefined && { private: update.private }),
-            ...(update.type !== undefined && { type: update.type }),
             ...(update.createdAt !== undefined && { created_at: update.createdAt }),
             ...(update.datetimeUtc !== undefined && { datetime_utc: update.datetimeUtc }),
         };
