@@ -54,6 +54,8 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
   );
 
   const [selectedType, setSelectedType] = React.useState<string | null>(null);
+  const [highlightMode, setHighlightMode] = React.useState<'random' | 'specific' | null>(null);
+  const [localSelectedCaseId, setLocalSelectedCaseId] = React.useState<string | null>(null);
   const distinctTypes: string[] = React.useMemo(() => {
     const types = new Set<string>();
     cases.forEach(c => { if (c?.type) types.add(c.type); });
@@ -89,15 +91,45 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
 
   const caseContent = (
     <div className="flex flex-col">
+      {filteredCases.length > 0 && (
+        <div
+          key="random-case"
+          onClick={() => {
+            const randomIndex = Math.floor(Math.random() * filteredCases.length);
+            const randomCase = filteredCases[randomIndex];
+            onSelectCase(round.id, randomCase.id);
+            setHighlightMode('random');
+            setLocalSelectedCaseId(null);
+          }}
+          className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
+            ${highlightMode === 'random'
+              ? 'bg-primary-foreground text-black'
+              : 'bg-transparent text-black hover:bg-gray-100'}
+          `}
+          style={{ minWidth: 120 }}
+        >
+          Random Case
+        </div>
+      )}
       {filteredCases.map(c => {
         return (
           <div
             key={c.id}
-            onClick={() => onSelectCase(round.id, c.id)}
+            onClick={() => {
+              setHighlightMode('specific');
+              setLocalSelectedCaseId(c.id);
+              onSelectCase(round.id, c.id);
+            }}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-              ${round?.case_brief_id === c.id
-                ? 'bg-primary-foreground text-black'
-                : 'bg-transparent text-black hover:bg-gray-100'}
+              ${highlightMode === 'random'
+                ? 'bg-transparent text-black hover:bg-gray-100'
+                : (highlightMode === 'specific'
+                    ? (localSelectedCaseId === c.id
+                        ? 'bg-primary-foreground text-black'
+                        : 'bg-transparent text-black hover:bg-gray-100')
+                    : (round?.case_brief_id === c.id
+                        ? 'bg-primary-foreground text-black'
+                        : 'bg-transparent text-black hover:bg-gray-100'))}
             `}
             style={{ minWidth: 120 }}
           >
