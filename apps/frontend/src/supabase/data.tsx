@@ -6,8 +6,6 @@ import { Room, Round, Case, Profile } from "./types"
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export function fetchRooms(): Promise<Room[]>;
-export function fetchRooms(roomId: string): Promise<Room | null>;
 export async function fetchRooms(roomId?: string): Promise<Room[] | Room | null> {
   const query = supabase
     .from('practice_rooms')
@@ -201,3 +199,30 @@ export function subscribeToPracticeRoundsByRoomId({
     supabase.removeChannel(channel);
   };
 }
+
+/**
+ * Upsert the user's profile using user_id as onConflict key.
+ * Requires first_name and last_name; avatar is optional.
+ */
+export type ProfileUpdate = Pick<Profile, 'first_name' | 'last_name'> & Partial<Pick<Profile, 'avatar'>>;
+
+export const updateProfile = async (
+  userId: string,
+  updates: ProfileUpdate
+): Promise<void> => {
+  const payload = { user_id: userId, ...updates } as {
+    user_id: string;
+    first_name: string;
+    last_name: string;
+    avatar?: string | null;
+  };
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert(payload, { onConflict: 'user_id' });
+
+  if (error) {
+    console.error('[updateProfile] Database error:', error);
+    throw new Error(error.message || 'Failed to update profile');
+  }
+};

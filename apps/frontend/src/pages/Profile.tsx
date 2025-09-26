@@ -6,22 +6,21 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import { useAuth } from "@/supabase/AuthProvider";
+import { updateProfile } from "@/supabase/data";
 
 
 const Profile: React.FC = () => {
   const { toast } = useToast();
+  const { user, userProfile, loading, reloadProfile } = useAuth();
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [changingEmail, setChangingEmail] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
-
   const [newEmail, setNewEmail] = useState("");
-
+  const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  const { user, userProfile, loading } = useAuth();
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,15 +31,8 @@ const Profile: React.FC = () => {
     const newLastName = String(formData.get("lastName") || "");
     setSavingProfile(true);
     try {
-      // Try update; if no row exists, insert
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .upsert({
-          user_id: user.id,
-          first_name: newFirstName,
-          last_name: newLastName,
-        }, { onConflict: "user_id" });
-      if (updateError) throw updateError;
+      await updateProfile(user.id, { first_name: newFirstName, last_name: newLastName });
+      try { await reloadProfile(); } catch (_e) {}
       toast({ title: "Profile updated" });
     } catch (err: any) {
       toast({ title: "Failed to update profile", description: err?.message || String(err), variant: "destructive" });
@@ -58,7 +50,10 @@ const Profile: React.FC = () => {
     }
     setChangingEmail(true);
     try {
-      const { data, error } = await supabase.auth.updateUser({ email: newEmail });
+      const { error } = await supabase.auth.updateUser(
+        { email: newEmail },
+        { emailRedirectTo: `${window.location.origin}/dashboard?email_change=1` }
+      );
       if (error) throw error;
       // Supabase may send a confirmation email
       toast({ title: "Email update initiated", description: "Check your inbox to confirm the change." });
@@ -162,7 +157,7 @@ const Profile: React.FC = () => {
         <CardContent>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleChangePassword}>
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="currentPassword">Current password (recommended)</Label>
+              <Label htmlFor="currentPassword">Current password</Label>
               <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" />
             </div>
             <div className="space-y-2">

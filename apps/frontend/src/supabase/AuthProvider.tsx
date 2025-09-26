@@ -16,6 +16,7 @@ export async function AuthFromUrl(toast?: ToastFn): Promise<void> {
     const url = new URL(window.location.href);
     const hasCodeParam = !!url.searchParams.get("code");
     const errorDescription = url.searchParams.get("error_description");
+    const emailChange = url.searchParams.get("email_change");
 
     if (errorDescription && toast) {
       toast({ title: "Authentication error", description: errorDescription, variant: "destructive" });
@@ -28,6 +29,10 @@ export async function AuthFromUrl(toast?: ToastFn): Promise<void> {
       } else {
         window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
       }
+    } else if (emailChange === "1") {
+      // Email change confirmation redirect
+      if (toast) toast({ title: "Email updated", description: "Your email address has been changed." });
+      window.history.replaceState({}, document.title, `${url.origin}${url.pathname}`);
     } else if (url.hash) {
       const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
       const accessToken = hashParams.get("access_token");
@@ -54,9 +59,10 @@ type AuthContextValue = {
   loading: boolean;
   signOut: () => Promise<void>;
   userProfile: Profile | null;
+  reloadProfile: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextValue>({ user: null, session: null, loading: true, signOut: async () => {}, userProfile: null });
+const AuthContext = createContext<AuthContextValue>({ user: null, session: null, loading: true, signOut: async () => {}, userProfile: null, reloadProfile: async () => {} });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const mountedRef = useRef(true);
@@ -101,6 +107,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(nextSession?.user ?? null);
     setLoading(false);
 
+    // Ensure we have the freshest user data (e.g., after email change)
+    if (nextSession) {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!error && data?.user) {
+          setUser(data.user);
+        }
+      } catch (_e) {}
+    }
+
     if (!nextSession) {
       setUserProfile(null);
       const shouldToast = context === "initial" || (context === "listener" && event !== "SIGNED_OUT");
@@ -118,6 +134,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!profile && urlPath !== "/complete-profile") {
         navigate("/complete-profile");
       }
+    } catch (_e) {}
+  };
+
+  const reloadProfile = async () => {
+    const currentUserId = supabase.auth.getUser ? (await supabase.auth.getUser()).data.user?.id : user?.id;
+    if (!currentUserId) return;
+    try {
+      const profile = await fetchProfile(currentUserId);
+      setUserProfile(profile);
+      // Notify listeners that profile has updated (optional)
+      try { window.dispatchEvent(new Event('profileUpdated')); } catch (_e) {}
     } catch (_e) {}
   };
 
@@ -151,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserProfile(null);
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({ user, session, loading, signOut, userProfile }), [user, session, loading, signOut, userProfile]);
+  const value = useMemo<AuthContextValue>(() => ({ user, session, loading, signOut, userProfile, reloadProfile }), [user, session, loading, signOut, userProfile]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
