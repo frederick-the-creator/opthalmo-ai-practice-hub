@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/supabase/client";
 import { useAuth } from "@/supabase/AuthProvider";
 import { createPracticeRoom, acceptInvitation } from "@/lib/api";
 import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/data";

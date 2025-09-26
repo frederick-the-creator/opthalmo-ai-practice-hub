@@ -1,77 +1,44 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
-import type { Tables } from "@/supabase/dbTypes";
 import { useAuth } from "@/supabase/AuthProvider";
 
 
 const Profile: React.FC = () => {
   const { toast } = useToast();
 
-  const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [changingEmail, setChangingEmail] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
 
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string>("");
-
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  
-
   const [newEmail, setNewEmail] = useState("");
-  const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  const { user, userProfile } = useAuth();
-
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        if (!isMounted) return;
-        setUserId(user?.id || null);
-        setUserEmail(user?.email || "");
-        if (user?.id && userProfile) {
-          setFirstName(userProfile.first_name || "");
-          setLastName(userProfile.last_name || "");
-        }
-      } catch (_err) {
-        // noop
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id]);
-
-  const profileChanged = useMemo(() => {
-    return Boolean(firstName || lastName);
-  }, [firstName, lastName]);
+  const { user, userProfile, loading } = useAuth();
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!user?.id) return;
+    const form = e.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const newFirstName = String(formData.get("firstName") || "");
+    const newLastName = String(formData.get("lastName") || "");
     setSavingProfile(true);
     try {
       // Try update; if no row exists, insert
       const { error: updateError } = await supabase
         .from("profiles")
         .upsert({
-          user_id: userId,
-          first_name: firstName,
-          last_name: lastName,
+          user_id: user.id,
+          first_name: newFirstName,
+          last_name: newLastName,
         }, { onConflict: "user_id" });
       if (updateError) throw updateError;
       toast({ title: "Profile updated" });
@@ -84,24 +51,18 @@ const Profile: React.FC = () => {
 
   const handleChangeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userEmail) return;
+    if (!user) return;
     if (!newEmail) {
       toast({ title: "Enter a new email", variant: "destructive" });
       return;
     }
     setChangingEmail(true);
     try {
-      // Reauthenticate with current password if provided to reduce chance of reauth errors
-      if (currentPasswordForEmail) {
-        const { error: reauthError } = await supabase.auth.signInWithPassword({ email: userEmail, password: currentPasswordForEmail });
-        if (reauthError) throw reauthError;
-      }
       const { data, error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
       // Supabase may send a confirmation email
       toast({ title: "Email update initiated", description: "Check your inbox to confirm the change." });
       setNewEmail("");
-      setCurrentPasswordForEmail("");
     } catch (err: any) {
       toast({ title: "Failed to update email", description: err?.message || String(err), variant: "destructive" });
     } finally {
@@ -111,7 +72,7 @@ const Profile: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userEmail) return;
+    if (!user) return;
     if (!newPassword || newPassword.length < 8) {
       toast({ title: "Password too short", description: "Use at least 8 characters.", variant: "destructive" });
       return;
@@ -123,8 +84,8 @@ const Profile: React.FC = () => {
     setChangingPassword(true);
     try {
       // Reauth if current password provided
-      if (currentPassword) {
-        const { error: reauthError } = await supabase.auth.signInWithPassword({ email: userEmail, password: currentPassword });
+      if (currentPassword && user?.email) {
+        const { error: reauthError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword });
         if (reauthError) throw reauthError;
       }
       const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -158,11 +119,11 @@ const Profile: React.FC = () => {
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSaveProfile}>
             <div className="space-y-2">
               <Label htmlFor="firstName">First name</Label>
-              <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Jane" />
+              <Input id="firstName" name="firstName" defaultValue={userProfile?.first_name || ""} placeholder="Jane" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last name</Label>
-              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
+              <Input id="lastName" name="lastName" defaultValue={userProfile?.last_name || ""} placeholder="Doe" />
             </div>
             
             <div className="md:col-span-2">
@@ -175,17 +136,13 @@ const Profile: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Change email</CardTitle>
-          <CardDescription>Current email: {userEmail || "-"}</CardDescription>
+          <CardDescription>Current email: {user?.email || "-"}</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleChangeEmail}>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="newEmail">New email</Label>
               <Input id="newEmail" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="jane@example.com" />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="currentPasswordForEmail">Current password (recommended)</Label>
-              <Input id="currentPasswordForEmail" type="password" value={currentPasswordForEmail} onChange={(e) => setCurrentPasswordForEmail(e.target.value)} placeholder="••••••••" />
             </div>
             <div className="md:col-span-2">
               <Button type="submit" disabled={changingEmail}>{changingEmail ? "Updating..." : "Update email"}</Button>

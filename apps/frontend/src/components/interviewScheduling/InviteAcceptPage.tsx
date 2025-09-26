@@ -19,15 +19,9 @@ const InviteAcceptPage: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchRoom = async () => {
+    (async () => {
       setLoading(true);
       setError(null);
-      // Get current user
-      if (!user) {
-        setError("You must be logged in to accept an invite.");
-        setLoading(false);
-        return;
-      }
       
       // Fetch room via data layer
       const data = roomId ? await fetchRooms(roomId) : null;
@@ -38,9 +32,8 @@ const InviteAcceptPage: React.FC = () => {
       }
       setRoom(data as Room);
       setLoading(false);
-    };
-    fetchRoom();
-  }, [roomId, user?.id]);
+    })();
+  }, [roomId]);
 
   const handleAccept = async () => {
     if (!roomId || !user?.id) return;
