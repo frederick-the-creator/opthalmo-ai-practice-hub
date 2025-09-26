@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { fetchRooms,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId } from '@/supabase/data';
+import { useState, useEffect, useMemo } from 'react';
+import { fetchRooms,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
 import { useAuth } from '@/supabase/AuthProvider';
 import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 
@@ -15,23 +15,25 @@ interface UseInterviewRoomResult {
   roundNumber: number;
   setRoundNumber: any;
   error: string | null;
+  caseBriefs: any[];
 }
 
 
 export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult {
-  const [room, setRoom] = useState<any>(null);
-  const [roundNumber, setRoundNumber] = useState<number>(1);
-  const [round, setRound] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const { user } = useAuth();
+  const [room, setRoom] = useState<any>(null);
+  const [round, setRound] = useState<any>(null);
+  const [roundNumber, setRoundNumber] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+  const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
 
-
-  // Set current user ID from context
-  useEffect(() => {
-    setUserId(user?.id || null);
-  }, [user?.id]);
-
+  // Derive flags for current user (host, candidate)
+  let isHost = false;
+  let isCandidate = false;
+  if (user?.id && room) {
+    if (user?.id === room.host_id) isHost = true;
+    if (user?.id === (round?.candidate_id)) isCandidate = true;
+  }
 
   // Initial fetch of room and round from Supabase
   useEffect(() => {
@@ -49,6 +51,33 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     fetch();
     return () => { isMounted = false; };
   }, [roomId, roundNumber]);
+
+  // Load all case briefs once
+  useEffect(() => {
+    let isMounted = true;
+    fetchCaseBriefs().then(fetched => {
+      if (!isMounted) return;
+      setCaseBriefs(fetched ?? []);
+    }).catch(() => {
+      // Non-blocking; keep empty list on failure
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  // Sort case briefs deterministically, memoized
+  const sortedCaseBriefs = useMemo(() => {
+    const copy = Array.isArray(caseBriefs) ? [...caseBriefs] : [];
+    copy.sort((a: any, b: any) => {
+      const aName = (a?.case_name ?? '').toString();
+      const bName = (b?.case_name ?? '').toString();
+      const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+      if (cmp !== 0) return cmp;
+      const aId = (a?.id ?? '').toString();
+      const bId = (b?.id ?? '').toString();
+      return aId.localeCompare(bId);
+    });
+    return copy;
+  }, [caseBriefs]);
 
   // // Set up Realtime subscription so room can react to changes in the DB by the other user.
   useEffect(() => {
@@ -84,13 +113,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return cleanup;
   }, [roomId, roundNumber]);
 
-  // Derive flags for current user (host, candidate)
-  let isHost = false;
-  let isCandidate = false;
-  if (userId && room) {
-    if (userId === room.host_id) isHost = true;
-    if (userId === (round?.candidate_id)) isCandidate = true;
-  }
+
 
   // Helper: updateStage
   const updateStage = async (nextStage: string) => {
@@ -161,5 +184,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     roundNumber,
     setRoundNumber,
     error,
+    caseBriefs: sortedCaseBriefs,
   };
 } 

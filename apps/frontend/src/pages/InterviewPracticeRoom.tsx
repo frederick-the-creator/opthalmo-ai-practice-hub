@@ -7,18 +7,15 @@ import WrapUpPanel from "../components/interviewRoom/panels/WrapUpPanel";
 import InterviewControls from "../components/interviewRoom/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
 import { useInterviewRoom } from "@/hooks/useInterviewRoom";
-import { fetchCaseBriefs } from "@/supabase/data";
+// caseBriefs now come from useInterviewRoom
 
 const InterviewPracticeRoom: React.FC = () => {
   const navigate = useNavigate();
-  const [rawRoomId, setrawRoomId] = useState<string | null>(null);
-  const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
-  // Set rawRoomId
-  useEffect(() => {
+
+  const roomId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    const room_id = params.get('roomId');
-    if (room_id) setrawRoomId(room_id);
+    return params.get('roomId');
   }, []);
 
   // Retrieve useful functions from helper module
@@ -32,25 +29,11 @@ const InterviewPracticeRoom: React.FC = () => {
     setCase,
     setCandidate,
     roundNumber,
-    setRoundNumber
-  } = useInterviewRoom(rawRoomId);
+    setRoundNumber,
+    caseBriefs,
+  } = useInterviewRoom(roomId);
 
-  // Load all case briefs (filtering now handled in PrepPanel)
-  useEffect(() => {
-    fetchCaseBriefs().then(
-      fetched => {
-      const sortedCaseBriefs = fetched.sort((a, b) => {
-        const aName = (a?.case_name ?? '').toString();
-        const bName = (b?.case_name ?? '').toString();
-        const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
-        if (cmp !== 0) return cmp;
-        const aId = (a?.id ?? '').toString();
-        const bId = (b?.id ?? '').toString();
-        return aId.localeCompare(bId);
-      })
-      setCaseBriefs(sortedCaseBriefs);
-    });
-  }, []);
+  // caseBriefs provided by hook
 
   useEffect(() => {
     setUpdating(false);
