@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { supabase } from '@/supabase/client';
 import { useAuth } from '@/supabase/AuthProvider';
+import { upsertProfile } from '@/supabase/data';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -14,7 +14,7 @@ const CompleteProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
+  const { user, reloadProfile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,18 +25,13 @@ const CompleteProfile: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    // Check if profile exists first (from provider)
-    if (!userProfile) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        user_id: user.id,
-        first_name: firstName,
-        last_name: lastName,
-      });
-      if (profileError) {
-        setError(profileError.message);
-        setIsLoading(false);
-        return;
-      }
+    try {
+      await upsertProfile(user.id, { first_name: firstName, last_name: lastName });
+      try { await reloadProfile(); } catch (_e) {}
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save profile');
+      setIsLoading(false);
+      return;
     }
     // Notify the app that the profile has been updated so listeners can refresh
     window.dispatchEvent(new Event('profileUpdated'));

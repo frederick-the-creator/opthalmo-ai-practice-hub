@@ -206,7 +206,7 @@ export function subscribeToPracticeRoundsByRoomId({
  */
 export type ProfileUpdate = Pick<Profile, 'first_name' | 'last_name'> & Partial<Pick<Profile, 'avatar'>>;
 
-export const updateProfile = async (
+export const upsertProfile = async (
   userId: string,
   updates: ProfileUpdate
 ): Promise<void> => {
@@ -222,7 +222,7 @@ export const updateProfile = async (
     .upsert(payload, { onConflict: 'user_id' });
 
   if (error) {
-    console.error('[updateProfile] Database error:', error);
+    console.error('[upsertProfile] Database error:', error);
     throw new Error(error.message || 'Failed to update profile');
   }
 };

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import { useAuth } from "@/supabase/AuthProvider";
-import { updateProfile } from "@/supabase/data";
+import { upsertProfile } from "@/supabase/data";
 
 
 const Profile: React.FC = () => {
@@ -31,7 +31,7 @@ const Profile: React.FC = () => {
     const newLastName = String(formData.get("lastName") || "");
     setSavingProfile(true);
     try {
-      await updateProfile(user.id, { first_name: newFirstName, last_name: newLastName });
+      await upsertProfile(user.id, { first_name: newFirstName, last_name: newLastName });
       try { await reloadProfile(); } catch (_e) {}
       toast({ title: "Profile updated" });
     } catch (err: any) {
