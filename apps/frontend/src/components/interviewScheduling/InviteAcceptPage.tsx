@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { acceptInvitation } from "@/lib/api";
+import { setRoomGuest } from "@/lib/api";
 import { fetchRooms } from "@/supabase/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const InviteAcceptPage: React.FC = () => {
     if (!roomId || !user?.id) return;
     setAccepting(true);
     try {
-      await acceptInvitation({ roomId: roomId, guestId: user.id });
+      await setRoomGuest({ roomId: roomId, guestId: user.id });
       toast({ title: "Room accepted!" });
       // If the room has a room_url, send the user straight to the interview room
       if (room?.room_url) {

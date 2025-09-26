@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchRooms,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoom, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
 import { useAuth } from '@/supabase/AuthProvider';
-import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
+import { setRoundCandidate, setRoundCase, setRoomStage } from "@/lib/api";
 
 // Define the return type for clarity (can be expanded later)
 interface UseInterviewRoomResult {
@@ -123,7 +123,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       return Promise.reject('No room loaded');
     }
     try {
-      await setStage({ roomId, stage: nextStage });
+      await setRoomStage({ roomId, stage: nextStage });
       // Ensure local state reflects the latest server value immediately
       // rather than relying solely on realtime subscription latency.
       const updatedRoom = await fetchRooms(roomId);

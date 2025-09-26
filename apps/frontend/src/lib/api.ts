@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 
-export async function createPracticeRoom({ hostId, datetimeUtc, private: isPrivate }: { hostId: string, datetimeUtc: string, private: boolean }) {
+export async function createRoom({ hostId, datetimeUtc, private: isPrivate }: { hostId: string, datetimeUtc: string, private: boolean }) {
 
   const createFields = { hostId, datetimeUtc, private: isPrivate }
 
@@ -20,13 +20,13 @@ export async function createPracticeRoom({ hostId, datetimeUtc, private: isPriva
   return response.data;
 }
 
-export async function acceptInvitation({ roomId, guestId }: { roomId: string, guestId: string }) {
+export async function setRoomGuest({ roomId, guestId }: { roomId: string, guestId: string }) {
   const updateFields = {roomId, guestId}
   const response = await api.post("/practice-room/update", { updateFields });
   return response.data;
 }
 
-export async function setStage({ roomId, stage }: { roomId: string, stage: string }) {
+export async function setRoomStage({ roomId, stage }: { roomId: string, stage: string }) {
   const updateFields = { roomId, stage }
   const response = await api.post("/practice-room/update", { updateFields });
   return response.data;

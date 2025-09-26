@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
-import { createPracticeRoom, acceptInvitation } from "@/lib/api";
+import { createRoom, setRoomGuest } from "@/lib/api";
 import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/data";
 
 // Types for room and profile
@@ -94,7 +94,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setLoading(true);
     setError(null);
     try {
-      await acceptInvitation({ roomId, guestId: user.id });
+      await setRoomGuest({ roomId, guestId: user.id });
       setLoading(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
@@ -127,7 +127,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       const localDateTime = new Date(year, month, day, hours, minutes, 0, 0);
       const datetimeUtc = localDateTime.toISOString();
       // Call backend to create room (creates Daily room and DB row)
-      const response = await createPracticeRoom({
+      const response = await createRoom({
         hostId,
         datetimeUtc,
         private: isPrivate,
