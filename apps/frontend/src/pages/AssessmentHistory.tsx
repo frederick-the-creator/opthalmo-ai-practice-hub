@@ -15,7 +15,6 @@ const AssessmentHistory: React.FC = () => {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [roomsById, setRoomsById] = useState<Record<string, Room & { host_profile?: Profile; guest_profile?: Profile }>>({});
   const [casesById, setCasesById] = useState<Record<string, Case>>({});
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [dialogState, setDialogState] = useState<{ open: boolean; round: Round | null }>({ open: false, round: null });
 
   const { user } = useAuth();
@@ -26,7 +25,6 @@ const AssessmentHistory: React.FC = () => {
       setError(null);
       try {
         const userId = user?.id ?? null;
-        setCurrentUserId(userId);
         if (!userId) {
           setRounds([]);
           setRoomsById({});
@@ -117,7 +115,7 @@ const AssessmentHistory: React.FC = () => {
             .map((round) => {
             const room = roomsById[round.room_id as string];
             const caseBrief = casesById[round.case_brief_id as string];
-            const { hostName, guestName, hostAvatar } = room ? getHostAndGuestProfiles(room, currentUserId) : { hostName: 'Unknown', guestName: 'Unknown', hostAvatar: 'U' };
+            const { hostName, guestName, hostAvatar } = room ? getHostAndGuestProfiles(room, user?.id ?? null) : { hostName: 'Unknown', guestName: 'Unknown', hostAvatar: 'U' };
             const hasAssessment = Boolean(round?.assessment);
             const caseName = caseBrief?.case_name || caseBrief?.case_name_internal || 'Unknown Case';
             const caseType = caseBrief?.type || 'Unknown';

@@ -6,7 +6,7 @@ import SchedulePanel from "../components/interviewScheduling/SchedulePanel";
 
 const InterviewScheduling: React.FC = () => {
   const {
-    rooms, loading, error, currentUserId,
+    rooms, loading, error,
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
     scheduling, scheduleError,
@@ -36,7 +36,6 @@ const InterviewScheduling: React.FC = () => {
             rooms={rooms}
             loading={loading}
             error={error}
-            currentUserId={currentUserId}
             onAccept={handleAcceptInvitation}
             onJoin={handleJoin}
           />

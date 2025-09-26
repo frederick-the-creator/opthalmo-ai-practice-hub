@@ -32,7 +32,6 @@ export interface UseInterviewSchedulingResult {
   rooms: Room[];
   loading: boolean;
   error: string | null;
-  currentUserId: string | null;
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
@@ -56,7 +55,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [selectedTime, setSelectedTime] = useState("12:00");
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { user } = useAuth();
   const [isPrivate, setIsPrivate] = useState(false);
@@ -74,7 +72,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
         setLoading(false);
         return;
       }
-      setCurrentUserId(user.id);
       await fetchRooms();
     };
     fetchUserAndRooms();
@@ -91,14 +88,14 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
 
   // Accept Invitation handler
   const handleAcceptInvitation = async (roomId: string) => {
-    if (!currentUserId) {
+    if (!user?.id) {
       setError("You must be logged in to accept an invitation.");
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      await acceptInvitation({ roomId, guestId: currentUserId });
+      await acceptInvitation({ roomId, guestId: user.id });
       setLoading(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
@@ -185,7 +182,6 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     rooms,
     loading,
     error,
-    currentUserId,
     selectedDate,
     setSelectedDate,
     selectedTime,

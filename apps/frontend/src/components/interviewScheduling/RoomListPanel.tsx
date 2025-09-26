@@ -1,3 +1,4 @@
+import { useAuth } from "@/supabase/AuthProvider";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,6 @@ interface Props {
   rooms: Room[];
   loading: boolean;
   error: string | null;
-  currentUserId: string | null;
   onAccept: (roomId: string) => void;
   onJoin: (room: Room) => void;
 }
@@ -41,10 +41,10 @@ const RoomListPanel: React.FC<Props> = ({
   rooms,
   loading,
   error,
-  currentUserId,
   onAccept,
   onJoin,
 }) => {
+  const { user } = useAuth();
   // Helper to get host and guest profile info
   const getHostAndGuestProfiles = (room: Room, currentUserId: string | null) => {
     const hostProfile = room.host_profile || null;
@@ -67,15 +67,15 @@ const RoomListPanel: React.FC<Props> = ({
   // Available rooms (not joined by user) and only public
   const availablerooms = rooms.filter(
     (room) =>
-      (!currentUserId || (room.host_id !== currentUserId && room.guest_id !== currentUserId)) &&
+      (!user?.id || (room.host_id !== user.id && room.guest_id !== user.id)) &&
       room.private !== true
   );
 
   // My rooms (joined or hosted by user)
   const myrooms = rooms.filter(
     (room) =>
-      currentUserId &&
-      (room.host_id === currentUserId || room.guest_id === currentUserId)
+      user?.id &&
+      (room.host_id === user.id || room.guest_id === user.id)
   );
 
   return (
@@ -94,7 +94,7 @@ const RoomListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">No available rooms.</li>
           ) : (
             availablerooms.map((room) => {
-              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, currentUserId);
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, user?.id ?? null);
               const isGuestPresent = !!room.guest_id;
               return (
                 <li key={room.id} className="flex items-center justify-between p-4">
@@ -132,8 +132,8 @@ const RoomListPanel: React.FC<Props> = ({
             <li className="p-4 text-gray-500 text-center">You have no upcoming interviews.</li>
           ) : (
             myrooms.map((room) => {
-              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, currentUserId);
-              const isHost = currentUserId && room.host_id === currentUserId;
+              const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, user?.id ?? null);
+              const isHost = user?.id && room.host_id === user.id;
               return (
                 <li key={room.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
