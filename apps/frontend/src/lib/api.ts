@@ -35,12 +35,14 @@ export async function setStage({ roomId, stage }: { roomId: string, stage: strin
 
 
 export async function setRoundCandidate({ roundId, candidateId }: { roundId: string, candidateId: string }) {
-  const response = await api.post("/practice-round/set-candidate", { roundId, candidateId });
+  const updateFields = { roundId, candidateId }
+  const response = await api.post("/practice-round/update", { updateFields });
   return response.data;
 }
 
 export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, caseBriefId: string }) {
-  const response = await api.post("/practice-round/set-case", { roundId, caseBriefId });
+  const updateFields = { roundId, caseBriefId }
+  const response = await api.post("/practice-round/update", { updateFields });
   return response.data;
 }
 

@@ -33,18 +33,4 @@ roomRouter.post('/update', async (req: Request, res: Response) => {
     }
 });
 
-// roomRouter.post('/set-stage', async (req: Request, res: Response) => {
-//     const { roomId, stage } = req.body;
-//     if (!roomId || typeof stage !== 'string') {
-//       return res.status(400).json({ error: 'Missing roomId or stage' });
-//     }
-//     try {
-//       const room = await updatePracticeRoomWithReturn({roomId, stage });
-//       res.json({ room });
-//     } catch (err: any) {
-//       console.error('Error setting stage:', err.response?.data || err.message);
-//       res.status(500).json({ error: err.message || 'Failed to set stage' });
-//     }
-// });
-
 export default roomRouter
