@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 type WrapUpPanelProps = {
-  isHost: 'host' | 'guest' | null;
+  isHost: boolean;
   roundNumber: number;
   onNextRound: () => void;
   onFinishRoom: () => void;
@@ -11,7 +11,7 @@ type WrapUpPanelProps = {
 const WrapUpPanel: React.FC<WrapUpPanelProps> = ({ isHost, onFinishRoom, onNextRound, roundNumber }) => {
   return (
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full justify-center">
-      {isHost === 'host' ? (
+      {isHost ? (
         <>
           {roundNumber === 1 && (
             <Button className="mb-4 w-64 text-lg self-center" onClick={() => { onNextRound() }}>Next Round</Button>

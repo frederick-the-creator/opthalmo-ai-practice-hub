@@ -7,7 +7,7 @@ import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 interface UseInterviewRoomResult {
   room: any; // TODO: type this properly
   round:  any;
-  isHost: 'host' | 'guest' | null;
+  isHost: boolean;
   isCandidate: boolean;
   updateStage: (nextStage: string) => Promise<void>;
   setCase: (roundId: string, caseBriefId: string) => Promise<void>;
@@ -84,18 +84,16 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return cleanup;
   }, [roomId, roundNumber]);
 
-  // Derive isHosts of current user (host / guest / candidate)
-  let isHost: 'host' | 'guest' | null = null;
+  // Derive flags for current user (host, candidate)
+  let isHost = false;
   let isCandidate = false;
   if (userId && room) {
-    if (userId === room.host_id) isHost = 'host';
-    else if (userId === room.guest_id) isHost = 'guest';
+    if (userId === room.host_id) isHost = true;
     if (userId === (round?.candidate_id)) isCandidate = true;
   }
 
   // Helper: updateStage
   const updateStage = async (nextStage: string) => {
-    console.log('updateStage triggered')
     setError(null);
     if (!roomId || !room) {
       setError('No room loaded');
@@ -103,6 +101,12 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       await setStage({ roomId, stage: nextStage });
+      // Ensure local state reflects the latest server value immediately
+      // rather than relying solely on realtime subscription latency.
+      const updatedRoom = await fetchRooms(roomId);
+      if (updatedRoom) {
+        setRoom(updatedRoom as any);
+      }
       setError(null);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Failed to update stage');

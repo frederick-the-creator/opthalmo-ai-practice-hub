@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 
 type HeaderBarProps = {
   stage: string;
-  isHost: 'host' | 'guest' | null;
+  isHost: boolean;
   updating?: boolean;
   onExit: () => void;
   onBack?: () => void;
@@ -19,7 +19,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ stage, isHost, onExit, onBack }) 
         Exit
       </Button>
       {/* Show Back only for host and not PREP or WRAP_UP stage */}
-      {isHost === 'host' && stage !== "Prep" && stage !== "WrapUp" && onBack && (
+      {isHost && stage !== "Prep" && stage !== "WrapUp" && onBack && (
         <Button
           className="font-bold text-white bg-primary hover:bg-accent border-none"
           onClick={onBack}

@@ -14,8 +14,6 @@ const InterviewPracticeRoom: React.FC = () => {
   const [rawRoomId, setrawRoomId] = useState<string | null>(null);
   const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
-
-  console.log('updating:', updating)
   // Set rawRoomId
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -37,7 +35,6 @@ const InterviewPracticeRoom: React.FC = () => {
     setRoundNumber
   } = useInterviewRoom(rawRoomId);
 
-  console.log('room', room)
   // Load all case briefs (filtering now handled in PrepPanel)
   useEffect(() => {
     fetchCaseBriefs().then(
@@ -69,7 +66,6 @@ const InterviewPracticeRoom: React.FC = () => {
     setCase(roundId, caseBriefId).finally(() => setUpdating(false));
   };
   const handleStartCase = () => {
-    console.log('handleStartCase triggered')
     setUpdating(true);
     updateStage("Interview").finally(() => setUpdating(false));
   };
@@ -156,7 +152,7 @@ const InterviewPracticeRoom: React.FC = () => {
             {rightPanel}
           </div>
         </div>
-        {isHost === 'host' && (room?.stage === "Prep" || room?.stage === "Interview") && (
+        {isHost && (room?.stage === "Prep" || room?.stage === "Interview") && (
           <div className="mt-4 flex justify-center">
             <InterviewControls
               room={room ?? null}

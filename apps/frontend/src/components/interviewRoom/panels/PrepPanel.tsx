@@ -5,7 +5,7 @@ type PrepPanelProps = {
   room: any;
   round: any;
   cases: any[];
-  isHost: 'host' | 'guest' | null;
+  isHost: boolean;
   updating?: boolean;
   onSelectCandidate: (roundId: string, candidateId: string) => void;
   onSelectCase: (roundId: string, caseId: string) => void;
@@ -205,7 +205,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               placeholder={''}
               defaultOpen={true}
             >
-              {isHost === 'host' ? candidateContent : guestCandidatePlaceholder}
+              {isHost ? candidateContent : guestCandidatePlaceholder}
             </Brief>
           </div>
           <div className="flex-none mt-2">
@@ -215,7 +215,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               placeholder={''}
               defaultOpen={true}
             >
-              {isHost === 'host' ? filterContent : <span className="text-gray-400">Waiting for host to select filter...</span>}
+              {isHost ? filterContent : <span className="text-gray-400">Waiting for host to select filter...</span>}
             </Brief>
         </div>
           <div className="flex-none mt-2">
@@ -225,7 +225,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               placeholder={''}
               defaultOpen={true}
             >
-              {isHost === 'host' ? categoryContent : guestCategoryPlaceholder}
+              {isHost ? categoryContent : guestCategoryPlaceholder}
             </Brief>
           </div>
           <div className="flex-1 min-h-0 flex flex-col">
@@ -235,7 +235,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               placeholder={''}
               defaultOpen={true}
             >
-              {isHost === 'host' ? caseContent : guestCasePlaceholder}
+              {isHost ? caseContent : guestCasePlaceholder}
             </Brief>
           </div>
         </div>
