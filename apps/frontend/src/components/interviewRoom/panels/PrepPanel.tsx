@@ -1,6 +1,5 @@
 import React from 'react';
 import Brief from './PanelBriefs';
-import { useInterviewRoom } from "@/hooks/useInterviewRoom";
 
 type PrepPanelProps = {
   room: any;
@@ -54,18 +53,39 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
   );
 
   const [selectedType, setSelectedType] = React.useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   const [highlightMode, setHighlightMode] = React.useState<'random' | 'specific' | null>(null);
   const [localSelectedCaseId, setLocalSelectedCaseId] = React.useState<string | null>(null);
+  
   const distinctTypes: string[] = React.useMemo(() => {
     const types = new Set<string>();
     cases.forEach(c => { if (c?.type) types.add(c.type); });
     return Array.from(types).sort();
   }, [cases]);
 
-  const filteredCases = React.useMemo(() => {
-    if (!selectedType) return cases;
-    return cases.filter(c => c?.type === selectedType);
+  const distinctCategories: string[] = React.useMemo(() => {
+    const categories = new Set<string>();
+    const base = selectedType ? cases.filter(c => c?.type === selectedType) : cases;
+    base.forEach(c => { if (c?.category) categories.add(c.category); });
+    return Array.from(categories).sort();
   }, [cases, selectedType]);
+
+  React.useEffect(() => {
+    if (selectedCategory && !distinctCategories.includes(selectedCategory)) {
+      setSelectedCategory(null);
+    }
+  }, [distinctCategories, selectedCategory]);
+
+  const filteredCases = React.useMemo(() => {
+    let result = cases;
+    if (selectedType) {
+      result = result.filter(c => c?.type === selectedType);
+    }
+    if (selectedCategory) {
+      result = result.filter(c => c?.category === selectedCategory);
+    }
+    return result;
+  }, [cases, selectedType, selectedCategory]);
 
   const filterContent = (
     <div className="flex flex-col">
@@ -89,6 +109,28 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
     </div>
   );
 
+  const categoryContent = (
+    <div className="flex flex-col">
+      {distinctCategories.map(cat => (
+        <div
+          key={cat}
+          onClick={() => setSelectedCategory(prev => prev === cat ? null : cat)}
+          className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
+            ${selectedCategory === cat
+              ? 'bg-primary-foreground text-black'
+              : 'bg-transparent text-black hover:bg-gray-100'}
+          `}
+          style={{ minWidth: 120 }}
+        >
+          {cat}
+        </div>
+      ))}
+      {distinctCategories.length === 0 && (
+        <span className="text-gray-400">No categories available</span>
+      )}
+    </div>
+  );
+
   const caseContent = (
     <div className="flex flex-col">
       {filteredCases.length > 0 && (
@@ -101,7 +143,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
             setHighlightMode('random');
             setLocalSelectedCaseId(null);
           }}
-          className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
+          className={`cursor-pointer px-4 py-2 text-base font-bold text-left transition
             ${highlightMode === 'random'
               ? 'bg-primary-foreground text-black'
               : 'bg-transparent text-black hover:bg-gray-100'}
@@ -148,6 +190,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
   // Guest placeholders
   const guestCandidatePlaceholder = <span className="text-gray-400">Waiting for host to select candidate...</span>;
   const guestCasePlaceholder = <span className="text-gray-400">Waiting for host to select case...</span>;
+  const guestCategoryPlaceholder = <span className="text-gray-400">Waiting for host to select category filter...</span>;
 
   // console.log('isHost for rendering:', isHost);
 
@@ -175,6 +218,16 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
               {isHost === 'host' ? filterContent : <span className="text-gray-400">Waiting for host to select filter...</span>}
             </Brief>
         </div>
+          <div className="flex-none mt-2">
+            <Brief
+              title="Filter by category"
+              markdown={null}
+              placeholder={''}
+              defaultOpen={true}
+            >
+              {isHost === 'host' ? categoryContent : guestCategoryPlaceholder}
+            </Brief>
+          </div>
           <div className="flex-1 min-h-0 flex flex-col">
             <Brief
               title="Please select your case"
