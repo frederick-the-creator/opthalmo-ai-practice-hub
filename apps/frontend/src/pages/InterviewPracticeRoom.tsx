@@ -15,6 +15,7 @@ const InterviewPracticeRoom: React.FC = () => {
   const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
 
+  console.log('updating:', updating)
   // Set rawRoomId
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -68,6 +69,7 @@ const InterviewPracticeRoom: React.FC = () => {
     setCase(roundId, caseBriefId).finally(() => setUpdating(false));
   };
   const handleStartCase = () => {
+    console.log('handleStartCase triggered')
     setUpdating(true);
     updateStage("Interview").finally(() => setUpdating(false));
   };

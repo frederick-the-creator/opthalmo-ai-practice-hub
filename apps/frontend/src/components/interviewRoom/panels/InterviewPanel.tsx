@@ -33,14 +33,8 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ round, cases, isCandida
   }
   // Interviewer/Actor view
   const [actorOpen, setActorOpen] = useState(true);
-  const [markOpen, setMarkOpen] = useState(false);
   const handleActorChange = useCallback((open: boolean) => {
     setActorOpen(open);
-    if (open) setMarkOpen(false);
-  }, []);
-  const handleMarkChange = useCallback((open: boolean) => {
-    setMarkOpen(open);
-    if (open) setActorOpen(false);
   }, []);
   return (// 
     <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">

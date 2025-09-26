@@ -88,9 +88,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   // Derive stage from supabase
   let stage = "Prep";
   if (room && room.stage) {
-    if (room.stage === "Prep") stage = "Prep";
-    else if (room.stage === "Interview") stage = "Interview";
-    else if (room.stage === "WrapUp") stage = "WrapUp";
+    stage = room.stage
   }
 
   // Derive isHosts of current user (host / guest / candidate)
@@ -104,6 +102,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
 
   // Helper: updateStage
   const updateStage = async (nextStage: string) => {
+    console.log('updateStage triggered')
     setError(null);
     if (!roomId || !room) {
       setError('No room loaded');

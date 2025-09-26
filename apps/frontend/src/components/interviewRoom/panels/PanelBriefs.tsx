@@ -43,8 +43,6 @@ const Brief: React.FC<BriefProps> = ({
   open,
   onOpenChange,
   children,
-  containerClassName,
-  contentClassName,
 }) => (
   <Collapsible
     className={`overflow-hidden flex flex-col min-h-0 py-2.5 pr-2.5 pb-0 w-full max-w-[462px] max-md:max-w-full`} //       ${containerClassName ?? ''}
