@@ -1,20 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { acceptInvitation } from "@/lib/api";
-import { supabase } from "@/supabase/client";
+import { fetchRooms } from "@/supabase/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/supabase/AuthProvider'
 
-interface Room {
-  id: string;
-  host_id: string;
-  guest_id?: string | null;
-  datetime_utc: string;
-  private?: boolean;
-  room_url?: string | null;
-}
+import type { Room } from "@/supabase/types";
 
 const InviteAcceptPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -36,18 +29,14 @@ const InviteAcceptPage: React.FC = () => {
         return;
       }
       
-      // Fetch room from Supabase
-      const { data, error } = await supabase
-        .from("practice_rooms")
-        .select("id, host_id, guest_id, datetime_utc, private, room_url")
-        .eq("id", roomId)
-        .single();
-      if (error || !data) {
+      // Fetch room via data layer
+      const data = roomId ? await fetchRooms(roomId) : null;
+      if (!data) {
         setError("Room not found or you do not have access.");
         setLoading(false);
         return;
       }
-      setRoom(data);
+      setRoom(data as Room);
       setLoading(false);
     };
     fetchRoom();

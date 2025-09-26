@@ -4,26 +4,26 @@ import { Room, Round, Case, Profile } from "./types"
 
 /**
  * Fetch all rooms or a single room if roomId is provided.
- * Joins profiles for host info.s
+ * Joins profiles for host/guest info.
  */
-export const fetchRooms = async (roomId?: string): Promise<Room[] | Room | null> => {
-  let query = supabase
+export function fetchRooms(): Promise<Room[]>;
+export function fetchRooms(roomId: string): Promise<Room | null>;
+export async function fetchRooms(roomId?: string): Promise<Room[] | Room | null> {
+  const query = supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .order('datetime_utc', { ascending: true });
 
   if (roomId) {
-    // Fetch a single room
     const { data, error } = await query.eq('id', roomId).single();
     if (error || !data) return null;
-    return data;
-  } else {
-    // Fetch all rooms
-    const { data, error } = await query;
-    if (error || !data) return [];
-    return data;
+    return data as unknown as Room;
   }
-};
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return data as unknown as Room[];
+}
 
 /**
  * Fetch rooms for a specific user (as host or guest), newest first.

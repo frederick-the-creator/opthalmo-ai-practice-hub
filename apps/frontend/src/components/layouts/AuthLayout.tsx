@@ -1,34 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import Header from "../shared/Header";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/supabase/AuthProvider';
 
 interface AuthLayoutProps { fullscreen?: boolean }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ fullscreen = false }) => {
-  const { toast } = useToast();
   const { session, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      if (!session) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to access this page',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
-
       setLoading(false);
     })();
-  }, [toast, session]);
+  }, [session]);
 
   if (authLoading || loading) return null; // or a spinner
-  if (!session) return <Navigate to="/" replace />;
+  if (!session) return <Navigate to="/login" replace />;
 
   if (fullscreen) {
     return <Outlet />;
