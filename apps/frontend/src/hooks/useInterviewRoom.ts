@@ -7,7 +7,6 @@ import { setRoundCandidate, setRoundCase, setStage } from "@/lib/api";
 interface UseInterviewRoomResult {
   room: any; // TODO: type this properly
   round:  any;
-  stage: string;
   isHost: 'host' | 'guest' | null;
   isCandidate: boolean;
   updateStage: (nextStage: string) => Promise<void>;
@@ -85,19 +84,13 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return cleanup;
   }, [roomId, roundNumber]);
 
-  // Derive stage from supabase
-  let stage = "Prep";
-  if (room && room.stage) {
-    stage = room.stage
-  }
-
   // Derive isHosts of current user (host / guest / candidate)
   let isHost: 'host' | 'guest' | null = null;
   let isCandidate = false;
   if (userId && room) {
     if (userId === room.host_id) isHost = 'host';
     else if (userId === room.guest_id) isHost = 'guest';
-    if (userId === round.candidate_id) isCandidate = true;
+    if (userId === (round?.candidate_id)) isCandidate = true;
   }
 
   // Helper: updateStage
@@ -156,7 +149,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   return {
     room,
     round,
-    stage,
     isHost,
     isCandidate,
     updateStage,

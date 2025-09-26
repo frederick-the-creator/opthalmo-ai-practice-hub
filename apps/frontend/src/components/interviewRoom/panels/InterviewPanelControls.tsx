@@ -7,13 +7,12 @@ type InterviewControlsProps = {
   room: any | null;
   round: any | null;
   caseBriefs: any[] | null;
-  stage: string;
   onStartCase?: () => Promise<void> | void;
   canStart?: boolean;
   onFinishRound?: () => void;
 };
 
-const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, caseBriefs, stage, onStartCase, canStart, onFinishRound }) => {
+const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, caseBriefs, onStartCase, canStart, onFinishRound }) => {
   const [recording, setRecording] = useState<null | any>(null);
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
@@ -144,7 +143,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     }
   };
 
-  if (stage === "Prep") {
+  if ((room?.stage ?? "Prep") === "Prep") {
     return (
       <div className="w-full mt-6">
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">

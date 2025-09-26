@@ -27,7 +27,6 @@ const InterviewPracticeRoom: React.FC = () => {
   const {
     room,
     round,
-    stage,
     isHost,
     isCandidate,
     updateStage,
@@ -38,6 +37,7 @@ const InterviewPracticeRoom: React.FC = () => {
     setRoundNumber
   } = useInterviewRoom(rawRoomId);
 
+  console.log('room', room)
   // Load all case briefs (filtering now handled in PrepPanel)
   useEffect(() => {
     fetchCaseBriefs().then(
@@ -57,7 +57,7 @@ const InterviewPracticeRoom: React.FC = () => {
 
   useEffect(() => {
     setUpdating(false);
-  }, [stage]);
+  }, [room?.stage]);
 
   // Handlers for host actions
   const handleSelectCandidate = (roundId: string, userId: string) => {
@@ -101,7 +101,7 @@ const InterviewPracticeRoom: React.FC = () => {
 
   // Panel selection
   let rightPanel = null;
-  if (stage === "Prep") {
+  if (room?.stage === "Prep") {
     rightPanel = (
       <PrepPanel
         room={room}
@@ -113,7 +113,7 @@ const InterviewPracticeRoom: React.FC = () => {
         onSelectCase={handleSelectCase}
       />
     );
-  } else if (stage === "Interview") {
+  } else if (room?.stage === "Interview") {
     rightPanel = (
       <InterviewPanel
         round={round}
@@ -122,7 +122,7 @@ const InterviewPracticeRoom: React.FC = () => {
         onBack={handleBackToPrep}
       />
     );
-  } else if (stage === "WrapUp") {
+  } else if (room?.stage === "WrapUp") {
     rightPanel = (
       <WrapUpPanel
         isHost={isHost}
@@ -136,13 +136,13 @@ const InterviewPracticeRoom: React.FC = () => {
   return (
     <div className="px-14 py-7 h-screen overflow-hidden bg-white max-md:px-5">
       <HeaderBar
-        stage={stage}
+        stage={room?.stage ?? "Prep"}
         isHost={isHost}
         onExit={handleExit}
         onBack={
-          stage === "Interview"
+          room?.stage === "Interview"
             ? handleBackToPrep
-            : stage === "WrapUp"
+            : room?.stage === "WrapUp"
             ? handleBackToInterview
             : undefined
         }
@@ -156,13 +156,12 @@ const InterviewPracticeRoom: React.FC = () => {
             {rightPanel}
           </div>
         </div>
-        {isHost === 'host' && (stage === "Prep" || stage === "Interview") && (
+        {isHost === 'host' && (room?.stage === "Prep" || room?.stage === "Interview") && (
           <div className="mt-4 flex justify-center">
             <InterviewControls
               room={room ?? null}
               round = {round ?? null}
               caseBriefs={caseBriefs}
-              stage={stage}
               onStartCase={handleStartCase}
               canStart={Boolean(round?.candidate_id && round?.case_brief_id)}
               onFinishRound={handleFinishRound}

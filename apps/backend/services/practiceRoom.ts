@@ -48,6 +48,7 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
     roomUrl,
     datetimeUtc,
     private: !!isPrivate,
+    stage: "Prep",
   });
 
   const roomId = roomData.id
