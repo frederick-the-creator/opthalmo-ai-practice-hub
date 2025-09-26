@@ -17,7 +17,7 @@ const InterviewPanel: React.FC<InterviewPanelProps> = ({ round, cases, isCandida
       <div className="flex flex-col h-[calc(100vh-14rem)] max-md:mt-10 max-md:max-w-full">
         <div className="gap-3 w-full text-xs leading-6 text-white max-w-[462px] max-md:max-w-full flex-shrink-0">
           <div className="gap-2.5 self-stretch w-full text-3xl font-medium leading-none text-slate-950 max-md:max-w-full">
-            {selectedCase?.case_name}
+            {selectedCase?.category}
           </div>
         </div>
         <div className="flex-1 mt-2 max-w-full text-black w-[462px]">
