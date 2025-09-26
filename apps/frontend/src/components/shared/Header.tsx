@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/supabase/AuthProvider";
-import { fetchProfile } from "@/supabase/data";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Eye, LayoutDashboard, Video, ListChecks, LogOut } from "lucide-react";
 
@@ -9,7 +8,7 @@ const Header: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("");
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut, user, userProfile } = useAuth();
 
   const navItems = [
     { path: "/dashboard", name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -26,28 +25,20 @@ const Header: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      const userId = user?.id || null;
-      const profile = await fetchProfile(userId || undefined);
-      if (profile) {
-        setUserName(`${profile.first_name} ${profile.last_name}`.trim());
-        setUserInitials(`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase());
-      }
-    };
+    if (userProfile) {
+      setUserName(`${userProfile.first_name} ${userProfile.last_name}`.trim());
+      setUserInitials(`${userProfile.first_name?.[0] || ''}${userProfile.last_name?.[0] || ''}`.toUpperCase());
+    } else {
+      setUserName("");
+      setUserInitials("");
+    }
 
-    // Initial fetch
-    fetchProfileData();
-
-    // Listen for profile updates
     const handleProfileUpdated = () => {
-      fetchProfileData();
+      // no-op: provider will refresh userProfile
     };
     window.addEventListener('profileUpdated', handleProfileUpdated);
-
-    return () => {
-      window.removeEventListener('profileUpdated', handleProfileUpdated);
-    };
-  }, [user?.id]);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdated);
+  }, [userProfile]);
 
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6 flex items-center justify-between">

@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import type { Tables } from "@/supabase/dbTypes";
-import { fetchProfile } from "@/supabase/data";
 import { useAuth } from "@/supabase/AuthProvider";
 
 
@@ -33,7 +32,7 @@ const Profile: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
     let isMounted = true;
@@ -42,13 +41,9 @@ const Profile: React.FC = () => {
         if (!isMounted) return;
         setUserId(user?.id || null);
         setUserEmail(user?.email || "");
-        if (user?.id) {
-          const profile = await fetchProfile(user.id);
-          if (!isMounted) return;
-          if (profile) {
-            setFirstName(profile.first_name || "");
-            setLastName(profile.last_name || "");
-          }
+        if (user?.id && userProfile) {
+          setFirstName(userProfile.first_name || "");
+          setLastName(userProfile.last_name || "");
         }
       } catch (_err) {
         // noop

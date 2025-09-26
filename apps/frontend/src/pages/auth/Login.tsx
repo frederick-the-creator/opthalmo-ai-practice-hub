@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/supabase/client';
-import { fetchProfile } from '@/supabase/data';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +20,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -41,15 +40,7 @@ const Login: React.FC = () => {
       localStorage.setItem('loginAt', String(Date.now()));
     } catch (_e) {}
 
-    // After login, check if profile exists using shared fetchProfile
-    const userId = data?.user?.id ?? data?.session?.user?.id ?? null;
-    const profile = await fetchProfile(userId || undefined);
-    if (!profile) {
-      navigate('/complete-profile');
-      setIsLoading(false);
-      return;
-    }
-
+    // Let AuthProvider handle profile redirect if needed; otherwise go to dashboard
     setIsLoading(false);
     navigate('/dashboard');
   };

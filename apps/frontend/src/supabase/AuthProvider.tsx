@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "./client";
+import { fetchProfile } from "@/supabase/data";
+import type { Profile } from "@/supabase/types";
+import { toast as showToast } from "@/hooks/use-toast";
 
 export type ToastVariant = "default" | "destructive";
 export type ToastArgs = { title?: React.ReactNode; description?: React.ReactNode; variant?: ToastVariant };
@@ -49,32 +53,88 @@ type AuthContextValue = {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  userProfile: Profile | null;
 };
 
-const AuthContext = createContext<AuthContextValue>({ user: null, session: null, loading: true, signOut: async () => {} });
+const AuthContext = createContext<AuthContextValue>({ user: null, session: null, loading: true, signOut: async () => {}, userProfile: null });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const mountedRef = useRef(true);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+
+  // Hard session time-to-live regardless of token refreshes
+  const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 2; // 2 days
+
+  const processSession = async (
+    nextSession: Session | null,
+    context: "initial" | "listener",
+    event?: string
+  ) => {
+    if (!mountedRef.current) return;
+
+    if (nextSession) {
+      const now = Date.now();
+      const loginAtRaw = localStorage.getItem("loginAt");
+      if (loginAtRaw) {
+        const loginAt = Number(loginAtRaw);
+        if (Number.isFinite(loginAt) && now - loginAt > SESSION_TTL_MS) {
+          await supabase.auth.signOut();
+          localStorage.removeItem("loginAt");
+          showToast({ title: "Session expired", description: "Please log in again.", variant: "destructive" });
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          navigate("/");
+          return;
+        }
+      } else {
+        localStorage.setItem("loginAt", String(now));
+      }
+    }
+
+    setSession(nextSession ?? null);
+    setUser(nextSession?.user ?? null);
+    setLoading(false);
+
+    if (!nextSession) {
+      setUserProfile(null);
+      const shouldToast = context === "initial" || (context === "listener" && event !== "SIGNED_OUT");
+      if (shouldToast) {
+        showToast({ title: "Authentication required", description: "Please log in to access this page", variant: "destructive" });
+      }
+      return;
+    }
+
+    // Fetch profile and expose it; redirect if missing (except on complete-profile)
+    try {
+      const profile = await fetchProfile(nextSession.user.id);
+      setUserProfile(profile);
+      const urlPath = location.pathname;
+      if (!profile && urlPath !== "/complete-profile") {
+        navigate("/complete-profile");
+      }
+    } catch (_e) {}
+  };
 
   useEffect(() => {
     mountedRef.current = true;
-    // Initial session fetch
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mountedRef.current) return;
-      setSession(data.session ?? null);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+
+    // Handle auth params from URL (email links, magic links)
+    AuthFromUrl(showToast).finally(() => {
+      // After URL processing, fetch and process session
+      supabase.auth.getSession().then(({ data }) => {
+        processSession(data.session ?? null, "initial");
+      });
     });
 
     // Subscribe to further auth changes
-    const { data: subscription } = supabase.auth.onAuthStateChange((_evt, newSession) => {
-      if (!mountedRef.current) return;
-      setSession(newSession ?? null);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
+    const { data: subscription } = supabase.auth.onAuthStateChange((evt, newSession) => {
+      processSession(newSession ?? null, "listener", evt);
     });
 
     return () => {
@@ -88,9 +148,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem('loginAt');
     } catch (_e) {}
+    setUserProfile(null);
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({ user, session, loading, signOut }), [user, session, loading, signOut]);
+  const value = useMemo<AuthContextValue>(() => ({ user, session, loading, signOut, userProfile }), [user, session, loading, signOut, userProfile]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

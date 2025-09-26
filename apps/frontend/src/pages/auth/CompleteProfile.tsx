@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { supabase } from '@/supabase/client';
 import { useAuth } from '@/supabase/AuthProvider';
-import { fetchProfile } from '@/supabase/data';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -15,7 +14,7 @@ const CompleteProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +25,8 @@ const CompleteProfile: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    // Check if profile exists first
-    const existingProfile = await fetchProfile(user.id);
-    if (!existingProfile) {
+    // Check if profile exists first (from provider)
+    if (!userProfile) {
       const { error: profileError } = await supabase.from('profiles').insert({
         user_id: user.id,
         first_name: firstName,
