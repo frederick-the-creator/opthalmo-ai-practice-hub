@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { setRoomGuest } from "@/lib/api";
-import { fetchRooms } from "@/supabase/data";
+import { fetchRoom } from "@/supabase/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -24,7 +24,7 @@ const InviteAcceptPage: React.FC = () => {
       setError(null);
       
       // Fetch room via data layer
-      const data = roomId ? await fetchRooms(roomId) : null;
+      const data = roomId ? await fetchRoom(roomId) : null;
       if (!data) {
         setError("Room not found or you do not have access.");
         setLoading(false);

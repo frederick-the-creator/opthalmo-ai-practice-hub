@@ -6,9 +6,8 @@ const roomRouter = Router()
 
 // Create room endpoint: creates Daily room, then inserts room in Supabase
 roomRouter.post('/create', async (req: Request, res: Response) => {
-    console.log('create route hit')
+  
     const { createFields } = req.body;
-    console.log('createFields', createFields)
 
     try {
       const room = await createPracticeRoom(createFields);

@@ -28,24 +28,28 @@ export async function setRoomGuest({ roomId, guestId }: { roomId: string, guestI
 
 export async function setRoomStage({ roomId, stage }: { roomId: string, stage: string }) {
   const updateFields = { roomId, stage }
-  const response = await api.post("/practice-room/update", { updateFields });
-  return response.data;
+  const { data } = await api.post("/practice-room/update", { updateFields });
+  return data.room;
 }
 
+export async function createRound({ roomId, roundNumber }: { roomId: string, roundNumber: number }) {
+  const createFields = { roomId, roundNumber }
+  const { data } = await api.post("/practice-round/create", { createFields });
+  return data.round;
+}
 
 
 export async function setRoundCandidate({ roundId, candidateId }: { roundId: string, candidateId: string }) {
   const updateFields = { roundId, candidateId }
-  const response = await api.post("/practice-round/update", { updateFields });
-  return response.data;
+  const { data } = await api.post("/practice-round/update", { updateFields });
+  return data.round;
 }
 
 export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, caseBriefId: string }) {
   const updateFields = { roundId, caseBriefId }
-  const response = await api.post("/practice-round/update", { updateFields });
-  return response.data;
+  const { data } = await api.post("/practice-round/update", { updateFields });
+  return data.round;
 }
-
 
 
 export async function startRecording({ room_url }: { room_url: string }) {

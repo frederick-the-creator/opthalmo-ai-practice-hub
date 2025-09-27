@@ -6,22 +6,46 @@ import { Room, Round, Case, Profile } from "./types"
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchRooms(roomId?: string): Promise<Room[] | Room | null> {
-  const query = supabase
+export async function fetchRoom(roomId: string): Promise<Room> {
+  const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
-    .order('datetime_utc', { ascending: true });
+    .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .order('datetime_utc', { ascending: true })
+    .eq('id', roomId)
+    .single();
 
-  if (roomId) {
-    const { data, error } = await query.eq('id', roomId).single();
-    if (error || !data) return null;
-    return data as unknown as Room;
+  if (error) {
+    console.log('[fetchRoom] DB error: ', error)
   }
 
-  const { data, error } = await query;
-  if (error || !data) return [];
-  return data as unknown as Room[];
+  return data;
 }
+
+/**
+ * Fetch all rooms or a single room if roomId is provided.
+ * Joins profiles for host/guest info.
+ */
+export async function fetchAllRooms(): Promise<Room[]> {
+  const { data, error } = await supabase
+    .from('practice_rooms')
+    .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .order('datetime_utc', { ascending: true });
+
+  if (error) {
+    console.log('[fetchAllRooms] DB error: ', error)
+    throw new Error(error.message || 'Failed to fetch rooms');
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return data;
+}
+
+
+// .select returns an array. If no data found, returns null
+// .single returns the object or null if no data found
 
 /**
  * Fetch rooms for a specific user (as host or guest), newest first.
@@ -30,83 +54,102 @@ export async function fetchRooms(roomId?: string): Promise<Room[] | Room | null>
 export const fetchRoomsForUser = async (userId: string): Promise<Room[]> => {
   const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, first_round_id, second_round_id, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
     .order('datetime_utc', { ascending: false });
 
   if (error) {
     console.error('[fetchRoomsForUser] Database error:', error);
-    throw new Error(error.message || 'Unkown Database Error');
+    throw new Error(error.message || 'Failed to fetch rooms');
   }
-  return data ?? [];
+
+  if (!data) {
+    return [];
+  }
+
+  return data;
 };
 
-export const fetchRoundByRoomAndRoundNumber = async (roomId?: string, roundNumber?: number): Promise<Round[] | Round | null> => {
+export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<Round> => {
 
   // If round number = 1, return row with round number = 1
-  let query = supabase
+  const { data, error } = await supabase
     .from('practice_rounds')
-    .select('id, host_id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
+    .select('id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
+    .eq('room_id', roomId)
+    .eq('round_number', roundNumber)
+    .single();
 
-  if (roomId && typeof roundNumber !== 'undefined') {
-    const { data, error } = await query
-      .eq('room_id', roomId)
-      .eq('round_number', roundNumber)
-      .single();
-    if (error || !data) return null;
-    return data;
+  if (error) {
+    console.log('[fetchRoundByRoomAndRoundNumber] DB error: ', error)
+    throw new Error(error.message || 'Failed to fetch round');
   }
+  
+  return data;
 };
 
 
 export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round[]> => {
 
     const { data, error } = await supabase
-        .from('practice_rounds')
-        .select('id, host_id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
-        .eq('candidate_id', candidateId);
+      .from('practice_rounds')
+      .select('id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
+      .eq('candidate_id', candidateId);
 
     if (error) {
-        console.error('[fetchRoundsByCandidate] Database error:', error);
-        throw new Error(error.message || 'Unkown Database Error');
+      console.error('[fetchRoundsByCandidate] Database error:', error);
+      throw new Error(error.message || 'Failed to fetch rounds');
     }
 
-    return data ?? [];
+    if (!data) {
+      return [];
+    }
+
+    return data;
 };
 
 /**
  * Fetch the room (with joined host/guest profiles) associated with a given round ID.
  */
-export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> => {
+export const fetchRoomByRoundId = async (roundId: string): Promise<Room> => {
   const { data: round, error: roundError } = await supabase
     .from('practice_rounds')
     .select('room_id')
     .eq('id', roundId)
     .single();
 
-  if (roundError || !round?.room_id) return null;
+  if (roundError) {
+    console.error('[fetchRoomByRoundId] Database error:', roundError);
+  }
 
   const { data: room, error: roomError } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, stage, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .eq('id', round.room_id as string)
     .single();
 
-  if (roomError || !room) return null;
-  return room as unknown as Room;
+  if (roomError) {
+    console.error('[fetchRoomByRoundId] Database error:', roomError);
+  }
+
+  return room;
 };
 
 /**
  * Fetch the case brief for a given case ID.
  */
-export const fetchCasebyCaseId = async (caseId: string): Promise<Case | null> => {
+export const fetchCasebyCaseId = async (caseId: string): Promise<Case> => {
   const { data, error } = await supabase
     .from('case_briefs')
-    .select('id, case_name, case_name_internal, type')
+    .select('id, category, condition, case_name, case_name_internal, type, actor_brief, candidate_brief')
     .eq('id', caseId)
     .single();
-  if (error || !data) return null;
-  return data as Case;
+
+  if (error) {
+    console.log('[fetchCasebyCaseId] DB error: ', error)
+  }
+
+  return data;
 };
 
 /**
@@ -117,14 +160,24 @@ export const fetchCaseBriefs = async (): Promise<Case[]> => {
   const { data, error } = await supabase
     .from('case_briefs')
     .select('id, category, condition, case_name, case_name_internal, type, actor_brief, candidate_brief');
-  return data || [];
+
+  if (error) {
+    console.error('[fetchCaseBriefs] Database error:', error);
+    throw new Error(error.message || 'Failed to fetch cases');
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return data;
 };
 
 /**
  * Fetch the current user's profile.
  * Returns null if no authenticated user or profile not found.
  */
-export const fetchProfile = async (userId?: string): Promise<Profile | null> => {
+export const fetchProfile = async (userId: string): Promise<Profile | null> => {
   if (!userId) return null;
 
   const { data, error } = await supabase
@@ -132,7 +185,11 @@ export const fetchProfile = async (userId?: string): Promise<Profile | null> => 
     .select('user_id, first_name, last_name, avatar')
     .eq('user_id', userId)
     .single();
-  if (error || !data) return null;
+
+  if (error) {
+    console.log('[fetchProfile] DB error: ', error)
+  }
+  
   return data;
 };
 
@@ -141,27 +198,60 @@ export const fetchProfile = async (userId?: string): Promise<Profile | null> => 
  * If roomId is provided, only subscribe to that room; otherwise, subscribe to all.
  * Returns a cleanup function to remove the channel.
  */
-export function subscribeToPracticeRoom({
+export function subscribeToPracticeRoomByRoomId({
   roomId,
   onChange,
 }: {
-  roomId?: string;
-  onChange: () => void;
+  roomId: string;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
 }) {
-  // console.log('subscribeToPracticeRoom')
-  const filter = roomId ? `id=eq.${roomId}` : undefined;
-  const channel = supabase.channel(
-    roomId ? `practice_rooms:${roomId}` : "practice_rooms:all"
-  ).on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "practice_rooms",
-      ...(filter ? { filter } : {}),
-    },
-    onChange
-  ).subscribe();
+  const filter = `id=eq.${roomId}`;
+  const channel = supabase
+    .channel(`practice_rooms:${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "practice_rooms",
+        filter,
+      },
+      (payload: any) =>
+        onChange({
+          event: payload.eventType,
+          new: payload.new,
+          old: payload.old,
+        })
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+export function subscribeToAllPracticeRooms({
+  onChange,
+}: {
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
+}) {
+  const channel = supabase
+    .channel("practice_rooms:all")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "practice_rooms",
+      },
+      (payload: any) =>
+        onChange({
+          event: payload.eventType,
+          new: payload.new,
+          old: payload.old,
+        })
+    )
+    .subscribe();
 
   return () => {
     supabase.removeChannel(channel);
@@ -178,7 +268,7 @@ export function subscribeToPracticeRoundsByRoomId({
   onChange,
 }: {
   roomId: string;
-  onChange: () => void;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
 }) {
   const filter = `room_id=eq.${roomId}`;
   const channel = supabase
@@ -191,7 +281,12 @@ export function subscribeToPracticeRoundsByRoomId({
         table: "practice_rounds",
         filter,
       },
-      onChange
+      (payload: any) =>
+        onChange({
+          event: payload.eventType,
+          new: payload.new,
+          old: payload.old,
+        })
     )
     .subscribe();
 

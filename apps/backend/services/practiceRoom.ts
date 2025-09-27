@@ -52,14 +52,9 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
   });
 
   const roomId = roomData.id
-  const firstRoundData = await createRoundWithReturn({ roundNumber: 1, roomId, hostId })
-  const secondRoundData = await createRoundWithReturn({ roundNumber: 2, roomId, hostId })
+  await createRoundWithReturn({ roundNumber: 1, roomId })
 
-  const firstRoundId = firstRoundData.id
-  const secondRoundId = secondRoundData.id
-  const updatedRoomData = await updatePracticeRoomWithReturn({roomId, firstRoundId, secondRoundId})
-
-  return updatedRoomData;
+  return roomData;
 }
 
 

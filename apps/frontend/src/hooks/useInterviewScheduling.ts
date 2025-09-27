@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { createRoom, setRoomGuest } from "@/lib/api";
-import { fetchRooms as fetchRoomsUtil, subscribeToPracticeRoom } from "@/supabase/data";
+import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
 
 // Types for room and profile
 export interface Room {
@@ -71,7 +71,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
         setLoading(false);
         return;
       }
-      await fetchRooms();
+      await fetchRoom();
     };
     fetchUserAndRooms();
     return () => { isMounted = false; };
@@ -79,8 +79,11 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
 
   // Realtime subscription to rooms table
   useEffect(() => {
-    const cleanup = subscribeToPracticeRoom({
-      onChange: fetchRooms
+    const cleanup = subscribeToAllPracticeRooms({
+      onChange: () => {
+        // any room change should refresh list
+        fetchRoom();
+      }
     });
     return cleanup;
   }, []);
@@ -151,11 +154,11 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
 
 
   // Helper to fetch rooms
-  const fetchRooms = async () => {
+  const fetchRoom = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchRoomsUtil();
+      const data = await fetchAllRooms();
       // Filter out rooms that are more than 1 hour past start time
       const now = new Date();
       const filtered = (data as any[]).filter((room) => {

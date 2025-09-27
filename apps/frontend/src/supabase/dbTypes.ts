@@ -51,47 +51,34 @@ export type Database = {
         Row: {
           created_at: string | null
           datetime_utc: string | null
-          first_round_id: string | null
           guest_id: string | null
           host_id: string
           id: string
           private: boolean
           room_url: string | null
-          second_round_id: string | null
-          stage: string | null
+          stage: string
         }
         Insert: {
           created_at?: string | null
           datetime_utc?: string | null
-          first_round_id?: string | null
           guest_id?: string | null
           host_id: string
           id?: string
           private?: boolean
           room_url?: string | null
-          second_round_id?: string | null
-          stage?: string | null
+          stage: string
         }
         Update: {
           created_at?: string | null
           datetime_utc?: string | null
-          first_round_id?: string | null
           guest_id?: string | null
           host_id?: string
           id?: string
           private?: boolean
           room_url?: string | null
-          second_round_id?: string | null
-          stage?: string | null
+          stage?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "practice_rooms_first_round_id_fkey"
-            columns: ["first_round_id"]
-            isOneToOne: false
-            referencedRelation: "practice_rounds"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "practice_rooms_guest_id_fkey"
             columns: ["guest_id"]
@@ -106,13 +93,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
-          {
-            foreignKeyName: "practice_rooms_second_round_id_fkey"
-            columns: ["second_round_id"]
-            isOneToOne: false
-            referencedRelation: "practice_rounds"
-            referencedColumns: ["id"]
-          },
         ]
       }
       practice_rounds: {
@@ -121,10 +101,9 @@ export type Database = {
           candidate_id: string | null
           case_brief_id: string | null
           created_at: string
-          host_id: string | null
           id: string
-          room_id: string | null
-          round_number: number | null
+          room_id: string
+          round_number: number
           transcript: Json | null
         }
         Insert: {
@@ -132,10 +111,9 @@ export type Database = {
           candidate_id?: string | null
           case_brief_id?: string | null
           created_at?: string
-          host_id?: string | null
           id?: string
-          room_id?: string | null
-          round_number?: number | null
+          room_id: string
+          round_number: number
           transcript?: Json | null
         }
         Update: {
@@ -143,10 +121,9 @@ export type Database = {
           candidate_id?: string | null
           case_brief_id?: string | null
           created_at?: string
-          host_id?: string | null
           id?: string
-          room_id?: string | null
-          round_number?: number | null
+          room_id?: string
+          round_number?: number
           transcript?: Json | null
         }
         Relationships: [
@@ -163,13 +140,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "case_briefs"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "practice_rounds_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "practice_rounds_room_id_fkey"
