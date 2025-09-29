@@ -127,7 +127,7 @@ const InterviewPracticeRoom: React.FC = () => {
       <div className="max-w-full w-full">
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex-1 max-md:ml-0 max-md:w-full">
-            <VideoPane roomUrl={room?.room_url ?? null} error={error} />
+            <VideoPane roomUrl={room?.roomUrl ?? null} error={error} />
           </div>
           <div className="ml-5 w-[462px] flex-shrink-0 max-md:ml-0 max-md:w-full">
             {rightPanel}

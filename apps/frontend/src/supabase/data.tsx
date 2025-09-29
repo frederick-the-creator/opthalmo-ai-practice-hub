@@ -1,12 +1,13 @@
 import { supabase } from "./client";
-import { Room, Round, Case, Profile } from "@/types"
+import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
+import { PracticeRoomWithProfilesMapper } from "@/types";
 
 
 /**
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchRoom(roomId: string): Promise<Room | null> {
+export async function fetchRoom(roomId: string): Promise<PracticeRoomWithProfiles | null> {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -18,14 +19,14 @@ export async function fetchRoom(roomId: string): Promise<Room | null> {
     console.log('[fetchRoom] DB error: ', error)
   }
 
-  return data;
+  return PracticeRoomWithProfilesMapper.fromDb(data as any);
 }
 
 /**
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchAllRooms(): Promise<Room[] | []> {
+export async function fetchAllRooms(): Promise<PracticeRoomWithProfiles[] | []> {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -40,7 +41,7 @@ export async function fetchAllRooms(): Promise<Room[] | []> {
     return [];
   }
 
-  return data;
+  return (data ?? []).map((r) => PracticeRoomWithProfilesMapper.fromDb(r as any)!).filter(Boolean) as PracticeRoomWithProfiles[];
 }
 
 
@@ -51,7 +52,7 @@ export async function fetchAllRooms(): Promise<Room[] | []> {
  * Fetch rooms for a specific user (as host or guest), newest first.
  * Includes joined host/guest profile info for display.
  */
-export const fetchRoomsForUser = async (userId: string): Promise<Room[] | []> => {
+export const fetchRoomsForUser = async (userId: string): Promise<PracticeRoomWithProfiles[] | []> => {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -67,7 +68,7 @@ export const fetchRoomsForUser = async (userId: string): Promise<Room[] | []> =>
     return [];
   }
 
-  return data;
+  return (data ?? []).map((r) => PracticeRoomWithProfilesMapper.fromDb(r as any)!).filter(Boolean) as PracticeRoomWithProfiles[];
 };
 
 export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<Round | null> => {
@@ -111,7 +112,7 @@ export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round
 /**
  * Fetch the room (with joined host/guest profiles) associated with a given round ID.
  */
-export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> => {
+export const fetchRoomByRoundId = async (roundId: string): Promise<PracticeRoomWithProfiles | null> => {
   const { data: round, error: roundError } = await supabase
     .from('practice_rounds')
     .select('room_id')
@@ -132,7 +133,7 @@ export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> 
     console.error('[fetchRoomByRoundId] Database error:', roomError);
   }
 
-  return room;
+  return PracticeRoomWithProfilesMapper.fromDb(room as any);
 };
 
 /**

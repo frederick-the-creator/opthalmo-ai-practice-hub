@@ -5,36 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-
-interface Room {
-  id: string;
-  host_id: string;
-  guest_id?: string | null;
-  created_at: string;
-  room_url?: string | null;
-  host_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  guest_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  datetime_utc: string;
-  private?: boolean;
-  stage?: string;
-}
+import type { PracticeRoomWithProfiles } from "@/types";
 
 interface Props {
-  rooms: Room[];
+  rooms: PracticeRoomWithProfiles[];
   loading: boolean;
   error: string | null;
   onAccept: (roomId: string) => void;
-  onJoin: (room: Room) => void;
+  onJoin: (room: PracticeRoomWithProfiles) => void;
 }
 
 const RoomListPanel: React.FC<Props> = ({
@@ -46,13 +24,13 @@ const RoomListPanel: React.FC<Props> = ({
 }) => {
   const { user } = useAuth();
   // Helper to get host and guest profile info
-  const getHostAndGuestProfiles = (room: Room, currentUserId: string | null) => {
+  const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, currentUserId: string | null) => {
     const hostProfile = room.host_profile || null;
     const guestProfile = room.guest_profile || null;
     const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
-      if (currentUserId && room.guest_id === currentUserId) {
+      if (currentUserId && room.guestId === currentUserId) {
         guestName = 'You';
       } else {
         guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
@@ -67,7 +45,7 @@ const RoomListPanel: React.FC<Props> = ({
   // Available rooms (not joined by user) and only public
   const availablerooms = rooms.filter(
     (room) =>
-      (!user?.id || (room.host_id !== user.id && room.guest_id !== user.id)) &&
+      (!user?.id || (room.hostId !== user.id && room.guestId !== user.id)) &&
       room.private !== true
   );
 
@@ -75,7 +53,7 @@ const RoomListPanel: React.FC<Props> = ({
   const myrooms = rooms.filter(
     (room) =>
       user?.id &&
-      (room.host_id === user.id || room.guest_id === user.id)
+      (room.hostId === user.id || room.guestId === user.id)
   );
 
   return (
@@ -95,7 +73,7 @@ const RoomListPanel: React.FC<Props> = ({
           ) : (
             availablerooms.map((room) => {
               const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, user?.id ?? null);
-              const isGuestPresent = !!room.guest_id;
+              const isGuestPresent = !!room.guestId;
               return (
                 <li key={room.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
@@ -107,7 +85,7 @@ const RoomListPanel: React.FC<Props> = ({
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
                         <span>{
-                          new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                         {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
                       </div>
@@ -133,7 +111,7 @@ const RoomListPanel: React.FC<Props> = ({
           ) : (
             myrooms.map((room) => {
               const { hostName, guestName, hostAvatar } = getHostAndGuestProfiles(room, user?.id ?? null);
-              const isHost = user?.id && room.host_id === user.id;
+              const isHost = user?.id && room.hostId === user.id;
               return (
                 <li key={room.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center">
@@ -150,13 +128,13 @@ const RoomListPanel: React.FC<Props> = ({
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
                         <span>{
-                          new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                          new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                         }</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {room.private && isHost && room.room_url && (
+                    {room.private && isHost && room.roomUrl && (
                       <Button
                         type="button"
                         size="sm"
@@ -170,18 +148,18 @@ const RoomListPanel: React.FC<Props> = ({
                         Invite Link
                       </Button>
                     )}
-                    {room.room_url ? (
+                    {room.roomUrl ? (
                       <Button
-                        className={`bg-primary${!room.guest_id ? ' opacity-50 cursor-pointer' : ''}${room.stage === 'Finished' ? ' opacity-50 cursor-not-allowed' : ''}`}
+                        className={`bg-primary${!room.guestId ? ' opacity-50 cursor-pointer' : ''}${room.stage === 'Finished' ? ' opacity-50 cursor-not-allowed' : ''}`}
                         aria-label={
                           room.stage === 'Finished'
                             ? 'Interview finished'
-                            : (!room.guest_id ? 'Waiting for guest' : 'Join room')
+                            : (!room.guestId ? 'Waiting for guest' : 'Join room')
                         }
                         title={
                           room.stage === 'Finished'
                             ? 'This interview is finished'
-                            : (!room.guest_id ? 'Waiting for guest to accept room' : 'Join room')
+                            : (!room.guestId ? 'Waiting for guest to accept room' : 'Join room')
                         }
                         disabled={room.stage === 'Finished'}
                         onClick={() => onJoin(room)}

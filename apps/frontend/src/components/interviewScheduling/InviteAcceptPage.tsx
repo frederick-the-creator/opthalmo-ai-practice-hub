@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/supabase/AuthProvider'
 
-import type { Room } from "@/types";
+import type { PracticeRoomWithProfiles } from "@/types";
 
 const InviteAcceptPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const [room, setRoom] = useState<Room | null>(null);
+  const [room, setRoom] = useState<PracticeRoomWithProfiles | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
@@ -30,7 +30,7 @@ const InviteAcceptPage: React.FC = () => {
         setLoading(false);
         return;
       }
-      setRoom(data as Room);
+      setRoom(data as PracticeRoomWithProfiles);
       setLoading(false);
     })();
   }, [roomId]);
@@ -42,8 +42,8 @@ const InviteAcceptPage: React.FC = () => {
       await setRoomGuest({ roomId: roomId, guestId: user.id });
       toast({ title: "Room accepted!" });
       // If the room has a room_url, send the user straight to the interview room
-      if (room?.room_url) {
-        navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(room.room_url)}&roomId=${roomId}`);
+      if (room?.roomUrl) {
+        navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(room.roomUrl)}&roomId=${roomId}`);
       } else {
         navigate("/interview-scheduling");
       }
@@ -57,8 +57,8 @@ const InviteAcceptPage: React.FC = () => {
   if (error) return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
   if (!room) return null;
 
-  const isHost = user?.id === room.host_id;
-  const isGuest = user?.id === room.guest_id;
+  const isHost = user?.id === room.hostId;
+  const isGuest = user?.id === room.guestId;
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -69,7 +69,7 @@ const InviteAcceptPage: React.FC = () => {
         <CardContent>
           <div className="mb-4">
           <div className="font-semibold">Date & Time:</div>
-            <div>{new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
+            <div>{new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
           </div>
           {isHost && <div className="text-accent mb-2">You are the host of this room.</div>}
           {isGuest && <div className="text-green-600 mb-2">You have already accepted this room.</div>}

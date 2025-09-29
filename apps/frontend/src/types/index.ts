@@ -153,10 +153,30 @@ export const PracticeRoundMapper = {
 
 
 
+// Extended PracticeRoom with joined profile info
+export type PracticeRoomWithProfiles = PracticeRoom & {
+    host_profile?: Profile | null
+    guest_profile?: Profile | null
+}
 
-export type Room = Tables<"practice_rooms"> & {
-    profiles?: any; // adjust as needed for joined profile info
-};
+export const PracticeRoomWithProfilesMapper = {
+    fromDb(
+        row: (Tables<'practice_rooms'> & {
+            host_profile?: Profile | null
+            guest_profile?: Profile | null
+        }) | null
+    ): PracticeRoomWithProfiles | null {
+        if (!row) return null
+        const base = PracticeRoomMapper.fromDb(row as Tables<'practice_rooms'>)
+        return {
+            ...base,
+            host_profile: row.host_profile ?? null,
+            guest_profile: row.guest_profile ?? null,
+        }
+    },
+}
+
+
 export type Round = Tables<"practice_rounds">;  
 export type Case = Tables<"case_briefs">;
 export type Profile = Tables<"profiles">;

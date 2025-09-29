@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
-import type { Room, Round, Case, Profile } from "@/types";
+import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,7 +13,7 @@ const AssessmentHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
-  const [roomsById, setRoomsById] = useState<Record<string, Room & { host_profile?: Profile; guest_profile?: Profile }>>({});
+  const [roomsById, setRoomsById] = useState<Record<string, PracticeRoomWithProfiles>>({});
   const [casesById, setCasesById] = useState<Record<string, Case>>({});
   const [dialogState, setDialogState] = useState<{ open: boolean; round: Round | null }>({ open: false, round: null });
 
@@ -52,7 +52,7 @@ const AssessmentHistory: React.FC = () => {
             return room ?? null;
           })
         );
-        const roomsMap: Record<string, any> = {};
+        const roomsMap: Record<string, PracticeRoomWithProfiles> = {} as any;
         for (const r of fetchedRooms) if (r) roomsMap[r.id] = r;
         setRoomsById(roomsMap);
 
@@ -78,13 +78,13 @@ const AssessmentHistory: React.FC = () => {
     setDialogState({ open: true, round });
   };
 
-  const getHostAndGuestProfiles = (room: Room, userId: string | null) => {
+  const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, userId: string | null) => {
     const hostProfile = (room as any).host_profile || null;
     const guestProfile = (room as any).guest_profile || null;
     const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
-      if (userId && room.guest_id === userId) guestName = 'You';
+      if (userId && room.guestId === userId) guestName = 'You';
       else guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
     } else {
       guestName = 'No Guest';
@@ -108,8 +108,8 @@ const AssessmentHistory: React.FC = () => {
             .sort((a, b) => {
               const ra = roomsById[a.room_id as string];
               const rb = roomsById[b.room_id as string];
-              const da = ra?.datetime_utc ? new Date(ra.datetime_utc).getTime() : 0;
-              const db = rb?.datetime_utc ? new Date(rb.datetime_utc).getTime() : 0;
+              const da = ra?.datetimeUtc ? new Date(ra.datetimeUtc as string).getTime() : 0;
+              const db = rb?.datetimeUtc ? new Date(rb.datetimeUtc as string).getTime() : 0;
               return db - da;
             })
             .map((round) => {
@@ -133,7 +133,7 @@ const AssessmentHistory: React.FC = () => {
                       <span className="mx-2">•</span>
                       <span>Guest: {guestName}</span>
                       <span className="mx-2">•</span>
-                      <span>{room?.datetime_utc ? new Date(room.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}</span>
+                      <span>{room?.datetimeUtc ? new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}</span>
                       {room?.stage === 'Finished' && <span className="ml-2 text-green-600">Finished</span>}
                     </div>
                   </div>
@@ -164,7 +164,7 @@ const AssessmentHistory: React.FC = () => {
                                 <div>
                                   <h2 className="text-lg font-semibold">Assessment Overview</h2>
                                   <p className="text-sm text-muted-foreground">
-                                    Interview • {dialogRoom?.datetime_utc ? new Date(dialogRoom.datetime_utc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
+                                    Interview • {dialogRoom?.datetimeUtc ? new Date(dialogRoom.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
                                   </p>
                                 </div>
                                 <div className="text-right">

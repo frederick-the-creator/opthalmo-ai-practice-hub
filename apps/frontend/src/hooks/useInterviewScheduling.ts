@@ -2,33 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { createRoom, setRoomGuest } from "@/lib/api";
 import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
+import type { PracticeRoomWithProfiles } from "@/types";
 
-// Types for room and profile
-export interface Room {
-  id: string;
-  host_id: string;
-  guest_id?: string | null;
-  created_at: string;
-  room_url?: string | null;
-  host_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  guest_profile?: {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    avatar: string | null;
-  } | null;
-  datetime_utc: string;
-  private?: boolean;
-  stage?: string | null;
-}
 
 export interface UseInterviewSchedulingResult {
-  rooms: Room[];
+  rooms: PracticeRoomWithProfiles[];
   loading: boolean;
   error: string | null;
   selectedDate: Date | undefined;
@@ -47,7 +25,7 @@ export interface UseInterviewSchedulingResult {
 
 export function useInterviewScheduling(): UseInterviewSchedulingResult {
   // State declarations
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<PracticeRoomWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -161,8 +139,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       const data = await fetchAllRooms();
       // Filter out rooms that are more than 1 hour past start time
       const now = new Date();
-      const filtered = (data as any[]).filter((room) => {
-        const roomStart = new Date(room.datetime_utc);
+      const filtered = (data as PracticeRoomWithProfiles[]).filter((room) => {
+        const roomStart = new Date(room.datetimeUtc as string);
         return now < new Date(roomStart.getTime() + 60 * 60 * 1000);
       });
       setRooms(filtered);

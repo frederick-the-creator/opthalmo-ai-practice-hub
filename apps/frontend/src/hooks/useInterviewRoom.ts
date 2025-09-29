@@ -36,7 +36,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   let isHost = false;
   let isCandidate = false;
   if (user?.id && room) {
-    if (user?.id === room.host_id) isHost = true;
+    if (user?.id === room.hostId) isHost = true;
     if (user?.id === (round?.candidate_id)) isCandidate = true;
   }
 
