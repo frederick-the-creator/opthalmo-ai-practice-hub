@@ -3,13 +3,14 @@
   "private": true,
   "workspaces": [
     "apps/frontend",
-    "apps/backend"
+    "apps/backend",
+    "packages/*"
   ],
   "scripts": {
     "dev:frontend": "npm --workspace apps/frontend run dev",
     "dev:backend": "npm --workspace apps/backend run dev",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "generate:types": "npx supabase gen types typescript --project-id hhdrrepogausvduqscmo > apps/frontend/src/supabase/dbTypes.ts"
+    "generate:types": "npx supabase gen types typescript --project-id hhdrrepogausvduqscmo > packages/types/src/supabase/dbTypes.ts"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",

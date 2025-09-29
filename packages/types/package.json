@@ -1,0 +1,10 @@
+{
+  "name": "@ophthalmo/types",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "types": "src/index.ts",
+  "sideEffects": false
+}
+
+
