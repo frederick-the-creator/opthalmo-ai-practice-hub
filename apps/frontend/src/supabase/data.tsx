@@ -1,5 +1,5 @@
 import { supabase } from "./client";
-import { Room, Round, Case, Profile } from "./types"
+import { Room, Round, Case, Profile } from "@/types"
 
 
 /**

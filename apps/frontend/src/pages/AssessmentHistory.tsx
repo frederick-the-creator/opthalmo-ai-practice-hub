@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
-import type { Room, Round, Case, Profile } from "@/supabase/types";
+import type { Room, Round, Case, Profile } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

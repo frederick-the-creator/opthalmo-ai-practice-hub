@@ -3,7 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "./client";
 import { fetchProfile } from "@/supabase/data";
-import type { Profile } from "@/supabase/types";
+import type { Profile } from "@/types";
 import { toast as showToast } from "@/hooks/use-toast";
 
 export type ToastVariant = "default" | "destructive";

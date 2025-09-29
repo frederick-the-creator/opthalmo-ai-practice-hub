@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/supabase/AuthProvider'
 
-import type { Room } from "@/supabase/types";
+import type { Room } from "@/types";
 
 const InviteAcceptPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
