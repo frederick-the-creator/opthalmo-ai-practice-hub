@@ -49,7 +49,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
         setLoading(false);
         return;
       }
-      await fetchRoom();
+      await fetchRooms();
     };
     fetchUserAndRooms();
     return () => { isMounted = false; };
@@ -60,7 +60,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     const cleanup = subscribeToAllPracticeRooms({
       onChange: () => {
         // any room change should refresh list
-        fetchRoom();
+        fetchRooms();
       }
     });
     return cleanup;
@@ -132,7 +132,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
 
 
   // Helper to fetch rooms
-  const fetchRoom = async () => {
+  const fetchRooms = async () => {
     setLoading(true);
     setError(null);
     try {

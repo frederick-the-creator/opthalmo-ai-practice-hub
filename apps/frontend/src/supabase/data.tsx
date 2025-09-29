@@ -1,13 +1,13 @@
 import { supabase } from "./client";
 import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
-import { PracticeRoomWithProfilesMapper } from "@/types";
+import { ProfileMapper, PracticeRoomWithProfilesMapper, DbProfile } from "@/types";
 
 
 /**
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchRoom(roomId: string): Promise<PracticeRoomWithProfiles | null> {
+export async function fetchRoomWithProfiles(roomId: string): Promise<PracticeRoomWithProfiles | null> {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -16,7 +16,7 @@ export async function fetchRoom(roomId: string): Promise<PracticeRoomWithProfile
     .single();
 
   if (error) {
-    console.log('[fetchRoom] DB error: ', error)
+    console.log('[fetchRoomWithProfiles] DB error: ', error)
   }
 
   return PracticeRoomWithProfilesMapper.fromDb(data as any);
@@ -191,7 +191,7 @@ export const fetchProfile = async (userId: string): Promise<Profile | null> => {
     console.log('[fetchProfile] DB error: ', error)
   }
   
-  return data;
+  return ProfileMapper.fromDb(data as any);
 };
 
 /**
@@ -300,7 +300,7 @@ export function subscribeToPracticeRoundsByRoomId({
  * Upsert the user's profile using user_id as onConflict key.
  * Requires first_name and last_name; avatar is optional.
  */
-export type ProfileUpdate = Pick<Profile, 'first_name' | 'last_name'> & Partial<Pick<Profile, 'avatar'>>;
+export type ProfileUpdate = Pick<DbProfile, 'first_name' | 'last_name'> & Partial<Pick<DbProfile, 'avatar'>>;
 
 export const upsertProfile = async (
   userId: string,

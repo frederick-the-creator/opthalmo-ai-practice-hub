@@ -1,57 +1,12 @@
-import { Tables, TablesInsert, TablesUpdate, Json } from './dbTypes'
+import { Tables, Json } from './dbTypes'
 
 // Practice Rooms
-
-export type PracticeRoom = {
-	id: string
-	hostId: string
-	guestId: string | null
-	stage: string
-	roomUrl: string | null
-	private: boolean
-	createdAt: string | null
-	datetimeUtc: string | null
-}
-
-export type PracticeRoomInsert = {
-	hostId: string
-	guestId?: string | null
-	stage: string
-	roomUrl?: string | null
-	private?: boolean
-	createdAt?: string | null
-	datetimeUtc?: string | null
-}
-
-export type PracticeRoomUpdate = {
-	roomId: string
-	hostId?: string
-	guestId?: string | null
-	stage?: string
-	roomUrl?: string | null
-	private?: boolean
-	createdAt?: string | null
-	datetimeUtc?: string | null
-}
-
 export const PracticeRoomMapper = {
-	insertToDb(insert: PracticeRoomInsert): TablesInsert<'practice_rooms'> {
-		return {
-			host_id: insert.hostId,
-			guest_id: insert.guestId ?? null,
-			stage: insert.stage,
-			room_url: insert.roomUrl ?? null,
-			private: insert.private ?? false,
-			created_at: insert.createdAt ?? null,
-			datetime_utc: insert.datetimeUtc ?? null,
-		}
-	},
-
-	fromDb(row: Tables<'practice_rooms'>): PracticeRoom {
+	fromDb(row: Tables<'practice_rooms'>) {
 		return {
 			id: row.id,
 			hostId: row.host_id,
-			guestId: row.guest_id,
+			guestId: row.guest_id, // inferred as string | null
 			stage: row.stage,
 			roomUrl: row.room_url,
 			private: row.private,
@@ -59,72 +14,12 @@ export const PracticeRoomMapper = {
 			datetimeUtc: row.datetime_utc,
 		}
 	},
-
-	updateToDb(update: PracticeRoomUpdate): TablesUpdate<'practice_rooms'> {
-        return {
-            id: update.roomId, // required
-            ...(update.hostId !== undefined && { host_id: update.hostId }),
-            ...(update.guestId !== undefined && { guest_id: update.guestId }),
-            ...(update.stage !== undefined && { stage: update.stage }),
-            ...(update.roomUrl !== undefined && { room_url: update.roomUrl }),
-            ...(update.private !== undefined && { private: update.private }),
-            ...(update.createdAt !== undefined && { created_at: update.createdAt }),
-            ...(update.datetimeUtc !== undefined && { datetime_utc: update.datetimeUtc }),
-        };
-	},
 }
+export type PracticeRoom = ReturnType<typeof PracticeRoomMapper['fromDb']>
 
-// Practice Rounds
-
-
-export type PracticeRound = {
-	id: string
-	candidateId: string | null
-	caseBriefId: string | null
-	roomId: string
-	roundNumber: number
-	assessment: Json | null
-	transcript: Json | null
-	createdAt: string
-}
-
-export type PracticeRoundInsert = {
-	candidateId?: string | null
-	caseBriefId?: string | null
-	roomId: string
-	roundNumber: number
-	assessment?: Json | null
-	transcript?: Json | null
-	createdAt?: string
-}
-
-export type PracticeRoundUpdate = {
-	roundId: string
-	candidateId?: string | null
-	caseBriefId?: string | null
-	roomId?: string
-	roundNumber?: number
-	assessment?: Json | null
-	transcript?: Json | null
-	createdAt?: string
-}
-
-
-
+// Practice Rounds 
 export const PracticeRoundMapper = {
-	insertToDb(insert: PracticeRoundInsert): TablesInsert<'practice_rounds'> {
-		return {
-			assessment: insert.assessment ?? null,
-			candidate_id: insert.candidateId ?? null,
-			case_brief_id: insert.caseBriefId ?? null,
-			created_at: insert.createdAt ?? undefined,
-			room_id: insert.roomId,
-			round_number: insert.roundNumber,
-			transcript: insert.transcript ?? null,
-		}
-	},
-
-	fromDb(row: Tables<'practice_rounds'>): PracticeRound {
+	fromDb(row: Tables<'practice_rounds'>) {
 		return {
 			id: row.id,
 			candidateId: row.candidate_id,
@@ -136,47 +31,50 @@ export const PracticeRoundMapper = {
 			createdAt: row.created_at,
 		}
 	},
+}
+export type PracticeRound = ReturnType<typeof PracticeRoundMapper['fromDb']>
 
-	updateToDb(update: PracticeRoundUpdate): TablesUpdate<'practice_rounds'> {
-        return {
-            id: update.roundId, // required
-            ...(update.candidateId !== undefined && { candidate_id: update.candidateId }),
-            ...(update.caseBriefId !== undefined && { case_brief_id: update.caseBriefId }),
-            ...(update.roomId !== undefined && { room_id: update.roomId }),
-            ...(update.roundNumber !== undefined && { round_number: update.roundNumber }),
-            ...(update.assessment !== undefined && { assessment: update.assessment }),
-            ...(update.transcript !== undefined && { transcript: update.transcript }),
-            ...(update.createdAt !== undefined && { created_at: update.createdAt })
-        };
+// Profile
+export const ProfileMapper = {
+	fromDb(row: Tables<'profiles'>) {
+		return {
+			userId: row.user_id,
+			firstName: row.first_name,
+			lastName: row.last_name,
+			avatar: row.avatar,
+		}
 	},
 }
-
+export type Profile = ReturnType<typeof ProfileMapper['fromDb']>
 
 
 // Extended PracticeRoom with joined profile info
 export type PracticeRoomWithProfiles = PracticeRoom & {
-    host_profile?: Profile | null
-    guest_profile?: Profile | null
+	host_profile?: Profile | null
+	guest_profile?: Profile | null
 }
 
+export type DbProfile = Tables<'profiles'>
+
 export const PracticeRoomWithProfilesMapper = {
-    fromDb(
-        row: (Tables<'practice_rooms'> & {
-            host_profile?: Profile | null
-            guest_profile?: Profile | null
-        }) | null
-    ): PracticeRoomWithProfiles | null {
-        if (!row) return null
-        const base = PracticeRoomMapper.fromDb(row as Tables<'practice_rooms'>)
-        return {
-            ...base,
-            host_profile: row.host_profile ?? null,
-            guest_profile: row.guest_profile ?? null,
-        }
-    },
+	fromDb(
+		row: (Tables<'practice_rooms'> & {
+			host_profile?: DbProfile | null
+			guest_profile?: DbProfile | null
+		}) | null
+	): PracticeRoomWithProfiles | null {
+		if (!row) return null
+		const base = PracticeRoomMapper.fromDb(row as Tables<'practice_rooms'>)
+		return {
+			...base,
+			host_profile: row.host_profile ? ProfileMapper.fromDb(row.host_profile) : null,
+			guest_profile: row.guest_profile ? ProfileMapper.fromDb(row.guest_profile) : null,
+		}
+	},
 }
+
+// removed duplicate DB-shaped Profile alias
 
 
 export type Round = Tables<"practice_rounds">;  
 export type Case = Tables<"case_briefs">;
-export type Profile = Tables<"profiles">;

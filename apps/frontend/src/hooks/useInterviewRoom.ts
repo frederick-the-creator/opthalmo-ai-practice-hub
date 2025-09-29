@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchRoom,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
+import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
 import { useAuth } from '@/supabase/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/lib/api";
 
@@ -48,7 +48,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     let isMounted = true;
     const fetch = async () => {
       try {
-        const roomResult = roomId ? await fetchRoom(roomId) : null;
+        const roomResult = roomId ? await fetchRoomWithProfiles(roomId) : null;
         const roundResult = roomId ? await fetchRoundByRoomAndRoundNumber(roomId, roundNumber) : null;
         if (isMounted) setRoom(roomResult);
         if (isMounted) setRoomStage(roomResult.stage);
@@ -104,7 +104,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         // For INSERT/UPDATE on this room, refetch to pick up joined profiles
         if (event === 'INSERT' || event === 'UPDATE') {
           try {
-            const result = await fetchRoom(roomId);
+            const result = await fetchRoomWithProfiles(roomId);
             setRoom(result);
             setRoomStage(result.stage);
           } catch (err) {
@@ -157,7 +157,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     } catch (err: any) {
       // rollback: refetch as a simple repair strategy
       try {
-        const latest = await fetchRoom(roomId);
+        const latest = await fetchRoomWithProfiles(roomId);
         setRoom(latest);
         setRoomStage(latest.stage);
       } catch {}
