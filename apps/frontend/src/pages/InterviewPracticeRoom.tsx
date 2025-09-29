@@ -33,8 +33,6 @@ const InterviewPracticeRoom: React.FC = () => {
     caseBriefs,
   } = useInterviewRoom(roomId);
 
-  // caseBriefs provided by hook
-
   useEffect(() => {
     setUpdating(false);
   }, [roomStage]);
