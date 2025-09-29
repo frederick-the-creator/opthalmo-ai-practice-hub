@@ -6,7 +6,7 @@ import { Room, Round, Case, Profile } from "./types"
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchRoom(roomId: string): Promise<Room> {
+export async function fetchRoom(roomId: string): Promise<Room | null> {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -25,7 +25,7 @@ export async function fetchRoom(roomId: string): Promise<Room> {
  * Fetch all rooms or a single room if roomId is provided.
  * Joins profiles for host/guest info.
  */
-export async function fetchAllRooms(): Promise<Room[]> {
+export async function fetchAllRooms(): Promise<Room[] | []> {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -51,7 +51,7 @@ export async function fetchAllRooms(): Promise<Room[]> {
  * Fetch rooms for a specific user (as host or guest), newest first.
  * Includes joined host/guest profile info for display.
  */
-export const fetchRoomsForUser = async (userId: string): Promise<Room[]> => {
+export const fetchRoomsForUser = async (userId: string): Promise<Room[] | []> => {
   const { data, error } = await supabase
     .from('practice_rooms')
     .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
@@ -70,7 +70,7 @@ export const fetchRoomsForUser = async (userId: string): Promise<Room[]> => {
   return data;
 };
 
-export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<Round> => {
+export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<Round | null> => {
 
   // If round number = 1, return row with round number = 1
   const { data, error } = await supabase
@@ -89,7 +89,7 @@ export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber
 };
 
 
-export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round[]> => {
+export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round[] | []> => {
 
     const { data, error } = await supabase
       .from('practice_rounds')
@@ -111,7 +111,7 @@ export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round
 /**
  * Fetch the room (with joined host/guest profiles) associated with a given round ID.
  */
-export const fetchRoomByRoundId = async (roundId: string): Promise<Room> => {
+export const fetchRoomByRoundId = async (roundId: string): Promise<Room | null> => {
   const { data: round, error: roundError } = await supabase
     .from('practice_rounds')
     .select('room_id')
@@ -138,7 +138,7 @@ export const fetchRoomByRoundId = async (roundId: string): Promise<Room> => {
 /**
  * Fetch the case brief for a given case ID.
  */
-export const fetchCasebyCaseId = async (caseId: string): Promise<Case> => {
+export const fetchCasebyCaseId = async (caseId: string): Promise<Case | null> => {
   const { data, error } = await supabase
     .from('case_briefs')
     .select('id, category, condition, case_name, case_name_internal, type, actor_brief, candidate_brief')
@@ -155,7 +155,7 @@ export const fetchCasebyCaseId = async (caseId: string): Promise<Case> => {
 /**
  * Fetch all cases.
  */
-export const fetchCaseBriefs = async (): Promise<Case[]> => {
+export const fetchCaseBriefs = async (): Promise<Case[] | []> => {
   // console.log('fetchCaseBriefs')
   const { data, error } = await supabase
     .from('case_briefs')
