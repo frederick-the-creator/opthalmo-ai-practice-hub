@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm --workspace apps/backend run build"
+
+[deploy]
+startCommand = "npm --workspace apps/backend start"
+healthcheckPath = "/api/health"
