@@ -27,7 +27,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
   const [hasStoppedRecording, setHasStoppedRecording] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
 
-  const roomUrl = room?.room_url ?? null
+  const roomUrl = room?.roomUrl ?? null
   const roomId = room?.id ?? null
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     setStopError(null);
     setStopSuccess(null);
     try {
-      const result = await startRecording({ room_url: roomUrl });
+      const result = await startRecording({ roomUrl });
       setRecording(result.recording);
       setRecordingSuccess('Recording started!');
       setTimerActive(true);
@@ -95,10 +95,10 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
   };
 
   const submitAssessment = async () => {
-    if (!room?.room_url || !room?.id) return;
+    if (!room?.roomUrl || !room?.id) return;
     try {
-      const roundCase = caseBriefs.find(c => c.id === round?.case_brief_id)
-      await assessCandidatePerformance({ room_url: room.room_url, roomId: room.id, roundId: round.id, case_name: roundCase.case_name});
+      const roundCase = caseBriefs.find(c => c.id === round?.caseBriefId)
+      await assessCandidatePerformance({ roomUrl: room.roomUrl, roomId: room.id, roundId: round.id, caseName: roundCase.caseName});
     } catch (e) {
       // Non-blocking: user is navigating away; errors can be surfaced via toasts if desired
       console.error('Failed to start transcription', e);
@@ -117,7 +117,7 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
     setRecordingError(null);
     setRecordingSuccess(null);
     try {
-      await stopRecording({ room_url: roomUrl, roomId: roomId });
+      await stopRecording({ roomUrl, roomId: roomId });
       setStopSuccess('Recording stopped.');
       setHasStoppedRecording(true);
     } catch (err: any) {

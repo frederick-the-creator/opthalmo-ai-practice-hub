@@ -2,11 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
 import { useAuth } from '@/supabase/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/lib/api";
+import type { PracticeRoomWithProfiles, PracticeRound, Case } from '@/types';
 
 // Define the return type for clarity (can be expanded later)
 interface UseInterviewRoomResult {
-  room: any; // TODO: type this properly
-  round:  any;
+  room: PracticeRoomWithProfiles | null;
+  round: PracticeRound | null;
   roomStage: string;
   isHost: boolean;
   isCandidate: boolean;
@@ -15,18 +16,18 @@ interface UseInterviewRoomResult {
   setCandidate: (roundId: string, userId: string) => Promise<void>;
   createNewRound: () => Promise<void>;
   error: string | null;
-  caseBriefs: any[];
+  caseBriefs: Case[];
 }
 
 
 export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult {
   const { user } = useAuth();
-  const [room, setRoom] = useState<any>(null);
-  const [round, setRound] = useState<any>(null);
+  const [room, setRoom] = useState<PracticeRoomWithProfiles | null>(null);
+  const [round, setRound] = useState<PracticeRound | null>(null);
   const [roundNumber, setRoundNumber] = useState<number>(1);
   const [roomStage, setRoomStage] = useState<string>('Prep');
   const [error, setError] = useState<string | null>(null);
-  const [caseBriefs, setCaseBriefs] = useState<any[]>([]);
+  const [caseBriefs, setCaseBriefs] = useState<Case[]>([]);
 
 
   //////////////
@@ -37,7 +38,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   let isCandidate = false;
   if (user?.id && room) {
     if (user?.id === room.hostId) isHost = true;
-    if (user?.id === (round?.candidate_id)) isCandidate = true;
+    if (user?.id === (round?.candidateId)) isCandidate = true;
   }
 
   //////////////
@@ -51,7 +52,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         const roomResult = roomId ? await fetchRoomWithProfiles(roomId) : null;
         const roundResult = roomId ? await fetchRoundByRoomAndRoundNumber(roomId, roundNumber) : null;
         if (isMounted) setRoom(roomResult);
-        if (isMounted) setRoomStage(roomResult.stage);
+        if (isMounted && roomResult) setRoomStage(roomResult.stage);
         if (isMounted) setRound(roundResult);
       } catch (err: any) {
         if (isMounted) setError('Failed to fetch room');
@@ -80,8 +81,8 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   const sortedCaseBriefs = useMemo(() => {
     const copy = Array.isArray(caseBriefs) ? [...caseBriefs] : [];
     copy.sort((a: any, b: any) => {
-      const aName = (a?.case_name ?? '').toString();
-      const bName = (b?.case_name ?? '').toString();
+      const aName = (a?.caseName ?? '').toString();
+      const bName = (b?.caseName ?? '').toString();
       const cmp = aName.localeCompare(bName, undefined, { sensitivity: 'base' });
       if (cmp !== 0) return cmp;
       const aId = (a?.id ?? '').toString();
@@ -106,7 +107,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
           try {
             const result = await fetchRoomWithProfiles(roomId);
             setRoom(result);
-            setRoomStage(result.stage);
+            if (result) setRoomStage(result.stage);
           } catch (err) {
             setError('Failed to update room from realtime');
           }
@@ -124,8 +125,8 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       onChange: ({ event, new: rec }) => {
         if ((event === 'INSERT' || event === 'UPDATE') && rec) {
           setRound(rec);
-          if (typeof rec.round_number === 'number') {
-            setRoundNumber(rec.round_number);
+          if (typeof rec.roundNumber === 'number') {
+            setRoundNumber(rec.roundNumber);
           }
         }
       }
@@ -146,7 +147,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     try {
       // optimistic update
       setRoomStage(nextStage);
-      setRoom((prev: any) => prev ? { ...prev, stage: nextStage } : prev);
+      setRoom((prev) => prev ? { ...prev, stage: nextStage } : prev);
 
       const updatedRoom = await setRoomStageApi({ roomId, stage: nextStage });
       if (updatedRoom) {
@@ -159,7 +160,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       try {
         const latest = await fetchRoomWithProfiles(roomId);
         setRoom(latest);
-        setRoomStage(latest.stage);
+        if (latest) setRoomStage(latest.stage);
       } catch {}
       setError(err?.response?.data?.error || 'Failed to update stage');
       return Promise.reject(err?.response?.data?.error || 'Failed to update stage');
@@ -198,7 +199,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       // optimistic update
-      setRound((prev: any) => prev ? { ...prev, case_brief_id: caseBriefId } : prev);
+      setRound((prev) => prev ? { ...prev, caseBriefId } : prev);
       const updated = await setRoundCase({ roundId, caseBriefId });
       if (updated) setRound(updated);
       setError(null);
@@ -222,7 +223,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     }
     try {
       // optimistic update
-      setRound((prev: any) => prev ? { ...prev, candidate_id: candidateId } : prev);
+      setRound((prev) => prev ? { ...prev, candidateId } : prev);
       const updated = await setRoundCandidate({ roundId, candidateId });
       if (updated) setRound(updated);
       setError(null);

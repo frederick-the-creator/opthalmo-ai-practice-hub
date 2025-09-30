@@ -41,9 +41,9 @@ const InviteAcceptPage: React.FC = () => {
     try {
       await setRoomGuest({ roomId: roomId, guestId: user.id });
       toast({ title: "Room accepted!" });
-      // If the room has a room_url, send the user straight to the interview room
+      // If the room has a roomUrl, send the user straight to the interview room
       if (room?.roomUrl) {
-        navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(room.roomUrl)}&roomId=${roomId}`);
+        navigate(`/interview-practice-room?roomId=${roomId}`);
       } else {
         navigate("/interview-scheduling");
       }

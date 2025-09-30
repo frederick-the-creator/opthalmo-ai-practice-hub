@@ -34,6 +34,23 @@ export const PracticeRoundMapper = {
 }
 export type PracticeRound = ReturnType<typeof PracticeRoundMapper['fromDb']>
 
+// Case Briefs
+export const CaseMapper = {
+	fromDb(row: Tables<'case_briefs'>) {
+		return {
+			id: row.id,
+			category: row.category,
+			condition: row.condition,
+			caseName: row.case_name,
+			caseNameInternal: row.case_name_internal,
+			type: row.type,
+			actorBrief: row.actor_brief,
+			candidateBrief: row.candidate_brief,
+		}
+	},
+}
+export type Case = ReturnType<typeof CaseMapper['fromDb']>
+
 // Profile
 export const ProfileMapper = {
 	fromDb(row: Tables<'profiles'>) {
@@ -50,8 +67,8 @@ export type Profile = ReturnType<typeof ProfileMapper['fromDb']>
 
 // Extended PracticeRoom with joined profile info
 export type PracticeRoomWithProfiles = PracticeRoom & {
-	host_profile?: Profile | null
-	guest_profile?: Profile | null
+	hostProfile?: Profile | null
+	guestProfile?: Profile | null
 }
 
 export type DbProfile = Tables<'profiles'>
@@ -67,8 +84,8 @@ export const PracticeRoomWithProfilesMapper = {
 		const base = PracticeRoomMapper.fromDb(row as Tables<'practice_rooms'>)
 		return {
 			...base,
-			host_profile: row.host_profile ? ProfileMapper.fromDb(row.host_profile) : null,
-			guest_profile: row.guest_profile ? ProfileMapper.fromDb(row.guest_profile) : null,
+			hostProfile: row.host_profile ? ProfileMapper.fromDb(row.host_profile) : null,
+			guestProfile: row.guest_profile ? ProfileMapper.fromDb(row.guest_profile) : null,
 		}
 	},
 }
@@ -76,5 +93,4 @@ export const PracticeRoomWithProfilesMapper = {
 // removed duplicate DB-shaped Profile alias
 
 
-export type Round = Tables<"practice_rounds">;  
-export type Case = Tables<"case_briefs">;
+ 

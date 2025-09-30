@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
-import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
+import type { PracticeRound, Case, Profile, PracticeRoomWithProfiles } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,10 +12,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const AssessmentHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rounds, setRounds] = useState<Round[]>([]);
+  const [rounds, setRounds] = useState<PracticeRound[]>([]);
   const [roomsById, setRoomsById] = useState<Record<string, PracticeRoomWithProfiles>>({});
   const [casesById, setCasesById] = useState<Record<string, Case>>({});
-  const [dialogState, setDialogState] = useState<{ open: boolean; round: Round | null }>({ open: false, round: null });
+  const [dialogState, setDialogState] = useState<{ open: boolean; round: PracticeRound | null }>({ open: false, round: null });
 
   const { user } = useAuth();
 
@@ -40,10 +40,10 @@ const AssessmentHistory: React.FC = () => {
         // Build unique maps so we don't refetch the same room/case repeatedly
         const uniqueRoomIdToRoundId = new Map<string, string>();
         for (const r of userRounds) {
-          const rid = (r.room_id as string) || '';
+          const rid = (r.roomId as string) || '';
           if (rid && !uniqueRoomIdToRoundId.has(rid)) uniqueRoomIdToRoundId.set(rid, r.id);
         }
-        const uniqueCaseIds = Array.from(new Set(userRounds.map(r => r.case_brief_id).filter(Boolean) as string[]));
+        const uniqueCaseIds = Array.from(new Set(userRounds.map(r => r.caseBriefId).filter(Boolean) as string[]));
 
         // Fetch rooms by a representative roundId for each room_id
         const fetchedRooms = await Promise.all(
@@ -74,13 +74,13 @@ const AssessmentHistory: React.FC = () => {
     })();
   }, [user?.id]);
 
-  const handleOpenAssessment = (round: Round) => {
+  const handleOpenAssessment = (round: PracticeRound) => {
     setDialogState({ open: true, round });
   };
 
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, userId: string | null) => {
-    const hostProfile = (room as any).host_profile || null;
-    const guestProfile = (room as any).guest_profile || null;
+    const hostProfile = (room as any).hostProfile || null;
+    const guestProfile = (room as any).guestProfile || null;
     const hostName = hostProfile ? `${hostProfile.firstName || ''} ${hostProfile.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
@@ -106,18 +106,18 @@ const AssessmentHistory: React.FC = () => {
         ) : (
           [...rounds]
             .sort((a, b) => {
-              const ra = roomsById[a.room_id as string];
-              const rb = roomsById[b.room_id as string];
+              const ra = roomsById[a.roomId as string];
+              const rb = roomsById[b.roomId as string];
               const da = ra?.datetimeUtc ? new Date(ra.datetimeUtc as string).getTime() : 0;
               const db = rb?.datetimeUtc ? new Date(rb.datetimeUtc as string).getTime() : 0;
               return db - da;
             })
             .map((round) => {
-            const room = roomsById[round.room_id as string];
-            const caseBrief = casesById[round.case_brief_id as string];
+            const room = roomsById[round.roomId as string];
+            const caseBrief = casesById[round.caseBriefId as string];
             const { hostName, guestName, hostAvatar } = room ? getHostAndGuestProfiles(room, user?.id ?? null) : { hostName: 'Unknown', guestName: 'Unknown', hostAvatar: 'U' };
             const hasAssessment = Boolean(round?.assessment);
-            const caseName = caseBrief?.case_name || caseBrief?.case_name_internal || 'Unknown Case';
+            const caseName = caseBrief?.caseName || caseBrief?.caseNameInternal || 'Unknown Case';
             const caseType = caseBrief?.type || 'Unknown';
             return (
               <li key={round.id} className="flex items-center justify-between p-4">
@@ -153,7 +153,7 @@ const AssessmentHistory: React.FC = () => {
                         {(() => {
                           const assessment: any = dialogState.round?.assessment || null;
                           if (!assessment) return null;
-                          const dialogRoom = dialogState.round?.room_id ? roomsById[dialogState.round.room_id as string] : null;
+                          const dialogRoom = dialogState.round?.roomId ? roomsById[dialogState.round.roomId as string] : null;
                           const dims: any[] = Array.isArray(assessment?.dimensions) ? assessment.dimensions : [];
                           const hasInsufficient = dims.some((d: any) => d?.insufficient_evidence);
                           const hasRedFlags = dims.some((d: any) => Array.isArray(d?.red_flags) && d.red_flags.length > 0);

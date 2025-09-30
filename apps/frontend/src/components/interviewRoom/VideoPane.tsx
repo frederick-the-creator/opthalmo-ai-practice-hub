@@ -6,6 +6,7 @@ type VideoPaneProps = {
 };
 
 const VideoPane: React.FC<VideoPaneProps> = React.memo(({ roomUrl, error }) => {
+  console.log('roomUrl', roomUrl)
   const srcRef = useRef<string | null>(null);
 
   // Only update the iframe src when the URL actually changes

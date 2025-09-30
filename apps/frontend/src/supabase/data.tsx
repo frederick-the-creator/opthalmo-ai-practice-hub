@@ -1,6 +1,6 @@
 import { supabase } from "./client";
-import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
-import { ProfileMapper, PracticeRoomWithProfilesMapper } from "@/types";
+import type { Case, Profile, PracticeRoomWithProfiles, PracticeRound } from "@/types";
+import { ProfileMapper, PracticeRoomWithProfilesMapper, PracticeRoundMapper, CaseMapper } from "@/types";
 
 
 /**
@@ -71,7 +71,7 @@ export const fetchRoomsForUser = async (userId: string): Promise<PracticeRoomWit
   return (data ?? []).map((r) => PracticeRoomWithProfilesMapper.fromDb(r as any)!).filter(Boolean) as PracticeRoomWithProfiles[];
 };
 
-export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<Round | null> => {
+export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber: number): Promise<PracticeRound | null> => {
 
   // If round number = 1, return row with round number = 1
   const { data, error } = await supabase
@@ -86,11 +86,11 @@ export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber
     throw new Error(error.message || 'Failed to fetch round');
   }
   
-  return data;
+  return data ? PracticeRoundMapper.fromDb(data as any) : null;
 };
 
 
-export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round[] | []> => {
+export const fetchRoundsByCandidate = async (candidateId: string): Promise<PracticeRound[] | []> => {
 
     const { data, error } = await supabase
       .from('practice_rounds')
@@ -106,7 +106,7 @@ export const fetchRoundsByCandidate = async (candidateId: string): Promise<Round
       return [];
     }
 
-    return data;
+    return (data ?? []).map((r) => PracticeRoundMapper.fromDb(r as any));
 };
 
 /**
@@ -150,7 +150,7 @@ export const fetchCasebyCaseId = async (caseId: string): Promise<Case | null> =>
     console.log('[fetchCasebyCaseId] DB error: ', error)
   }
 
-  return data;
+  return data ? CaseMapper.fromDb(data as any) : null;
 };
 
 /**
@@ -171,7 +171,7 @@ export const fetchCaseBriefs = async (): Promise<Case[] | []> => {
     return [];
   }
 
-  return data;
+  return (data ?? []).map((r) => CaseMapper.fromDb(r as any));
 };
 
 /**
@@ -234,7 +234,7 @@ export function subscribeToPracticeRoomByRoomId({
 export function subscribeToAllPracticeRooms({
   onChange,
 }: {
-  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRoomWithProfiles | null; old?: PracticeRoomWithProfiles | null }) => void;
 }) {
   const channel = supabase
     .channel("practice_rooms:all")
@@ -245,12 +245,21 @@ export function subscribeToAllPracticeRooms({
         schema: "public",
         table: "practice_rooms",
       },
-      (payload: any) =>
+      (payload: any) => {
+        let mappedNew: PracticeRoomWithProfiles | null = null;
+        let mappedOld: PracticeRoomWithProfiles | null = null;
+        try {
+          if (payload?.new) mappedNew = PracticeRoomWithProfilesMapper.fromDb(payload.new as any);
+        } catch (_e) {}
+        try {
+          if (payload?.old) mappedOld = PracticeRoomWithProfilesMapper.fromDb(payload.old as any);
+        } catch (_e) {}
         onChange({
           event: payload.eventType,
-          new: payload.new,
-          old: payload.old,
+          new: mappedNew,
+          old: mappedOld,
         })
+      }
     )
     .subscribe();
 
@@ -269,7 +278,7 @@ export function subscribeToPracticeRoundsByRoomId({
   onChange,
 }: {
   roomId: string;
-  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRound | null; old?: PracticeRound | null }) => void;
 }) {
   const filter = `room_id=eq.${roomId}`;
   const channel = supabase
@@ -282,12 +291,25 @@ export function subscribeToPracticeRoundsByRoomId({
         table: "practice_rounds",
         filter,
       },
-      (payload: any) =>
+      (payload: any) => {
+        let mappedNew: PracticeRound | null = null;
+        let mappedOld: PracticeRound | null = null;
+        try {
+          if (payload?.new) {
+            mappedNew = PracticeRoundMapper.fromDb(payload.new as any);
+          }
+        } catch (_e) {}
+        try {
+          if (payload?.old) {
+            mappedOld = PracticeRoundMapper.fromDb(payload.old as any);
+          }
+        } catch (_e) {}
         onChange({
           event: payload.eventType,
-          new: payload.new,
-          old: payload.old,
+          new: mappedNew,
+          old: mappedOld,
         })
+      }
     )
     .subscribe();
 

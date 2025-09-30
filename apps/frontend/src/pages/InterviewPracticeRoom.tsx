@@ -140,7 +140,7 @@ const InterviewPracticeRoom: React.FC = () => {
               round = {round ?? null}
               caseBriefs={caseBriefs}
               onStartCase={handleStartCase}
-              canStart={Boolean(round?.candidate_id && round?.case_brief_id)}
+              canStart={Boolean(round?.candidateId && round?.caseBriefId)}
               onFinishRound={handleFinishRound}
             />
           </div>

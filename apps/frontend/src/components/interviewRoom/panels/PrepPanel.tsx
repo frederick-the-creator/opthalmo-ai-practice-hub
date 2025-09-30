@@ -17,16 +17,16 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
 
   // Create array of candidates to select from
   const candidates = [
-    room?.host_id
+    room?.hostId
       ? {
-          id: room.host_id,
-          name:`${room.host_profile.firstName || ''} ${room.host_profile.lastName || ''}`.trim()
+          id: room.hostId,
+          name:`${room.hostProfile.firstName || ''} ${room.hostProfile.lastName || ''}`.trim()
         }
       : null,
-    room?.guest_id
+    room?.guestId
       ? {
-          id: room.guest_id,
-          name:`${room.guest_profile.firstName || ''} ${room.guest_profile.lastName || ''}`.trim()
+          id: room.guestId,
+          name:`${room.guestProfile.firstName || ''} ${room.guestProfile.lastName || ''}`.trim()
         }
       : null,
   ].filter(Boolean);
@@ -39,7 +39,7 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
             key={user.id}
             onClick={() => onSelectCandidate(round.id, user.id)}
             className={`cursor-pointer px-4 py-2 text-base font-medium text-left transition
-              ${round?.candidate_id === user.id
+              ${round?.candidateId === user.id
                 ? 'bg-primary-foreground text-black'
                 : 'bg-transparent text-black hover:bg-gray-100'}
             `}
@@ -169,13 +169,13 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
                     ? (localSelectedCaseId === c.id
                         ? 'bg-primary-foreground text-black'
                         : 'bg-transparent text-black hover:bg-gray-100')
-                    : (round?.case_brief_id === c.id
+                    : (round?.caseBriefId === c.id
                         ? 'bg-primary-foreground text-black'
                         : 'bg-transparent text-black hover:bg-gray-100'))}
             `}
             style={{ minWidth: 120 }}
           >
-            {c.case_name}
+            {c.caseName}
           </div>
         );
       })}

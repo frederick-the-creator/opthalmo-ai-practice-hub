@@ -25,8 +25,8 @@ const RoomListPanel: React.FC<Props> = ({
   const { user } = useAuth();
   // Helper to get host and guest profile info
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, currentUserId: string | null) => {
-    const hostProfile = room.host_profile || null;
-    const guestProfile = room.guest_profile || null;
+    const hostProfile = room.hostProfile || null;
+    const guestProfile = room.guestProfile || null;
     const hostName = hostProfile ? `${hostProfile.firstName || ''} ${hostProfile.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {

@@ -17,8 +17,9 @@ const InterviewScheduling: React.FC = () => {
 
   // Handler for joining a room
   const handleJoin = (room: any) => {
-    if (room.room_url) {
-      navigate(`/interview-practice-room?roomUrl=${encodeURIComponent(room.room_url)}&roomId=${room.id}`);
+
+    if (room.roomUrl) {
+      navigate(`/interview-practice-room?roomId=${room.id}`);
     }
   };
 
