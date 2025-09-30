@@ -81,11 +81,11 @@ const AssessmentHistory: React.FC = () => {
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, userId: string | null) => {
     const hostProfile = (room as any).host_profile || null;
     const guestProfile = (room as any).guest_profile || null;
-    const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
+    const hostName = hostProfile ? `${hostProfile.firstName || ''} ${hostProfile.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
       if (userId && room.guestId === userId) guestName = 'You';
-      else guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
+      else guestName = `${guestProfile.firstName || ''} ${guestProfile.lastName || ''}`.trim() || 'Unknown';
     } else {
       guestName = 'No Guest';
     }

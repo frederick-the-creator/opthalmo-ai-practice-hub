@@ -1,6 +1,6 @@
 import { supabase } from "./client";
 import type { Round, Case, Profile, PracticeRoomWithProfiles } from "@/types";
-import { ProfileMapper, PracticeRoomWithProfilesMapper, DbProfile } from "@/types";
+import { ProfileMapper, PracticeRoomWithProfilesMapper } from "@/types";
 
 
 /**
@@ -300,25 +300,4 @@ export function subscribeToPracticeRoundsByRoomId({
  * Upsert the user's profile using user_id as onConflict key.
  * Requires first_name and last_name; avatar is optional.
  */
-export type ProfileUpdate = Pick<DbProfile, 'first_name' | 'last_name'> & Partial<Pick<DbProfile, 'avatar'>>;
-
-export const upsertProfile = async (
-  userId: string,
-  updates: ProfileUpdate
-): Promise<void> => {
-  const payload = { user_id: userId, ...updates } as {
-    user_id: string;
-    first_name: string;
-    last_name: string;
-    avatar?: string | null;
-  };
-
-  const { error } = await supabase
-    .from('profiles')
-    .upsert(payload, { onConflict: 'user_id' });
-
-  if (error) {
-    console.error('[upsertProfile] Database error:', error);
-    throw new Error(error.message || 'Failed to update profile');
-  }
-};
+ 

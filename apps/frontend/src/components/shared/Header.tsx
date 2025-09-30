@@ -26,8 +26,8 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     if (userProfile) {
-      setUserName(`${userProfile.first_name} ${userProfile.last_name}`.trim());
-      setUserInitials(`${userProfile.first_name?.[0] || ''}${userProfile.last_name?.[0] || ''}`.toUpperCase());
+      setUserName(`${userProfile.firstName} ${userProfile.lastName}`.trim());
+      setUserInitials(`${userProfile.firstName?.[0] || ''}${userProfile.lastName?.[0] || ''}`.toUpperCase());
     } else {
       setUserName("");
       setUserInitials("");

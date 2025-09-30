@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useAuth } from '@/supabase/AuthProvider';
-import { upsertProfile } from '@/supabase/data';
+import { createProfile } from '@/lib/api';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -26,7 +26,7 @@ const CompleteProfile: React.FC = () => {
       return;
     }
     try {
-      await upsertProfile(user.id, { first_name: firstName, last_name: lastName });
+      await createProfile({ userId: user.id, firstName, lastName });
       try { await reloadProfile(); } catch (_e) {}
     } catch (e: any) {
       setError(e?.message || 'Failed to save profile');

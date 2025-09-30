@@ -66,3 +66,15 @@ export async function assessCandidatePerformance({ room_url, roomId, roundId, ca
   const response = await api.post("/assessment", { room_url, roomId, roundId, case_name });
   return response.data;
 }
+
+export async function createProfile({ userId, firstName, lastName, avatar }: { userId: string; firstName: string; lastName: string; avatar?: string | null }) {
+  const createFields = { userId, firstName, lastName, avatar };
+  const { data } = await api.post("/profile/create", { createFields });
+  return data.profile;
+}
+
+export async function updateProfile({ userId, firstName, lastName, avatar }: { userId: string; firstName?: string; lastName?: string; avatar?: string | null }) {
+  const updateFields = { userId, firstName, lastName, avatar };
+  const { data } = await api.post("/profile/update", { updateFields });
+  return data.profile;
+}

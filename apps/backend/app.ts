@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import roomRouter from './routes/practiceRoom'
 import roundRouter from './routes/practiceRound'
+import profileRouter from './routes/profile'
 import recordingRouter from './routes/recording'
 import assessmentRouter from './routes/assessment'
 
@@ -27,6 +28,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/practice-room', roomRouter)
 app.use('/api/practice-round', roundRouter)
+app.use('/api/profile', profileRouter)
 app.use('/api/recording', recordingRouter)
 app.use('/api/assessment', assessmentRouter)
 

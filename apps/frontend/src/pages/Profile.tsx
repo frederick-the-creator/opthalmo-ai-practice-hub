@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import { useAuth } from "@/supabase/AuthProvider";
-import { upsertProfile } from "@/supabase/data";
+import { updateProfile } from "@/lib/api";
 
 
 const Profile: React.FC = () => {
@@ -31,7 +31,7 @@ const Profile: React.FC = () => {
     const newLastName = String(formData.get("lastName") || "");
     setSavingProfile(true);
     try {
-      await upsertProfile(user.id, { first_name: newFirstName, last_name: newLastName });
+      await updateProfile({ userId: user.id, firstName: newFirstName, lastName: newLastName });
       try { await reloadProfile(); } catch (_e) {}
       toast({ title: "Profile updated" });
     } catch (err: any) {
@@ -114,11 +114,11 @@ const Profile: React.FC = () => {
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSaveProfile}>
             <div className="space-y-2">
               <Label htmlFor="firstName">First name</Label>
-              <Input id="firstName" name="firstName" defaultValue={userProfile?.first_name || ""} placeholder="Jane" />
+              <Input id="firstName" name="firstName" defaultValue={userProfile?.firstName || ""} placeholder="Jane" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last name</Label>
-              <Input id="lastName" name="lastName" defaultValue={userProfile?.last_name || ""} placeholder="Doe" />
+              <Input id="lastName" name="lastName" defaultValue={userProfile?.lastName || ""} placeholder="Doe" />
             </div>
             
             <div className="md:col-span-2">

@@ -27,13 +27,13 @@ const RoomListPanel: React.FC<Props> = ({
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, currentUserId: string | null) => {
     const hostProfile = room.host_profile || null;
     const guestProfile = room.guest_profile || null;
-    const hostName = hostProfile ? `${hostProfile.first_name || ''} ${hostProfile.last_name || ''}`.trim() || 'Unknown' : 'Unknown';
+    const hostName = hostProfile ? `${hostProfile.firstName || ''} ${hostProfile.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
     let guestName: string;
     if (guestProfile) {
       if (currentUserId && room.guestId === currentUserId) {
         guestName = 'You';
       } else {
-        guestName = `${guestProfile.first_name || ''} ${guestProfile.last_name || ''}`.trim() || 'Unknown';
+        guestName = `${guestProfile.firstName || ''} ${guestProfile.lastName || ''}`.trim() || 'Unknown';
       }
     } else {
       guestName = 'No Guest';

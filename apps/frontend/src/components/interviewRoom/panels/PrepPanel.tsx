@@ -20,13 +20,13 @@ const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSel
     room?.host_id
       ? {
           id: room.host_id,
-          name:`${room.host_profile.first_name || ''} ${room.host_profile.last_name || ''}`.trim()
+          name:`${room.host_profile.firstName || ''} ${room.host_profile.lastName || ''}`.trim()
         }
       : null,
     room?.guest_id
       ? {
           id: room.guest_id,
-          name:`${room.guest_profile.first_name || ''} ${room.guest_profile.last_name || ''}`.trim()
+          name:`${room.guest_profile.firstName || ''} ${room.guest_profile.lastName || ''}`.trim()
         }
       : null,
   ].filter(Boolean);
