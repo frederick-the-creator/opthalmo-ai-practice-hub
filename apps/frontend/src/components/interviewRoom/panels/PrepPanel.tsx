@@ -14,19 +14,20 @@ type PrepPanelProps = {
 
 const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSelectCandidate, onSelectCase }) => {
 
-
+  console.log('room', room)
+  console.log('round', round)
   // Create array of candidates to select from
   const candidates = [
     room?.hostId
       ? {
           id: room.hostId,
-          name:`${room.hostProfile.firstName || ''} ${room.hostProfile.lastName || ''}`.trim()
+          name:`${room.hostProfile?.firstName || ''} ${room.hostProfile?.lastName || ''}`.trim()
         }
       : null,
     room?.guestId
       ? {
           id: room.guestId,
-          name:`${room.guestProfile.firstName || ''} ${room.guestProfile.lastName || ''}`.trim()
+          name:`${room.guestProfile?.firstName || ''} ${room.guestProfile?.lastName || ''}`.trim()
         }
       : null,
   ].filter(Boolean);

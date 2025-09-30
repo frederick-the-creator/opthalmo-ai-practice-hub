@@ -58,9 +58,11 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   // Realtime subscription to rooms table
   useEffect(() => {
     const cleanup = subscribeToAllPracticeRooms({
-      onChange: () => {
-        // any room change should refresh list
-        fetchRooms();
+      onChange: ({ event }) => {
+        // For INSERT/UPDATE/DELETE, refresh list to pick up joined profiles
+        if (event === 'INSERT' || event === 'UPDATE' || event === 'DELETE') {
+          fetchRooms();
+        }
       }
     });
     return cleanup;
