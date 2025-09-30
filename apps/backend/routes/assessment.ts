@@ -5,23 +5,23 @@ const assessmentRouter = Router()
 
 // Transcription endpoint: triggers transcription for the latest recording of a room
 assessmentRouter.post('/', async (req: Request, res: Response) => {
-  const { room_url, roomId, roundId, case_name } = req.body;
+  const { roomUrl, roomId, roundId, caseName } = req.body;
 
-  if (!room_url || !roomId || !roundId || !case_name) {
-    console.log('Missing room_url, roomId, roundId or case_name');
-    return res.status(400).json({ error: 'Missing room_url, roomId, roundId or case_name' });
+  if (!roomUrl || !roomId || !roundId || !caseName) {
+    console.log('Missing roomUrl, roomId, roundId or caseName');
+    return res.status(400).json({ error: 'Missing roomUrl, roomId, roundId or caseName' });
   }
 
   // Extract room name from URL (last segment)
-  const urlParts = room_url.split('/');
+  const urlParts = roomUrl.split('/');
   const roomName = urlParts[urlParts.length - 1];
 
   if (!roomName) {
-    return res.status(400).json({ error: 'Invalid room_url' });
+    return res.status(400).json({ error: 'Invalid roomUrl' });
   }
 
   try {
-    const assessment = await runAssessment(roomName, roomId, roundId, case_name);
+    const assessment = await runAssessment(roomName, roomId, roundId, caseName);
     return res.json({ assessment });
 
   } catch (err: any) {

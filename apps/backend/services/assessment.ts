@@ -16,13 +16,13 @@ const SYSTEM_INSTRUCTION = fs.readFileSync(
 
 const slug = (s: string) => s.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").toLowerCase();
 
-export async function geminiAssessTranscript(case_name: string, transcript: string) {
+export async function geminiAssessTranscript(caseName: string, transcript: string) {
   const res = await ai.models.generateContent({
     model: "gemini-2.5-pro",
     contents: [
       {
         role: "user",
-        parts: [{text: case_name}, { text: transcript }]
+        parts: [{text: caseName}, { text: transcript }]
       }
     ],
     config: {
@@ -52,13 +52,13 @@ export async function uploadAssessmentToStorage(roundId: string, assessmentJson:
   return data[0].id as string;
 }
 
-export async function runAssessment(roomName: string, roomId: string, roundId: string, case_name: string): Promise<any> {
+export async function runAssessment(roomName: string, roomId: string, roundId: string, caseName: string): Promise<any> {
   const transcriptionJson = await transcribe(roomName, roomId, roundId);
   const transcript = transcriptionJson?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript;
   if (!transcript) {
     throw new Error('Transcript not found in transcription JSON');
   }
-  const assessment = await geminiAssessTranscript(case_name, transcript);
+  const assessment = await geminiAssessTranscript(caseName, transcript);
   await uploadAssessmentToStorage(roundId, assessment);
   console.log('Assessment saved to practice_rounds:', { roundId });
   return assessment;

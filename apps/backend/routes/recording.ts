@@ -3,21 +3,21 @@ import { startDailyRecording, stopDailyRecording } from '../services/recording';
 
 const recordingRouter = Router()
 
-// Start recording endpoint: starts a Daily.co recording for a given room_url
+// Start recording endpoint: starts a Daily.co recording for a given roomUrl
 recordingRouter.post('/start', async (req: Request, res: Response) => {
-  const { room_url } = req.body;
+  const { roomUrl } = req.body;
 
-  if (!room_url) {
-    return res.status(400).json({ error: 'Missing room_url' });
+  if (!roomUrl) {
+    return res.status(400).json({ error: 'Missing roomUrl' });
   }
 
   try {
     // Extract room name from URL (last segment)
-    const urlParts = room_url.split('/');
+    const urlParts = roomUrl.split('/');
     const roomName = urlParts[urlParts.length - 1];
 
     if (!roomName) {
-      return res.status(400).json({ error: 'Invalid room_url' });
+      return res.status(400).json({ error: 'Invalid roomUrl' });
     }
 
     // Start recording via Daily.co
@@ -30,22 +30,22 @@ recordingRouter.post('/start', async (req: Request, res: Response) => {
   }
 });
   
-// Stop recording endpoint: stops a Daily.co recording for a given room_url
+// Stop recording endpoint: stops a Daily.co recording for a given roomUrl
 recordingRouter.post('/stop', async (req: Request, res: Response) => {
-  const { room_url, roomId } = req.body;
+  const { roomUrl, roomId } = req.body;
 
-  if (!room_url || !roomId) {
-    console.log('Missing room_url or roomId');
-    return res.status(400).json({ error: 'Missing room_url or roomId' });
+  if (!roomUrl || !roomId) {
+    console.log('Missing roomUrl or roomId');
+    return res.status(400).json({ error: 'Missing roomUrl or roomId' });
   }
 
   try {
     // 1. Stop the recording
-    const urlParts = room_url.split('/');
+    const urlParts = roomUrl.split('/');
     const roomName = urlParts[urlParts.length - 1];
 
     if (!roomName) {
-      return res.status(400).json({ error: 'Invalid room_url' });
+      return res.status(400).json({ error: 'Invalid roomUrl' });
     }
 
     const stopResult = await stopDailyRecording(roomName);

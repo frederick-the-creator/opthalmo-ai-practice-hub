@@ -53,17 +53,17 @@ export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, 
 
 
 export async function startRecording({ roomUrl }: { roomUrl: string }) {
-  const response = await api.post("/recording/start", { room_url: roomUrl });
+  const response = await api.post("/recording/start", { roomUrl });
   return response.data;
 }
 
 export async function stopRecording({ roomUrl, roomId }: { roomUrl: string, roomId: string }) {
-  const response = await api.post("/recording/stop", { room_url: roomUrl, roomId });
+  const response = await api.post("/recording/stop", { roomUrl, roomId });
   return response.data;
 }
 
 export async function assessCandidatePerformance({ roomUrl, roomId, roundId, caseName }: { roomUrl: string, roomId: string, roundId: string, caseName:string }) {
-  const response = await api.post("/assessment", { room_url: roomUrl, roomId, roundId, case_name: caseName });
+  const response = await api.post("/assessment", { roomUrl, roomId, roundId, caseName });
   return response.data;
 }
 

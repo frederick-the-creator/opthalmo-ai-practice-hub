@@ -41,7 +41,7 @@ export async function getLatestRecordingId(roomName: string): Promise<string> {
  * @param recordingId The Daily.co recording ID
  * @returns The transcription job ID
  */
-export async function submitTranscriptionJob(recordingId: string): Promise<{ transcription_id: string }> {
+export async function submitTranscriptionJob(recordingId: string): Promise<{ transcriptionId: string }> {
     try {
       const res = await axios.post(
         'https://api.daily.co/v1/batch-processor',
@@ -66,7 +66,7 @@ export async function submitTranscriptionJob(recordingId: string): Promise<{ tra
       );
       // The job ID is typically in res.data.id or res.data.jobId
       console.log('res.data:', res.data);
-      return { transcription_id: res.data.id || res.data.jobId };
+      return { transcriptionId: res.data.id || res.data.jobId };
     } catch (error: any) {
       console.error('Error submitting transcription job:', error.response?.data || error.message);
       throw new Error(error.response?.data?.error || error.message || 'Failed to submit transcription job');
@@ -196,11 +196,11 @@ export async function transcribe(roomName: string, roomId: string, roundId: stri
   
       // 2) Submit transcription job
       console.log('Submitting transcription job for recording:', recordingId);
-      const { transcription_id } = await submitTranscriptionJob(recordingId);
+      const { transcriptionId } = await submitTranscriptionJob(recordingId);
   
       // 3) Poll for completion
-      console.log('Polling transcription status for:', transcription_id);
-      const transcriptionResult = await pollTranscriptionStatus(transcription_id);
+      console.log('Polling transcription status for:', transcriptionId);
+      const transcriptionResult = await pollTranscriptionStatus(transcriptionId);
   
       // 4) Fetch the transcription JSON
       console.log('Fetching transcription JSON for:', transcriptionResult);
@@ -214,7 +214,7 @@ export async function transcribe(roomName: string, roomId: string, roundId: stri
       // 6) Log completion
       console.log('Transcription and upload complete:', {
         recordingId,
-        transcription_id,
+        transcriptionId,
         transcription_status: transcriptionResult.status,
         storageUrl,
       });
