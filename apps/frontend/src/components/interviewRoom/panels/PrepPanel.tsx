@@ -14,8 +14,6 @@ type PrepPanelProps = {
 
 const PrepPanel: React.FC<PrepPanelProps> = ({ room, round, cases, isHost, onSelectCandidate, onSelectCase }) => {
 
-  console.log('room', room)
-  console.log('round', round)
   // Create array of candidates to select from
   const candidates = [
     room?.hostId
