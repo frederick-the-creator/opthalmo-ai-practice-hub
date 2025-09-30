@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import roomRouter from './controllers/practiceRoom'
-import roundRouter from './controllers/practiceRound'
-import recordingRouter from './controllers/recording'
-import assessmentRouter from './controllers/assessment'
+import roomRouter from './routes/practiceRoom'
+import roundRouter from './routes/practiceRound'
+import recordingRouter from './routes/recording'
+import assessmentRouter from './routes/assessment'
 
 const app = express();
 
