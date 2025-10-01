@@ -1,4 +1,5 @@
 import axios from "axios";
+import { supabase } from "@/supabase/client";
 
 // Base API URL - update this to point to your actual backend API
 const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -9,6 +10,22 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+
+// Attach Authorization header with current Supabase access token on all requests
+api.interceptors.request.use(async (config) => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const accessToken = data.session?.access_token;
+    if (accessToken) {
+      config.headers = {
+        ...(config.headers as any),
+        Authorization: `Bearer ${accessToken}`,
+      };
+    }
+  } catch (_e) {}
+  return config;
 });
 
 
