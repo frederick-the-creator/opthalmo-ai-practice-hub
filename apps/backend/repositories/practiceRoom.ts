@@ -1,10 +1,10 @@
-import adminSupabase from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabase'
 import { PracticeRoom, PracticeRoomInsert, PracticeRoomUpdate, PracticeRoomMapper } from '../types'
 
 
-export async function createRoomWithReturn(fields: PracticeRoomInsert): Promise<PracticeRoom> {
+export async function createRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoomInsert): Promise<PracticeRoom> {
 
-	const { data, error } = await adminSupabase
+	const { data, error } = await supabaseAuthenticated
         .from('practice_rooms')
 		.insert(PracticeRoomMapper.insertToDb(fields))
 		.select()
@@ -22,9 +22,9 @@ export async function createRoomWithReturn(fields: PracticeRoomInsert): Promise<
 	return PracticeRoomMapper.fromDb(data);
 }
 
-export async function updatePracticeRoomWithReturn(fields: PracticeRoomUpdate): Promise<PracticeRoom> {
+export async function updatePracticeRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoomUpdate): Promise<PracticeRoom> {
 
-	const { data, error } = await adminSupabase
+	const { data, error } = await supabaseAuthenticated
 		.from('practice_rooms')
 		.update(PracticeRoomMapper.updateToDb(fields))
 		.eq('id', fields.roomId)

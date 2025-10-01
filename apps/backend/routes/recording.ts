@@ -1,10 +1,11 @@
 import {Router, Request, Response} from 'express'
+import { requireSupabaseUser } from '../utils/supabase'
 import { startDailyRecording, stopDailyRecording } from '../services/recording';
 
 const recordingRouter = Router()
 
 // Start recording endpoint: starts a Daily.co recording for a given roomUrl
-recordingRouter.post('/start', async (req: Request, res: Response) => {
+recordingRouter.post('/start', requireSupabaseUser, async (req: Request, res: Response) => {
   const { roomUrl } = req.body;
 
   if (!roomUrl) {
@@ -31,7 +32,7 @@ recordingRouter.post('/start', async (req: Request, res: Response) => {
 });
   
 // Stop recording endpoint: stops a Daily.co recording for a given roomUrl
-recordingRouter.post('/stop', async (req: Request, res: Response) => {
+recordingRouter.post('/stop', requireSupabaseUser, async (req: Request, res: Response) => {
   const { roomUrl, roomId } = req.body;
 
   if (!roomUrl || !roomId) {

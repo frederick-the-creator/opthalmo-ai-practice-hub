@@ -1,13 +1,15 @@
 import { Router, Request, Response } from 'express'
+import { requireSupabaseUser } from '../utils/supabase'
 import { createProfileWithReturn, updateProfileWithReturn } from '../repositories/profile'
 
 const profileRouter = Router()
 
-profileRouter.post('/create', async (req: Request, res: Response) => {
+profileRouter.post('/create', requireSupabaseUser, async (req: Request, res: Response) => {
 	const { createFields } = req.body
 
 	try {
-		const profile = await createProfileWithReturn(createFields)
+		const supabaseAuthenticated = req.supabaseAsUser!;
+		const profile = await createProfileWithReturn(supabaseAuthenticated, createFields)
 		res.json({ profile })
 	} catch (err: any) {
 		console.error('Error creating profile:', err.response?.data || err.message)
@@ -15,11 +17,12 @@ profileRouter.post('/create', async (req: Request, res: Response) => {
 	}
 })
 
-profileRouter.post('/update', async (req: Request, res: Response) => {
+profileRouter.post('/update', requireSupabaseUser, async (req: Request, res: Response) => {
 	const { updateFields } = req.body
 
 	try {
-		const profile = await updateProfileWithReturn(updateFields)
+		const supabaseAuthenticated = req.supabaseAsUser!;
+		const profile = await updateProfileWithReturn(supabaseAuthenticated, updateFields)
 		res.json({ profile })
 	} catch (err: any) {
 		console.error('Error updating profile:', err.response?.data || err.message)

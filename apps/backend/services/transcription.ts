@@ -1,5 +1,5 @@
 import axios from 'axios';
-import adminSupabase from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabase'
 
 /**
  * Get the latest recording ID for a Daily.co room.
@@ -154,12 +154,12 @@ export async function fetchTranscriptionJson(transcriptionResult: any): Promise<
  * @param transcriptionJson The transcription JSON object
  * @returns The updated round id
  */
-export async function uploadTranscription(roundId: string, transcriptionJson: any): Promise<string> {
+export async function uploadTranscription(supabaseAuthenticated: TypedSupabaseClient, roundId: string, transcriptionJson: any): Promise<string> {
   if (!roundId) {
     throw new Error('roundId is required');
   }
 
-  const { data, error } = await adminSupabase
+  const { data, error } = await supabaseAuthenticated
     .from('practice_rounds')
     .update({ transcript: transcriptionJson })
     .eq('id', roundId)
@@ -184,7 +184,7 @@ export async function uploadTranscription(roundId: string, transcriptionJson: an
  * - Fetches transcript JSON
  * - Uploads to Supabase Storage under the session ID
  */
-export async function transcribe(roomName: string, roomId: string, roundId: string): Promise<any> {
+export async function transcribe(supabaseAuthenticated: TypedSupabaseClient, roomName: string, roomId: string, roundId: string): Promise<any> {
     try {
       // 1) Find latest recording ID for the room
       const recordingId = await getLatestRecordingId(roomName);
@@ -209,7 +209,7 @@ export async function transcribe(roomName: string, roomId: string, roundId: stri
   
       // 5) Upload transcript to Supabase Storage
       console.log('Uploading transcription to Supabase Storage for room:', roomId, 'and round:', roundId);
-      const storageUrl = await uploadTranscription(roundId, transcriptionJson);
+      const storageUrl = await uploadTranscription(supabaseAuthenticated, roundId, transcriptionJson);
   
       // 6) Log completion
       console.log('Transcription and upload complete:', {

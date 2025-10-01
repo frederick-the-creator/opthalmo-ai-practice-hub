@@ -1,10 +1,11 @@
 import {Router, Request, Response} from 'express'
+import { requireSupabaseUser } from '../utils/supabase'
 import { runAssessment } from '../services/assessment';
 
 const assessmentRouter = Router()
 
 // Transcription endpoint: triggers transcription for the latest recording of a room
-assessmentRouter.post('/', async (req: Request, res: Response) => {
+assessmentRouter.post('/', requireSupabaseUser, async (req: Request, res: Response) => {
   const { roomUrl, roomId, roundId, caseName } = req.body;
 
   if (!roomUrl || !roomId || !roundId || !caseName) {
@@ -21,7 +22,8 @@ assessmentRouter.post('/', async (req: Request, res: Response) => {
   }
 
   try {
-    const assessment = await runAssessment(roomName, roomId, roundId, caseName);
+    const supabaseAuthenticated = req.supabaseAsUser!;
+    const assessment = await runAssessment(supabaseAuthenticated, roomName, roomId, roundId, caseName);
     return res.json({ assessment });
 
   } catch (err: any) {

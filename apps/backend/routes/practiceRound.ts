@@ -1,13 +1,15 @@
 import {Router, Request, Response} from 'express'
+import { requireSupabaseUser } from '../utils/supabase'
 import { createRoundWithReturn, updatePracticeRoundWithReturn } from '../repositories/practiceRound';
 
 const roundRouter = Router()
 
-roundRouter.post('/create', async (req: Request, res: Response) => {
+roundRouter.post('/create', requireSupabaseUser, async (req: Request, res: Response) => {
     const { createFields } = req.body;
 
     try {
-      const round = await createRoundWithReturn(createFields);
+      const supabaseAuthenticated = req.supabaseAsUser!;
+      const round = await createRoundWithReturn(supabaseAuthenticated, createFields);
       res.json({ round });
     } catch (err: any) {
       console.error('Error creating round:', err.response?.data || err.message);
@@ -15,11 +17,12 @@ roundRouter.post('/create', async (req: Request, res: Response) => {
     }
 });
 
-roundRouter.post('/update', async (req: Request, res: Response) => {
+roundRouter.post('/update', requireSupabaseUser, async (req: Request, res: Response) => {
     const { updateFields } = req.body;
 
     try {
-      const round = await updatePracticeRoundWithReturn(updateFields);
+      const supabaseAuthenticated = req.supabaseAsUser!;
+      const round = await updatePracticeRoundWithReturn(supabaseAuthenticated, updateFields);
       res.json({ round });
     } catch (err: any) {
       console.error('Error updating round:', err.response?.data || err.message);

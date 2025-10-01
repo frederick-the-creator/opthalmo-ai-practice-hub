@@ -1,5 +1,5 @@
 import axios from 'axios'
-import adminSupabase from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabase'
 import { createRoomWithReturn, updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
 import { createRoundWithReturn } from '../repositories/practiceRound';
 import { PracticeRoomInsert } from '../types';
@@ -34,7 +34,7 @@ export async function createDailyRoom(): Promise<string> {
 * Create a practice room by provisioning a Daily.co room and inserting the room in Supabase.
 * @returns The created room object
 */
-export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any> {
+export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseClient, input: PracticeRoomInsert): Promise<any> {
   const { hostId, datetimeUtc, private: isPrivate } = input;
 
   if (!hostId || !datetimeUtc) {
@@ -43,7 +43,7 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
 
   const roomUrl = await createDailyRoom();
 
-  const roomData = await createRoomWithReturn({
+  const roomData = await createRoomWithReturn(supabaseAuthenticated, {
     hostId,
     roomUrl,
     datetimeUtc,
@@ -52,7 +52,7 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
   });
 
   const roomId = roomData.id
-  await createRoundWithReturn({ roundNumber: 1, roomId })
+  await createRoundWithReturn(supabaseAuthenticated, { roundNumber: 1, roomId })
 
   return roomData;
 }
@@ -66,10 +66,11 @@ export async function createPracticeRoom(input: PracticeRoomInsert): Promise<any
 * @throws If the update fails.
 */
 export async function updateSupabaseRound(
+  supabaseAuthenticated: TypedSupabaseClient,
   roundId: string,
   fields: Record<string, any>
   ): Promise<any> {
-  const { data, error } = await adminSupabase
+  const { data, error } = await supabaseAuthenticated
     .from('practice_rounds')
     .update(fields)
     .eq('id', roundId)

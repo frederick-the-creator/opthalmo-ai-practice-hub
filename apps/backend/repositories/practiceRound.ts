@@ -1,8 +1,8 @@
-import adminSupabase from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabase'
 import { PracticeRound, PracticeRoundInsert, PracticeRoundUpdate, PracticeRoundMapper } from '../types'
 
-export async function createRoundWithReturn(fields: PracticeRoundInsert): Promise<PracticeRound> {
-	const { data, error } = await adminSupabase
+export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundInsert): Promise<PracticeRound> {
+	const { data, error } = await supabaseAuthenticated
 		.from('practice_rounds')
 		.insert(PracticeRoundMapper.insertToDb(fields))
 		.select()
@@ -21,9 +21,9 @@ export async function createRoundWithReturn(fields: PracticeRoundInsert): Promis
 }
 
 
-export async function updatePracticeRoundWithReturn(fields: PracticeRoundUpdate): Promise<PracticeRound> {
+export async function updatePracticeRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundUpdate): Promise<PracticeRound> {
 
-	const { data, error } = await adminSupabase
+	const { data, error } = await supabaseAuthenticated
 		.from('practice_rounds')
 		.update(PracticeRoundMapper.updateToDb(fields))
 		.eq('id', fields.roundId)

@@ -1,8 +1,8 @@
-import adminSupabase from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabase'
 import { Profile, ProfileInsert, ProfileUpdate, ProfileMapper } from '../types'
 
-export async function createProfileWithReturn(fields: ProfileInsert): Promise<Profile> {
-	const { data, error } = await adminSupabase
+export async function createProfileWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: ProfileInsert): Promise<Profile> {
+	const { data, error } = await supabaseAuthenticated
 		.from('profiles')
 		.insert(ProfileMapper.insertToDb(fields))
 		.select()
@@ -20,8 +20,8 @@ export async function createProfileWithReturn(fields: ProfileInsert): Promise<Pr
 	return ProfileMapper.fromDb(data)
 }
 
-export async function updateProfileWithReturn(fields: ProfileUpdate): Promise<Profile> {
-	const { data, error } = await adminSupabase
+export async function updateProfileWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: ProfileUpdate): Promise<Profile> {
+	const { data, error } = await supabaseAuthenticated
 		.from('profiles')
 		.update(ProfileMapper.updateToDb(fields))
 		.eq('user_id', fields.userId)

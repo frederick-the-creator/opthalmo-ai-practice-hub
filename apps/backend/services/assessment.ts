@@ -3,7 +3,7 @@ import { Assessment, AssessmentSchema } from "../schemas/assessment";
 import fs from "fs";
 import path from "path";
 import { transcribe } from "./transcription";
-import adminSupabase from "../utils/supabase";
+import type { TypedSupabaseClient } from "../utils/supabase";
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -37,8 +37,8 @@ export async function geminiAssessTranscript(caseName: string, transcript: strin
   return JSON.parse(text) as Assessment;
 }
 
-export async function uploadAssessmentToStorage(roundId: string, assessmentJson: any): Promise<string> {
-  const { data, error } = await adminSupabase
+export async function uploadAssessmentToStorage(supabaseAuthenticated: TypedSupabaseClient, roundId: string, assessmentJson: any): Promise<string> {
+  const { data, error } = await supabaseAuthenticated
     .from('practice_rounds')
     .update({ assessment: assessmentJson })
     .eq('id', roundId)
@@ -52,14 +52,14 @@ export async function uploadAssessmentToStorage(roundId: string, assessmentJson:
   return data[0].id as string;
 }
 
-export async function runAssessment(roomName: string, roomId: string, roundId: string, caseName: string): Promise<any> {
-  const transcriptionJson = await transcribe(roomName, roomId, roundId);
+export async function runAssessment(supabaseAuthenticated: TypedSupabaseClient, roomName: string, roomId: string, roundId: string, caseName: string): Promise<any> {
+  const transcriptionJson = await transcribe(supabaseAuthenticated, roomName, roomId, roundId);
   const transcript = transcriptionJson?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript;
   if (!transcript) {
     throw new Error('Transcript not found in transcription JSON');
   }
   const assessment = await geminiAssessTranscript(caseName, transcript);
-  await uploadAssessmentToStorage(roundId, assessment);
+  await uploadAssessmentToStorage(supabaseAuthenticated, roundId, assessment);
   console.log('Assessment saved to practice_rounds:', { roundId });
   return assessment;
 }
