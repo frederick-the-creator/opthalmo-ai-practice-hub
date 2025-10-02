@@ -1,4 +1,4 @@
-import { Tables, TablesInsert, TablesUpdate, Json } from './dbTypes'
+import { Tables, TablesInsert, TablesUpdate, Json } from './database.types'
 
 // Practice Rooms
 

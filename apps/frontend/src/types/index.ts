@@ -1,4 +1,4 @@
-import { Tables, Json } from './dbTypes'
+import { Tables } from './database.types'
 
 // Practice Rooms
 export const PracticeRoomMapper = {

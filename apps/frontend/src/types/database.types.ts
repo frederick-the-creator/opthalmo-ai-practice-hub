@@ -176,7 +176,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_join_practice_room: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      can_join_practice_rounds_room: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
