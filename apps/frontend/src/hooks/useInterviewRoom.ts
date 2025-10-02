@@ -107,9 +107,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
           try {
             // Prefer mapped record if provided, otherwise refetch joined profiles
             if (rec) {
-              setRoom(rec);
-              setRoomStage(rec.stage);
-            } else {
               const result = await fetchRoomWithProfiles(roomId);
               setRoom(result);
               if (result) setRoomStage(result.stage);
