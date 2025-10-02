@@ -194,50 +194,15 @@ export const fetchProfile = async (userId: string): Promise<Profile | null> => {
   return ProfileMapper.fromDb(data as any);
 };
 
-/**
- * Subscribe to realtime changes on the practice_rooms table.
- * If roomId is provided, only subscribe to that room; otherwise, subscribe to all.
- * Returns a cleanup function to remove the channel.
- */
-export function subscribeToPracticeRoomByRoomId({
-  roomId,
-  onChange,
-}: {
-  roomId: string;
-  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: any; old?: any }) => void;
-}) {
-  const filter = `id=eq.${roomId}`;
-  const channel = supabase
-    .channel(`practice_rooms:${roomId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "practice_rooms",
-        filter,
-      },
-      (payload: any) =>
-        onChange({
-          event: payload.eventType,
-          new: payload.new,
-          old: payload.old,
-        })
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}
-
 export function subscribeToAllPracticeRooms({
   onChange,
 }: {
   onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRoomWithProfiles | null; old?: PracticeRoomWithProfiles | null }) => void;
 }) {
   const channel = supabase
-    .channel("practice_rooms:all")
+    .channel(
+      "practice_rooms:all", 
+      { config: { private: true } })
     .on(
       "postgres_changes",
       {
@@ -268,6 +233,53 @@ export function subscribeToAllPracticeRooms({
   };
 }
 
+/**
+ * Subscribe to realtime changes on the practice_rooms table.
+ * If roomId is provided, only subscribe to that room; otherwise, subscribe to all.
+ * Returns a cleanup function to remove the channel.
+ */
+export function subscribeToPracticeRoomByRoomId({
+  roomId,
+  onChange,
+}: {
+  roomId: string;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRoomWithProfiles | null; old?: PracticeRoomWithProfiles | null }) => void;
+}) {
+  const filter = `id=eq.${roomId}`;
+  const channel = supabase
+    .channel(
+      `practice_rooms:${roomId}`, 
+      { config: { private: true } })
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "practice_rooms",
+        filter,
+      },
+      (payload: any) => {
+        let mappedNew: PracticeRoomWithProfiles | null = null;
+        let mappedOld: PracticeRoomWithProfiles | null = null;
+        try {
+          if (payload?.new) mappedNew = PracticeRoomWithProfilesMapper.fromDb(payload.new as any);
+        } catch (_e) {}
+        try {
+          if (payload?.old) mappedOld = PracticeRoomWithProfilesMapper.fromDb(payload.old as any);
+        } catch (_e) {}
+        onChange({
+          event: payload.eventType,
+          new: mappedNew,
+          old: mappedOld,
+        })
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
 
 /**
  * Subscribe to realtime changes on practice_rounds filtered by room_id.
@@ -282,7 +294,10 @@ export function subscribeToPracticeRoundsByRoomId({
 }) {
   const filter = `room_id=eq.${roomId}`;
   const channel = supabase
-    .channel(`practice_rounds:room:${roomId}`)
+    .channel(
+      `practice_rounds:room:${roomId}`, 
+      { config: { private: true } }
+    )
     .on(
       "postgres_changes",
       {

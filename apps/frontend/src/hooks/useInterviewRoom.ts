@@ -101,13 +101,19 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     if (!roomId) return;
     const cleanup = subscribeToPracticeRoomByRoomId({
       roomId,
-      onChange: async ({ event }) => {
+      onChange: async ({ event, new: rec }) => {
         // For INSERT/UPDATE on this room, refetch to pick up joined profiles
         if (event === 'INSERT' || event === 'UPDATE') {
           try {
-            const result = await fetchRoomWithProfiles(roomId);
-            setRoom(result);
-            if (result) setRoomStage(result.stage);
+            // Prefer mapped record if provided, otherwise refetch joined profiles
+            if (rec) {
+              setRoom(rec);
+              setRoomStage(rec.stage);
+            } else {
+              const result = await fetchRoomWithProfiles(roomId);
+              setRoom(result);
+              if (result) setRoomStage(result.stage);
+            }
           } catch (err) {
             setError('Failed to update room from realtime');
           }
