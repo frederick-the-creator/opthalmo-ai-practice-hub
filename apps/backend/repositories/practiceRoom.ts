@@ -42,3 +42,22 @@ export async function updatePracticeRoomWithReturn(supabaseAuthenticated: TypedS
 
 	return PracticeRoomMapper.fromDb(data);
 }
+
+export async function getPracticeRoomById(supabaseAuthenticated: TypedSupabaseClient, roomId: string): Promise<PracticeRoom> {
+	const { data, error } = await supabaseAuthenticated
+		.from('practice_rooms')
+		.select('*')
+		.eq('id', roomId)
+		.single();
+
+	if (error) {
+		console.log('[getPracticeRoomById] DB error: ', error)
+		throw new Error(error.message || 'Failed to load room');
+	}
+
+	if (!data) {
+		throw new Error('Room not found');
+	}
+
+	return PracticeRoomMapper.fromDb(data);
+}

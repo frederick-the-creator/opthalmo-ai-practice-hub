@@ -1,7 +1,9 @@
 import {Router, Request, Response} from 'express'
 import { requireSupabaseUser } from '../utils/supabase'
-import { createPracticeRoom } from '../services/practiceRoom';
+import { createPracticeRoom, updatePracticeRoomGuarded } from '../services/practiceRoom';
+import { HttpError } from '../utils/httpError';
 import { updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
+import type { PracticeRoomUpdate } from '../types';
 
 const roomRouter = Router()
 
@@ -21,16 +23,20 @@ roomRouter.post('/create', requireSupabaseUser, async (req: Request, res: Respon
 });
   
 roomRouter.post('/update', requireSupabaseUser, async (req: Request, res: Response) => {
-
-    const { updateFields } = req.body;
+    const { updateFields } = req.body as { updateFields: PracticeRoomUpdate };
 
     try {
       const supabaseAuthenticated = req.supabaseAsUser!;
-      const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
+      const currentUserId = req.supabaseUser?.id as string;
+
+      const room = await updatePracticeRoomGuarded(supabaseAuthenticated, currentUserId, updateFields);
       res.json({ room });
     } catch (err: any) {
-      console.error('Error accepting invitation:', err.response?.data || err.message);
-      res.status(500).json({ error: err.message || 'Failed to accept invitation' });
+      if (err instanceof HttpError) {
+        return res.status(err.status).json({ error: err.message });
+      }
+      console.error('Error updating practice room:', err.response?.data || err.message);
+      res.status(500).json({ error: err.message || 'Failed to update practice room' });
     }
 });
 

@@ -54,3 +54,25 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
 - Project purpose and onboarding: [`README.md`](mdc:README.md)
 - Backend notes: [`apps/backend/README.md`](mdc:apps/backend/README.md)
 
+## Architectural Conventions
+
+- Business logic belongs in services, not in routes or repositories.
+  - Routes should remain thin: parse/validate input, authenticate, call a service, translate errors to HTTP status codes.
+  - Repositories are persistence-only (CRUD with mapping). They must not embed business rules.
+  - Services enforce domain rules (e.g., booking guards, role checks) and orchestrate repository calls.
+
+- Shared types over inline types.
+  - Prefer importing shared TypeScript types from `apps/backend/types/index.ts` (e.g., `PracticeRoomUpdate`) instead of defining inline ad-hoc shapes in routes or services.
+  - Keep mappers in `types/index.ts` the single source of truth for DB <-> domain conversions.
+  - On the frontend, prefer importing domain/view types from `apps/frontend/src/types/index.ts` (e.g., `PracticeRoomWithProfiles`) instead of re-declaring shapes in components or hooks.
+
+- Error handling
+  - Use central error utilities (e.g., `HttpError`) to carry HTTP status codes from services to routes.
+  - Frontend should centralize repeated error mapping (e.g., 403/409 booking conflicts) in a helper to keep components lean and consistent.
+
+## Database Types Generation
+
+- When the database schema changes, regenerate TS database types for both apps using the root script:
+  - `npm run generate:types`
+- This updates `apps/frontend/src/types/database.types.ts` and `apps/backend/types/database.types.ts`. Commit both files with schema changes.
+

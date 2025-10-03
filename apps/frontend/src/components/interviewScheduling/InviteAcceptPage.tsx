@@ -5,6 +5,7 @@ import { fetchRoomWithProfiles } from "@/supabase/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { mapApiError } from "@/lib/utils";
 import { useAuth } from '@/supabase/AuthProvider'
 
 import type { PracticeRoomWithProfiles } from "@/types";
@@ -48,7 +49,8 @@ const InviteAcceptPage: React.FC = () => {
         navigate("/interview-scheduling");
       }
     } catch (err: any) {
-      toast({ title: "Failed to accept room.", description: err?.message || "" });
+      const { title, description } = mapApiError(err, 'booking');
+      toast({ title, description });
       setAccepting(false);
     }
   };

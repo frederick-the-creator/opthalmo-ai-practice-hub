@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
 import { createRoom, setRoomGuest } from "@/lib/api";
 import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
+import { mapApiError } from "@/lib/utils";
 import type { PracticeRoomWithProfiles } from "@/types";
 
 
@@ -81,7 +82,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       setLoading(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
-      setError("Failed to accept invitation: " + (err?.response?.data?.error || err.message));
+      const { title, description } = mapApiError(err, 'booking');
+      setError(title + (description ? ": " + description : ""));
       setLoading(false);
     }
   };

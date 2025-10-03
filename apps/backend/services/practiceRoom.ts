@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { TypedSupabaseClient } from '../utils/supabase'
-import { createRoomWithReturn, updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById } from '../repositories/practiceRoom';
 import { createRoundWithReturn } from '../repositories/practiceRound';
-import { PracticeRoomInsert } from '../types';
+import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../types';
+import { HttpError } from '../utils';
 import { randomUUID } from 'crypto'
 
 
@@ -85,4 +86,35 @@ export async function updateSupabaseRound(
     throw new Error('No room found or updated');
   }
   return { data, error: null };
+}
+
+/**
+ * Apply business rules and update a practice room.
+ * - Host cannot book own session (403)
+ * - Requester can only book themselves as guest (403)
+ * - If already booked, do not overwrite (409)
+ */
+export async function updatePracticeRoomGuarded(
+  supabaseAuthenticated: TypedSupabaseClient,
+  currentUserId: string,
+  updateFields: PracticeRoomUpdate
+): Promise<PracticeRoom> {
+  if (updateFields.guestId !== undefined) {
+    const existing = await getPracticeRoomById(supabaseAuthenticated, updateFields.roomId);
+
+    if (existing.hostId === currentUserId) {
+      throw new HttpError(403, 'Host cannot book own session');
+    }
+
+    if (updateFields.guestId !== currentUserId) {
+      throw new HttpError(403, 'You can only book yourself as guest');
+    }
+
+    if (existing.guestId) {
+      throw new HttpError(409, 'Session already booked');
+    }
+  }
+
+  const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
+  return room;
 }
