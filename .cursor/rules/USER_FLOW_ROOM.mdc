@@ -1,0 +1,66 @@
+---
+alwaysApply: false
+---
+
+This rule documents the Interview Room flow: entering the room, managing stage and rounds, and syncing state.
+
+## Overview
+
+- Purpose: Orchestrate the live practice session, including stage transitions and round management.
+- Scope: Room/round reads, stage updates, round creation, candidate/case assignment, realtime sync.
+
+## Frontend
+
+- Entry points:
+  - Room page: [`apps/frontend/src/pages/InterviewPracticeRoom.tsx`](mdc:apps/frontend/src/pages/InterviewPracticeRoom.tsx)
+  - Room hook: [`apps/frontend/src/hooks/useInterviewRoom.ts`](mdc:apps/frontend/src/hooks/useInterviewRoom.ts)
+  - API helpers: [`apps/frontend/src/lib/api.ts`](mdc:apps/frontend/src/lib/api.ts)
+  - Supabase data + realtime: [`apps/frontend/src/supabase/data.tsx`](mdc:apps/frontend/src/supabase/data.tsx)
+
+- Reads:
+  - `fetchRoomWithProfiles(roomId)` → joins `profiles` for host/guest.
+  - `fetchRoundByRoomAndRoundNumber(roomId, roundNumber)` → current round details.
+  - `fetchCaseBriefs()` → available cases.
+
+- Realtime:
+  - `subscribeToPracticeRoomByRoomId({ roomId })` → update `stage`, `guest_id`, etc.
+  - `subscribeToPracticeRoundsByRoomId({ roomId })` → reflect new/updated rounds.
+
+- Writes (via backend API with Supabase token):
+  - `setRoomStage({ roomId, stage })` → POST `/api/practice-room/update`.
+  - `createRound({ roomId, roundNumber })` → POST `/api/practice-round/create`.
+  - `setRoundCandidate({ roundId, candidateId })` → POST `/api/practice-round/update`.
+  - `setRoundCase({ roundId, caseBriefId })` → POST `/api/practice-round/update`.
+
+## Backend
+
+- Endpoints (mounted under `/api`):
+  - `/practice-room/create`, `/practice-room/update` (room lifecycle)
+  - `/practice-round/create`, `/practice-round/update` (round lifecycle)
+  - Middleware: `requireSupabaseUser` → `req.supabaseAsUser` for RLS-respecting writes.
+
+- Services/Repositories:
+  - `practiceRoom.ts` service orchestrates room creation and initial round.
+  - `repositories/practiceRoom.ts` and `repositories/practiceRound.ts` encapsulate DB CRUD.
+
+## Database
+
+- `practice_rooms`
+  - `stage` drives UI (e.g., 'Prep', 'Interview', 'Finished').
+  - `room_url` used for Daily room link; can be null during setup.
+  - Joined profiles for display (`host_profile`, `guest_profile`).
+
+- `practice_rounds`
+  - `round_number` current segment of the session.
+  - `candidate_id` set when participant is assigned.
+  - `case_brief_id` selected case for the round.
+
+- `case_briefs`
+  - Source of selectable cases; read-only on frontend.
+
+## UX and edge cases
+
+- Stage transitions should be optimistic with rollback on API failure (see `useInterviewRoom`).
+- Guard `createRound` when last round hasn't been completed if needed by UX.
+- Only host should be able to change stage or create rounds; enforce via UI and RLS.
+

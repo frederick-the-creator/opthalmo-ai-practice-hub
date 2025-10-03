@@ -1,0 +1,64 @@
+---
+alwaysApply: false
+---
+
+This rule documents the Recording, Transcription, and Assessment pipeline initiated from the interview room.
+
+## Overview
+
+- Purpose: Capture the interview, generate a transcript, and produce an AI assessment.
+- Trigger: Single UI action (e.g., "Assess Candidate Performance"). Optional explicit start/stop recording endpoints exist.
+
+## Frontend
+
+- Primary action:
+  - `assessCandidatePerformance({ roomUrl, roomId, roundId, caseName })` → POST `/api/assessment`.
+  - Axios interceptor adds the Supabase access token in `Authorization` header.
+
+- Optional explicit control:
+  - `startRecording({ roomUrl })` → POST `/api/recording/start`
+  - `stopRecording({ roomUrl, roomId })` → POST `/api/recording/stop`
+
+- Displaying results:
+  - `AssessmentHistory` (`apps/frontend/src/pages/AssessmentHistory.tsx`) loads rounds via `fetchRoundsByCandidate(user.id)` and joins room context via `fetchRoomByRoundId(roundId)`.
+  - UI checks `round.assessment` and renders sections for `overall_feedback` and per-`dimensions` details.
+
+## Backend
+
+- Endpoints (mounted under `/api`):
+  - POST `/assessment` → Service composes transcription then assessment, writing both to DB.
+  - POST `/recording/start` and `/recording/stop` → Start/stop Daily.co recording.
+  - All endpoints require `requireSupabaseUser`; services use `req.supabaseAsUser`.
+
+- Services:
+  - Recording: [`apps/backend/services/recording.ts`](mdc:apps/backend/services/recording.ts)
+    - `startDailyRecording(roomName)` and `stopDailyRecording(roomName)` using Daily REST API, env `DAILY_API_KEY`.
+  - Transcription: [`apps/backend/services/transcription.ts`](mdc:apps/backend/services/transcription.ts)
+    - `getLatestRecordingId(roomName)`
+    - `submitTranscriptionJob(recordingId)` (Daily batch-processor, preset `transcript`)
+    - `pollTranscriptionStatus(transcriptionId)` until status `finished`
+    - `fetchTranscriptionJson(result)` via access-link
+    - `uploadTranscription(supabaseAuthenticated, roundId, transcriptionJson)` → writes to `practice_rounds.transcript`
+  - Assessment: [`apps/backend/services/assessment.ts`](mdc:apps/backend/services/assessment.ts)
+    - `runAssessment(supabaseAuthenticated, roomName, roomId, roundId, caseName)`
+      - Calls `transcribe(...)` pipeline
+      - Extracts transcript text and calls Gemini (`geminiAssessTranscript`) with `caseName`
+      - Saves assessment JSON to `practice_rounds.assessment`
+
+## Database
+
+- `practice_rounds`
+  - `transcript` (jsonb): Full transcript JSON from Daily batch-processor.
+  - `assessment` (jsonb): Assessment JSON from Gemini, including `overall_feedback` and `dimensions`.
+  - `room_id`, `round_number`, `candidate_id`, `case_brief_id` link context for rendering and history.
+
+- Access pattern:
+  - Writes via backend services using token-scoped client for RLS.
+  - Reads on frontend via Supabase client in `supabase/data.tsx` helpers.
+
+## Error handling & UX
+
+- If no Daily recording is found for `roomName`, surface a clear error; allow retry.
+- Transcription polling timeout → show a non-blocking error and allow re-run.
+- Assessments may mark `insufficient_evidence` or `red_flags`; emphasize in UI (badges).
+
