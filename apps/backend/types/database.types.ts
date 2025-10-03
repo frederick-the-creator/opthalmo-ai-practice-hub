@@ -54,6 +54,7 @@ export type Database = {
           guest_id: string | null
           host_id: string
           id: string
+          ics_uid: string | null
           private: boolean
           room_url: string | null
           stage: string
@@ -64,6 +65,7 @@ export type Database = {
           guest_id?: string | null
           host_id: string
           id?: string
+          ics_uid?: string | null
           private?: boolean
           room_url?: string | null
           stage: string
@@ -74,6 +76,7 @@ export type Database = {
           guest_id?: string | null
           host_id?: string
           id?: string
+          ics_uid?: string | null
           private?: boolean
           room_url?: string | null
           stage?: string

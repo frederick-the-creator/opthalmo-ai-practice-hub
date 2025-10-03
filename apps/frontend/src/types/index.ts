@@ -9,6 +9,7 @@ export const PracticeRoomMapper = {
 			guestId: row.guest_id, // inferred as string | null
 			stage: row.stage,
 			roomUrl: row.room_url,
+			icsUid: (row as any).ics_uid ?? null,
 			private: row.private,
 			createdAt: row.created_at,
 			datetimeUtc: row.datetime_utc,

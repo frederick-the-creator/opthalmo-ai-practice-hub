@@ -1,7 +1,6 @@
 ---
-alwaysApply: false
+alwaysApply: true
 ---
-
 This rule provides guidance to AI coding assistants when working in this repository.
 
 ## Repository Overview
@@ -42,6 +41,7 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
 
 ## Available Tools
 - The Supabase MCP server should be used to understand the database schema and policies to ensure plans and implementation take account of these
+- Project documents such as PRDs, implementation plans and implementation trackers are used for each feature, make sure to update these with any necessary deviations from the plan identified whilst carrying out implementation and also update the tracker with progress.
 
 ## TypeScript & Linting
 

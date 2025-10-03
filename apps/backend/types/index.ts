@@ -8,6 +8,7 @@ export type PracticeRoom = {
 	guestId: string | null
 	stage: string
 	roomUrl: string | null
+	icsUid: string | null
 	private: boolean
 	createdAt: string | null
 	datetimeUtc: string | null
@@ -18,6 +19,7 @@ export type PracticeRoomInsert = {
 	guestId?: string | null
 	stage: string
 	roomUrl?: string | null
+	icsUid?: string | null
 	private?: boolean
 	createdAt?: string | null
 	datetimeUtc?: string | null
@@ -41,6 +43,7 @@ export const PracticeRoomMapper = {
 			guest_id: insert.guestId ?? null,
 			stage: insert.stage,
 			room_url: insert.roomUrl ?? null,
+			ics_uid: insert.icsUid ?? null,
 			private: insert.private ?? false,
 			created_at: insert.createdAt ?? null,
 			datetime_utc: insert.datetimeUtc ?? null,
@@ -54,6 +57,7 @@ export const PracticeRoomMapper = {
 			guestId: row.guest_id,
 			stage: row.stage,
 			roomUrl: row.room_url,
+			icsUid: row.ics_uid ?? null,
 			private: row.private,
 			createdAt: row.created_at,
 			datetimeUtc: row.datetime_utc,
@@ -67,6 +71,7 @@ export const PracticeRoomMapper = {
             ...(update.guestId !== undefined && { guest_id: update.guestId }),
             ...(update.stage !== undefined && { stage: update.stage }),
             ...(update.roomUrl !== undefined && { room_url: update.roomUrl }),
+            // ics_uid is immutable once set for stability across ICS lifecycle
             ...(update.private !== undefined && { private: update.private }),
             ...(update.createdAt !== undefined && { created_at: update.createdAt }),
             ...(update.datetimeUtc !== undefined && { datetime_utc: update.datetimeUtc }),

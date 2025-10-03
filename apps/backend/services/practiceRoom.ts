@@ -3,6 +3,7 @@ import type { TypedSupabaseClient } from '../utils/supabase'
 import { createRoomWithReturn, updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
 import { createRoundWithReturn } from '../repositories/practiceRound';
 import { PracticeRoomInsert } from '../types';
+import { randomUUID } from 'crypto'
 
 
 
@@ -42,11 +43,13 @@ export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseCli
   }
 
   const roomUrl = await createDailyRoom();
+  const icsUid = randomUUID();
 
   const roomData = await createRoomWithReturn(supabaseAuthenticated, {
     hostId,
     roomUrl,
     datetimeUtc,
+    icsUid,
     private: !!isPrivate,
     stage: "Prep",
   });
