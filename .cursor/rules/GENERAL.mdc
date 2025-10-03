@@ -68,7 +68,16 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
 
 - Error handling
   - Use central error utilities (e.g., `HttpError`) to carry HTTP status codes from services to routes.
-  - Frontend should centralize repeated error mapping (e.g., 403/409 booking conflicts) in a helper to keep components lean and consistent.
+  - Backend services should throw `HttpError(status, message)` from `apps/backend/utils/httpError.ts`; routes must catch it and respond with `res.status(err.status).json({ error: err.message })`. Do not put business-logic status mapping in repositories.
+  - Frontend must centralize repeated API error mapping via `mapApiError(err, context)` in `apps/frontend/src/lib/utils.ts` to keep components lean and consistent.
+    - Supported contexts: `'booking' | 'reschedule' | 'cancel' | 'round' | 'recording' | 'assessment' | 'profile' | 'generic'`.
+    - Standard mappings:
+      - 400 → Invalid request (e.g., reschedule: "Please select a valid future date/time.")
+      - 401 → Session expired → prompt sign-in
+      - 403 → Not allowed (context-specific description)
+      - 404 → Not found
+      - 409 → Conflict (booking: "Already booked"; recording: state prevents action; otherwise generic conflict)
+      - 5xx → Server/provider error with retry-friendly copy
 
 ## Database Types Generation
 

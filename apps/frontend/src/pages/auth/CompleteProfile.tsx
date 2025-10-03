@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useAuth } from '@/supabase/AuthProvider';
 import { createProfile } from '@/lib/api';
+import { mapApiError } from '@/lib/utils';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -29,7 +30,8 @@ const CompleteProfile: React.FC = () => {
       await createProfile({ userId: user.id, firstName, lastName });
       try { await reloadProfile(); } catch (_e) {}
     } catch (e: any) {
-      setError(e?.message || 'Failed to save profile');
+      const { title, description } = mapApiError(e, 'profile');
+      setError((title || 'Failed to save profile') + (description ? ': ' + description : ''));
       setIsLoading(false);
       return;
     }

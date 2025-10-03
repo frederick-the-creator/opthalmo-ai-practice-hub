@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
 import { useAuth } from '@/supabase/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/lib/api";
+import { mapApiError } from "@/lib/utils";
 import type { PracticeRoomWithProfiles, PracticeRound, Case } from '@/types';
 
 // Define the return type for clarity (can be expanded later)
@@ -165,8 +166,10 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         setRoom(latest);
         if (latest) setRoomStage(latest.stage);
       } catch {}
-      setError(err?.response?.data?.error || 'Failed to update stage');
-      return Promise.reject(err?.response?.data?.error || 'Failed to update stage');
+      const { title, description } = mapApiError(err, 'generic');
+      const msg = title + (description ? ": " + description : "");
+      setError(msg || 'Failed to update stage');
+      return Promise.reject(msg || 'Failed to update stage');
     }
   };
 
@@ -187,8 +190,10 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       setRoundNumber(nextRoundNumber);
       setError(null);
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Failed to create new round');
-      return Promise.reject(err?.response?.data?.error || 'Failed to create new round');
+      const { title, description } = mapApiError(err, 'round');
+      const msg = title + (description ? ": " + description : "");
+      setError(msg || 'Failed to create new round');
+      return Promise.reject(msg || 'Failed to create new round');
     }
   };
 
@@ -212,8 +217,10 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         const roundResult = await fetchRoundByRoomAndRoundNumber(roomId, roundNumber);
         setRound(roundResult);
       } catch {}
-      setError(err?.response?.data?.error || 'Failed to set case');
-      return Promise.reject(err?.response?.data?.error || 'Failed to set case');
+      const { title, description } = mapApiError(err, 'round');
+      const msg = title + (description ? ": " + description : "");
+      setError(msg || 'Failed to set case');
+      return Promise.reject(msg || 'Failed to set case');
     }
   };
 
@@ -236,8 +243,10 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
         const roundResult = await fetchRoundByRoomAndRoundNumber(roomId, roundNumber);
         setRound(roundResult);
       } catch {}
-      setError(err?.response?.data?.error || 'Failed to set candidate');
-      return Promise.reject(err?.response?.data?.error || 'Failed to set candidate');
+      const { title, description } = mapApiError(err, 'round');
+      const msg = title + (description ? ": " + description : "");
+      setError(msg || 'Failed to set candidate');
+      return Promise.reject(msg || 'Failed to set candidate');
     }
   };
 

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/supabase/client";
 import { useAuth } from "@/supabase/AuthProvider";
 import { updateProfile } from "@/lib/api";
+import { mapApiError } from "@/lib/utils";
 
 
 const Profile: React.FC = () => {
@@ -35,7 +36,8 @@ const Profile: React.FC = () => {
       try { await reloadProfile(); } catch (_e) {}
       toast({ title: "Profile updated" });
     } catch (err: any) {
-      toast({ title: "Failed to update profile", description: err?.message || String(err), variant: "destructive" });
+      const { title, description } = mapApiError(err, 'profile');
+      toast({ title: title || 'Failed to update profile', description, variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }

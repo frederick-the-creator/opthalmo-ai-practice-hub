@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
 import { startRecording, stopRecording, assessCandidatePerformance } from '@/lib/api';
+import { mapApiError } from '@/lib/utils';
 
 type InterviewControlsProps = {
   room: any | null;
@@ -83,12 +84,9 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
       setRecordingSuccess('Recording started!');
       setTimerActive(true);
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.error || err.message || 'Failed to start recording';
-      if (errorMsg.toLowerCase().includes('not-found')) {
-        setRecordingError('You must join the call to start recording.');
-      } else {
-        setRecordingError(errorMsg);
-      }
+      const { title, description } = mapApiError(err, 'recording');
+      const msg = title + (description ? ': ' + description : '');
+      setRecordingError(msg || 'Failed to start recording');
     } finally {
       setRecordingLoading(false);
     }
@@ -121,12 +119,9 @@ const InterviewControls: React.FC<InterviewControlsProps> = ({ room, round, case
       setStopSuccess('Recording stopped.');
       setHasStoppedRecording(true);
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.error || err.message || 'Failed to stop recording';
-      if (errorMsg.toLowerCase().includes('not-found')) {
-        setStopError('You must join the call to stop recording.');
-      } else {
-        setStopError(errorMsg);
-      }
+      const { title, description } = mapApiError(err, 'recording');
+      const msg = title + (description ? ': ' + description : '');
+      setStopError(msg || 'Failed to stop recording');
     } finally {
       setStopLoading(false);
     }

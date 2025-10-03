@@ -5,19 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Map API booking errors to UI-friendly messages (status-based)
-export function mapBookingError(err: any): { title: string; description?: string } {
-  const status = err?.response?.status
-  const message = err?.response?.data?.error || err?.message || ''
-  if (status === 409) {
-    return { title: 'Already booked', description: 'This session has already been booked.' }
-  }
-  if (status === 403) {
-    return { title: 'Not allowed', description: message || 'You cannot book this session.' }
-  }
-  return { title: 'Request failed', description: message }
-}
-
 type ApiContext = 'booking' | 'reschedule' | 'cancel' | 'round' | 'recording' | 'assessment' | 'profile' | 'generic'
 
 export function mapApiError(err: any, context: ApiContext = 'generic'): { title: string; description?: string } {
