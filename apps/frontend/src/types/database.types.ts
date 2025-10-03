@@ -53,6 +53,7 @@ export type Database = {
           datetime_utc: string | null
           guest_id: string | null
           host_id: string
+          ics_uid: string | null
           id: string
           private: boolean
           room_url: string | null
@@ -63,6 +64,7 @@ export type Database = {
           datetime_utc?: string | null
           guest_id?: string | null
           host_id: string
+          ics_uid?: string | null
           id?: string
           private?: boolean
           room_url?: string | null
@@ -73,6 +75,7 @@ export type Database = {
           datetime_utc?: string | null
           guest_id?: string | null
           host_id?: string
+          ics_uid?: string | null
           id?: string
           private?: boolean
           room_url?: string | null
