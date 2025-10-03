@@ -1,6 +1,6 @@
 import {Router, Request, Response} from 'express'
 import { requireSupabaseUser } from '../utils/supabase'
-import { createPracticeRoom, updatePracticeRoomGuarded } from '../services/practiceRoom';
+import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom';
 import { HttpError } from '../utils/httpError';
 import { updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
 import type { PracticeRoomUpdate } from '../types';
@@ -41,3 +41,21 @@ roomRouter.post('/update', requireSupabaseUser, async (req: Request, res: Respon
 });
 
 export default roomRouter
+  
+// Delete room endpoint: deletes dependent rounds then the room
+roomRouter.delete('/:roomId', requireSupabaseUser, async (req: Request, res: Response) => {
+  const { roomId } = req.params;
+
+  try {
+    const supabaseAuthenticated = req.supabaseAsUser!;
+    const currentUserId = req.supabaseUser?.id as string;
+    const result = await deletePracticeRoomGuarded(supabaseAuthenticated, currentUserId, roomId);
+    res.json(result);
+  } catch (err: any) {
+    if (err instanceof HttpError) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error('Error deleting practice room:', err.response?.data || err.message);
+    res.status(500).json({ error: err.message || 'Failed to delete practice room' });
+  }
+});

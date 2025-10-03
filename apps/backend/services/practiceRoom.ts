@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { TypedSupabaseClient } from '../utils/supabase'
-import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById } from '../repositories/practiceRoom';
-import { createRoundWithReturn } from '../repositories/practiceRound';
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '../repositories/practiceRoom';
+import { createRoundWithReturn, deleteRoundsByRoomId } from '../repositories/practiceRound';
 import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../types';
 import { HttpError } from '../utils';
 import { randomUUID } from 'crypto'
@@ -139,4 +139,28 @@ export async function updatePracticeRoomGuarded(
 
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
   return room;
+}
+
+/**
+ * Delete a practice room and its rounds.
+ * - Only the host can delete the session.
+ * - Deletes dependent `practice_rounds` first, then `practice_rooms`.
+ */
+export async function deletePracticeRoomGuarded(
+  supabaseAuthenticated: TypedSupabaseClient,
+  currentUserId: string,
+  roomId: string
+): Promise<{ deleted: true; roomId: string }> {
+  const existing = await getPracticeRoomById(supabaseAuthenticated, roomId);
+
+  if (existing.hostId !== currentUserId) {
+    throw new HttpError(403, 'Only the host can delete this session');
+  }
+
+  // Delete dependent rows first
+  await deleteRoundsByRoomId(supabaseAuthenticated, roomId);
+  // Then delete the room
+  await deletePracticeRoomById(supabaseAuthenticated, roomId);
+
+  return { deleted: true, roomId };
 }

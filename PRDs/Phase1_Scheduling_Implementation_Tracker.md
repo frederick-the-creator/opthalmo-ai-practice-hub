@@ -56,13 +56,13 @@ Legend
 - Links: PR(s)
 
 ### 4) Cancel (delete) a session (no email yet)
-- Status: [ ]
+ - Status: [x]
 - Owner:
 - Backend
-  - [ ] DELETE `/api/practice-room/:roomId`
-  - [ ] Delete `practice_rounds` then `practice_rooms`
+  - [x] DELETE `/api/practice-room/:roomId`
+  - [x] Delete `practice_rounds` then `practice_rooms`
 - Frontend
-  - [ ] Confirm + delete action; realtime removal
+  - [x] Confirm + delete action; realtime removal
 - Tests/Docs
   - [ ] Integration: delete removes dependent rows
 - Links: PR(s)

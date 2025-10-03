@@ -61,3 +61,15 @@ export async function getPracticeRoomById(supabaseAuthenticated: TypedSupabaseCl
 
 	return PracticeRoomMapper.fromDb(data);
 }
+
+export async function deletePracticeRoomById(supabaseAuthenticated: TypedSupabaseClient, roomId: string): Promise<void> {
+    const { error } = await supabaseAuthenticated
+        .from('practice_rooms')
+        .delete()
+        .eq('id', roomId);
+
+    if (error) {
+        console.log('[deletePracticeRoomById] DB error: ', error)
+        throw new Error(error.message || 'Failed to delete room');
+    }
+}

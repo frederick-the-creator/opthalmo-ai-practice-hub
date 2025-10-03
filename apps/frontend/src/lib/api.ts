@@ -101,3 +101,8 @@ export async function updateProfile({ userId, firstName, lastName, avatar }: { u
   const { data } = await api.post("/profile/update", { updateFields });
   return data.profile;
 }
+
+export async function cancelRoom(roomId: string) {
+  const { data } = await api.delete(`/practice-room/${roomId}`);
+  return data as { deleted: true; roomId: string };
+}

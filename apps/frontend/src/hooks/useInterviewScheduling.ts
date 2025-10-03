@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
-import { createRoom, setRoomGuest, rescheduleRoom } from "@/lib/api";
+import { createRoom, setRoomGuest, rescheduleRoom, cancelRoom } from "@/lib/api";
 import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
 import { mapApiError } from "@/lib/utils";
 import type { PracticeRoomWithProfiles } from "@/types";
@@ -19,6 +19,7 @@ export interface UseInterviewSchedulingResult {
   handleAcceptInvitation: (roomId: string) => Promise<void>;
   handleScheduleRoom: () => Promise<void>;
   handleReschedule: (roomId: string, newDate: Date, newTime: string) => Promise<void>;
+  handleCancel: (roomId: string) => Promise<void>;
   handleCopyLink: () => void;
   copied: boolean;
   isPrivate: boolean;
@@ -167,6 +168,25 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
   };
 
+  // Handle canceling a room (host only)
+  const handleCancel = async (roomId: string) => {
+    if (!user) {
+      setError("You must be logged in to cancel a session.");
+      return;
+    }
+    try {
+      // Optimistic removal
+      setRooms(prev => prev.filter(r => r.id !== roomId));
+      await cancelRoom(roomId);
+      // Realtime will notify others
+    } catch (err: any) {
+      const { title, description } = mapApiError(err, 'round');
+      setError(title + (description ? ": " + description : ""));
+      // Revert by refetching
+      await fetchRooms();
+    }
+  };
+
 
   // Helper to fetch rooms
   const fetchRooms = async () => {
@@ -208,6 +228,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     handleAcceptInvitation,
     handleScheduleRoom,
     handleReschedule,
+    handleCancel,
     handleCopyLink,
     copied,
     isPrivate,

@@ -10,7 +10,7 @@ const InterviewScheduling: React.FC = () => {
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
     scheduling, scheduleError,
-    handleAcceptInvitation, handleScheduleRoom, handleReschedule,
+    handleAcceptInvitation, handleScheduleRoom, handleReschedule, handleCancel,
     isPrivate, setIsPrivate,
   } = useInterviewScheduling();
   const navigate = useNavigate();
@@ -40,6 +40,7 @@ const InterviewScheduling: React.FC = () => {
             onAccept={handleAcceptInvitation}
             onJoin={handleJoin}
             onReschedule={handleReschedule}
+            onCancel={handleCancel}
           />
         </div>
         <SchedulePanel

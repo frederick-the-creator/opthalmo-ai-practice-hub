@@ -18,6 +18,7 @@ interface Props {
   onAccept: (roomId: string) => void;
   onJoin: (room: PracticeRoomWithProfiles) => void;
   onReschedule?: (roomId: string, newDate: Date, newTime: string) => void;
+  onCancel?: (roomId: string) => void;
 }
 
 const RoomListPanel: React.FC<Props> = ({
@@ -27,6 +28,7 @@ const RoomListPanel: React.FC<Props> = ({
   onAccept,
   onJoin,
   onReschedule,
+  onCancel,
 }) => {
   const { user } = useAuth();
   const [rescheduleRoomId, setRescheduleRoomId] = React.useState<string | null>(null);
@@ -66,6 +68,13 @@ const RoomListPanel: React.FC<Props> = ({
     await onReschedule(rescheduleRoomId, rescheduleDate, rescheduleTime);
     setRescheduleRoomId(null);
   };
+
+  const confirmAndCancel = async (roomId: string) => {
+    if (!onCancel) return;
+    const ok = window.confirm('Are you sure you want to cancel this session? This cannot be undone.');
+    if (!ok) return;
+    await onCancel(roomId);
+  }
   // Helper to get host and guest profile info
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, currentUserId: string | null) => {
     const hostProfile = room.hostProfile || null;
@@ -187,6 +196,16 @@ const RoomListPanel: React.FC<Props> = ({
                         onClick={() => openRescheduleDialog(room)}
                       >
                         Reschedule
+                      </Button>
+                    )}
+                    {isHost && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => confirmAndCancel(room.id)}
+                      >
+                        Cancel
                       </Button>
                     )}
                     {room.private && isHost && room.roomUrl && (

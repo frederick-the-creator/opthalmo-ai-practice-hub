@@ -15,7 +15,7 @@ console.log('FRONTEND_URL:', FRONTEND_URL);
 
 app.use(cors({
   origin: FRONTEND_URL,
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
