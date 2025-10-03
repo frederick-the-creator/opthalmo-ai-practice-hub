@@ -45,7 +45,7 @@ export const PracticeRoomMapper = {
 			room_url: insert.roomUrl ?? null,
 			ics_uid: insert.icsUid ?? null,
 			private: insert.private ?? false,
-			created_at: insert.createdAt ?? null,
+			created_at: insert.createdAt ?? undefined,
 			datetime_utc: insert.datetimeUtc ?? null,
 		}
 	},
