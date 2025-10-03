@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/supabase/AuthProvider";
-import { createRoom, setRoomGuest } from "@/lib/api";
+import { createRoom, setRoomGuest, rescheduleRoom } from "@/lib/api";
 import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
 import { mapApiError } from "@/lib/utils";
 import type { PracticeRoomWithProfiles } from "@/types";
@@ -18,6 +18,7 @@ export interface UseInterviewSchedulingResult {
   scheduleError: string | null;
   handleAcceptInvitation: (roomId: string) => Promise<void>;
   handleScheduleRoom: () => Promise<void>;
+  handleReschedule: (roomId: string, newDate: Date, newTime: string) => Promise<void>;
   handleCopyLink: () => void;
   copied: boolean;
   isPrivate: boolean;
@@ -134,6 +135,38 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     }
   };
 
+  // Handle rescheduling an existing room (host only)
+  const handleReschedule = async (roomId: string, newDate: Date, newTime: string) => {
+    if (!user) {
+      setError("You must be logged in to reschedule a room.");
+      return;
+    }
+    try {
+      const [hours, minutes] = newTime.split(":").map(Number);
+      const updatedLocal = new Date(
+        newDate.getFullYear(),
+        newDate.getMonth(),
+        newDate.getDate(),
+        hours,
+        minutes,
+        0,
+        0
+      );
+      const datetimeUtc = updatedLocal.toISOString();
+
+      // Optimistic update: update local list first
+      setRooms(prev => prev.map(r => r.id === roomId ? { ...r, datetimeUtc } : r));
+
+      await rescheduleRoom({ roomId, datetimeUtc });
+      // Realtime will also sync; if backend rejects, we revert below
+    } catch (err: any) {
+      const { title, description } = mapApiError(err, 'reschedule');
+      setError(title + (description ? ": " + description : ""));
+      // Revert by refetching
+      await fetchRooms();
+    }
+  };
+
 
   // Helper to fetch rooms
   const fetchRooms = async () => {
@@ -174,6 +207,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     scheduleError,
     handleAcceptInvitation,
     handleScheduleRoom,
+    handleReschedule,
     handleCopyLink,
     copied,
     isPrivate,

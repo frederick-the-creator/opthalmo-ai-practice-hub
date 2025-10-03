@@ -2,7 +2,7 @@
 
 - Related PRD: [Combined_PRD_Scheduling_MVP_and_Google_Integration.docx.md](./Combined_PRD_Scheduling_MVP_and_Google_Integration.docx.md)
 - Vertical Slices: [Phase1_Scheduling_Vertical_Slices.md](./Phase1_Scheduling_Vertical_Slices.md)
-- Last updated: TBD
+- Last updated: 2025-10-03
 
 Legend
 - [ ] Not started
@@ -29,27 +29,27 @@ Legend
 - Links: PR(s)
 
 ### 2) Book an open session (guarded, no email yet)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] POST `/api/practice-room/update` sets `guest_id` if null
-  - [ ] Return 409 if already booked; prevent host booking
+  - [x] POST `/api/practice-room/update` sets `guest_id` if null
+  - [x] Return 409 if already booked; prevent host booking
 - Frontend
-  - [ ] "Book" action for non-host when `guest_id` is null
-  - [ ] Handle 409 with toast; realtime reflects booking
+  - [x] "Book" action for non-host when `guest_id` is null
+  - [x] Handle 409 with toast; realtime reflects booking
 - Tests/Docs
   - [ ] Unit: booking guard logic
   - [ ] Integration: first booking ok, second 409
 - Links: PR(s)
 
 ### 3) Reschedule a session (no email yet)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Allow `datetime_utc` update; validate future timestamp
+  - [x] Allow `datetime_utc` update; validate future timestamp
 - Frontend
-  - [ ] Host reschedule control; optimistic UI
-  - [ ] Realtime updates across clients
+  - [x] Host reschedule control; optimistic UI
+  - [x] Realtime updates across clients
 - Tests/Docs
   - [ ] Unit: date validation
   - [ ] Integration: reschedule reflects in reads/realtime

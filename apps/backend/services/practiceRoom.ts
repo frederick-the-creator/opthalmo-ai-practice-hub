@@ -99,9 +99,10 @@ export async function updatePracticeRoomGuarded(
   currentUserId: string,
   updateFields: PracticeRoomUpdate
 ): Promise<PracticeRoom> {
-  if (updateFields.guestId !== undefined) {
-    const existing = await getPracticeRoomById(supabaseAuthenticated, updateFields.roomId);
+  const existing = await getPracticeRoomById(supabaseAuthenticated, updateFields.roomId);
 
+  // Booking guard
+  if (updateFields.guestId !== undefined) {
     if (existing.hostId === currentUserId) {
       throw new HttpError(403, 'Host cannot book own session');
     }
@@ -112,6 +113,27 @@ export async function updatePracticeRoomGuarded(
 
     if (existing.guestId) {
       throw new HttpError(409, 'Session already booked');
+    }
+  }
+
+  // Reschedule guard: only host can change datetime; must be future
+  if (updateFields.datetimeUtc !== undefined) {
+    if (existing.hostId !== currentUserId) {
+      throw new HttpError(403, 'Only the host can reschedule the session');
+    }
+
+    if (updateFields.datetimeUtc == null) {
+      throw new HttpError(400, 'Invalid datetime');
+    }
+
+    const newDate = new Date(updateFields.datetimeUtc);
+    if (isNaN(newDate.getTime())) {
+      throw new HttpError(400, 'Invalid datetime');
+    }
+
+    const now = new Date();
+    if (newDate.getTime() <= now.getTime()) {
+      throw new HttpError(400, 'Please select a valid future date/time.');
     }
   }
 

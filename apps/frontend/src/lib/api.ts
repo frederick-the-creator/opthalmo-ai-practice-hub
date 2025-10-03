@@ -49,6 +49,12 @@ export async function setRoomStage({ roomId, stage }: { roomId: string, stage: s
   return data.room;
 }
 
+export async function rescheduleRoom({ roomId, datetimeUtc }: { roomId: string, datetimeUtc: string }) {
+  const updateFields = { roomId, datetimeUtc };
+  const { data } = await api.post("/practice-room/update", { updateFields });
+  return data.room;
+}
+
 export async function createRound({ roomId, roundNumber }: { roomId: string, roundNumber: number }) {
   const createFields = { roomId, roundNumber }
   const { data } = await api.post("/practice-round/create", { createFields });

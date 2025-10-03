@@ -2,6 +2,10 @@ import { useAuth } from "@/supabase/AuthProvider";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -13,6 +17,7 @@ interface Props {
   error: string | null;
   onAccept: (roomId: string) => void;
   onJoin: (room: PracticeRoomWithProfiles) => void;
+  onReschedule?: (roomId: string, newDate: Date, newTime: string) => void;
 }
 
 const RoomListPanel: React.FC<Props> = ({
@@ -21,8 +26,46 @@ const RoomListPanel: React.FC<Props> = ({
   error,
   onAccept,
   onJoin,
+  onReschedule,
 }) => {
   const { user } = useAuth();
+  const [rescheduleRoomId, setRescheduleRoomId] = React.useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = React.useState<Date | undefined>(undefined);
+  const [rescheduleTime, setRescheduleTime] = React.useState<string>("12:00");
+  const timeOptions = React.useMemo(() => {
+    const options: string[] = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const hourString = String(hour).padStart(2, "0");
+        const minuteString = String(minute).padStart(2, "0");
+        options.push(`${hourString}:${minuteString}`);
+      }
+    }
+    return options;
+  }, []);
+
+  const openRescheduleDialog = (room: PracticeRoomWithProfiles) => {
+    try {
+      const dt = room.datetimeUtc ? new Date(room.datetimeUtc) : new Date();
+      setRescheduleDate(dt);
+      const hrs = String(dt.getHours()).padStart(2, '0');
+      const mins = String(dt.getMinutes() - (dt.getMinutes() % 15)).padStart(2, '0');
+      setRescheduleTime(`${hrs}:${mins}`);
+    } catch (_e) {
+      setRescheduleDate(new Date());
+      setRescheduleTime("12:00");
+    }
+    setRescheduleRoomId(room.id);
+  };
+
+  const submitReschedule = async () => {
+    if (!rescheduleRoomId || !rescheduleDate || !rescheduleTime || !onReschedule) {
+      setRescheduleRoomId(null);
+      return;
+    }
+    await onReschedule(rescheduleRoomId, rescheduleDate, rescheduleTime);
+    setRescheduleRoomId(null);
+  };
   // Helper to get host and guest profile info
   const getHostAndGuestProfiles = (room: PracticeRoomWithProfiles, currentUserId: string | null) => {
     const hostProfile = room.hostProfile || null;
@@ -57,6 +100,7 @@ const RoomListPanel: React.FC<Props> = ({
   );
 
   return (
+    <>
     <Tabs defaultValue="schedule" className="p-0">
       <TabsList className="grid w-full grid-cols-2 mb-4">
         <TabsTrigger value="schedule">Available rooms</TabsTrigger>
@@ -134,6 +178,17 @@ const RoomListPanel: React.FC<Props> = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {isHost && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="border-gray-300"
+                        onClick={() => openRescheduleDialog(room)}
+                      >
+                        Reschedule
+                      </Button>
+                    )}
                     {room.private && isHost && room.roomUrl && (
                       <Button
                         type="button"
@@ -177,6 +232,45 @@ const RoomListPanel: React.FC<Props> = ({
         </ul>
       </TabsContent>
     </Tabs>
+
+    <Dialog open={!!rescheduleRoomId} onOpenChange={(open) => !open && setRescheduleRoomId(null)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reschedule session</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Calendar
+              mode="single"
+              selected={rescheduleDate}
+              onSelect={setRescheduleDate}
+              fromDate={new Date()}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="time">Time</Label>
+            <Select value={rescheduleTime} onValueChange={setRescheduleTime}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((time) => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setRescheduleRoomId(null)}>Cancel</Button>
+          <Button onClick={submitReschedule} className="bg-primary">Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
