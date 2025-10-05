@@ -53,9 +53,8 @@
 ### 5) ICS + Notification infrastructure (dark launch)
 - **User story**: As an operator, I can generate ICS payloads and simulate email sends in logs without contacting users.
 - **Backend**
-  - New `services/ics.ts`: `buildIcs({ uid, method, startUtc, endUtc, summary, organizer, attendees, status })`.
-  - New `services/notification.ts`: provider-agnostic; implement “dry-run” logging behind `NOTIFICATIONS_ENABLED=false`.
-  - Admin Supabase client in `utils/supabase.ts` to resolve host/guest emails by `user_id`.
+  - `services/notification.ts`: contains `buildIcs({ uid, method, startUtc, endUtc, summary, organizer, attendees, status })` (inlined ICS builder) and provider-agnostic send with “dry-run” logging behind `NOTIFICATIONS_ENABLED=false`.
+  - Admin Supabase client in `utils/supabase.ts` (using `SUPABASE_SECRET_KEY`) to resolve host/guest emails by `user_id`.
 - **Acceptance**
   - Booking/reschedule/delete paths call notification layer in dry-run mode and log payloads.
   - No actual emails sent while `NOTIFICATIONS_ENABLED=false`.

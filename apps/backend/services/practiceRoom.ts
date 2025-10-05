@@ -5,6 +5,7 @@ import { createRoundWithReturn, deleteRoundsByRoomId } from '../repositories/pra
 import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../types';
 import { HttpError } from '../utils';
 import { randomUUID } from 'crypto'
+import { sendIcsEmail } from './notification'
 
 
 
@@ -99,6 +100,7 @@ export async function updatePracticeRoomGuarded(
   currentUserId: string,
   updateFields: PracticeRoomUpdate
 ): Promise<PracticeRoom> {
+  console.log('Update service')
   const existing = await getPracticeRoomById(supabaseAuthenticated, updateFields.roomId);
 
   // Booking guard
@@ -137,7 +139,17 @@ export async function updatePracticeRoomGuarded(
     }
   }
 
+  const isBooking = updateFields.guestId !== undefined && existing.guestId == null && updateFields.guestId !== null
+  const isReschedule = updateFields.datetimeUtc !== undefined && updateFields.datetimeUtc != null && updateFields.datetimeUtc !== existing.datetimeUtc
+
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
+
+  // Dark-launch: log ICS payloads for booking/reschedule
+  try {
+    if (isBooking || isReschedule) await sendIcsEmail('REQUEST', room)
+  } catch (e: any) {
+    console.warn('[updatePracticeRoomGuarded] notification failed (ignored):', e?.message)
+  }
   return room;
 }
 
@@ -155,6 +167,13 @@ export async function deletePracticeRoomGuarded(
 
   if (existing.hostId !== currentUserId) {
     throw new HttpError(403, 'Only the host can delete this session');
+  }
+
+  // Dark-launch: send CANCEL before deletion
+  try {
+    await sendIcsEmail('CANCEL', existing)
+  } catch (e: any) {
+    console.warn('[deletePracticeRoomGuarded] notification failed (ignored):', e?.message)
   }
 
   // Delete dependent rows first

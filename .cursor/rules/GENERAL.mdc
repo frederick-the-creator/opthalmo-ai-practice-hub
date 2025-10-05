@@ -65,6 +65,7 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
   - Prefer importing shared TypeScript types from `apps/backend/types/index.ts` (e.g., `PracticeRoomUpdate`) instead of defining inline ad-hoc shapes in routes or services.
   - Keep mappers in `types/index.ts` the single source of truth for DB <-> domain conversions.
   - On the frontend, prefer importing domain/view types from `apps/frontend/src/types/index.ts` (e.g., `PracticeRoomWithProfiles`) instead of re-declaring shapes in components or hooks.
+  - All new backend types (including service DTOs like ICS/notifications) must be defined and exported from `apps/backend/types/index.ts`. Do not declare ad-hoc types inside services/routes.
 
 - Error handling
   - Use central error utilities (e.g., `HttpError`) to carry HTTP status codes from services to routes.

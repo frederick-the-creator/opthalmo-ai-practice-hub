@@ -23,6 +23,7 @@ roomRouter.post('/create', requireSupabaseUser, async (req: Request, res: Respon
 });
   
 roomRouter.post('/update', requireSupabaseUser, async (req: Request, res: Response) => {
+    console.log('Update route')
     const { updateFields } = req.body as { updateFields: PracticeRoomUpdate };
 
     try {

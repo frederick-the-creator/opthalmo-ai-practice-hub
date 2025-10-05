@@ -4,6 +4,7 @@ import type { Database } from '../types/database.types'
 
 export const SUPABASE_URL = process.env.SUPABASE_URL as string;
 export const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY as string;
+export const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY as string | undefined;
 
 export type TypedSupabaseClient = SupabaseClient<Database>;
 
@@ -54,4 +55,15 @@ export async function requireSupabaseUser(req: Request, res: Response, next: Nex
   } catch (e: any) {
     return res.status(500).json({ error: e?.message || 'Auth middleware failed' });
   }
+}
+
+/**
+ * Create a Supabase client authenticated with the Secret key (admin privileges).
+ * Used by services to access auth.admin endpoints.
+ */
+export function createAdminSupabaseClient(): SupabaseClient<Database> {
+  if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
+    throw new Error('Supabase admin client not configured. Missing SUPABASE_URL or SUPABASE_SECRET_KEY');
+  }
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SECRET_KEY);
 }

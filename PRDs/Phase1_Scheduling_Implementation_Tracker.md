@@ -68,16 +68,15 @@ Legend
 - Links: PR(s)
 
 ### 5) ICS + Notification infrastructure (dark launch)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] `services/ics.ts` — `buildIcs(...)`
-  - [ ] `services/notification.ts` — provider-agnostic; dry-run logging
-  - [ ] Supabase Admin client to resolve emails by `user_id`
-  - [ ] Wire dry-run calls on booking/reschedule/delete paths
+  - [x] `services/notification.ts` — inlined `buildIcs(...)` and provider-agnostic send with dry-run logging
+  - [x] Supabase Admin client in `utils/supabase.ts` using `SUPABASE_SECRET_KEY` to resolve emails by `user_id`
+  - [x] Wire dry-run calls on booking/reschedule/delete paths
 - Config/Docs
   - [ ] `NOTIFICATIONS_ENABLED=false` in lower envs
-  - [ ] README: provider keys, `SUPABASE_SERVICE_ROLE_KEY`
+  - [ ] README: provider keys, `SUPABASE_SECRET_KEY`
 - Tests
   - [ ] Unit: ICS fields, deterministic UID usage
 - Links: PR(s)
