@@ -161,6 +161,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       setRooms(prev => prev.map(r => r.id === roomId ? { ...r, datetimeUtc } : r));
 
       await rescheduleRoom({ roomId, datetimeUtc });
+      toast({ title: 'Session rescheduled', description: 'Updated calendar invite will arrive by email.' });
       // Realtime will also sync; if backend rejects, we revert below
     } catch (err: any) {
       const { title, description } = mapApiError(err, 'reschedule');
@@ -180,9 +181,10 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Optimistic removal
       setRooms(prev => prev.filter(r => r.id !== roomId));
       await cancelRoom(roomId);
+      toast({ title: 'Session cancelled', description: 'Cancellation email has been sent.' });
       // Realtime will notify others
     } catch (err: any) {
-      const { title, description } = mapApiError(err, 'round');
+      const { title, description } = mapApiError(err, 'cancel');
       setError(title + (description ? ": " + description : ""));
       // Revert by refetching
       await fetchRooms();

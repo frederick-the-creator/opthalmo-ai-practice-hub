@@ -99,7 +99,7 @@ Legend
 - Backend
   - [x] Detect `datetime_utc` change and send METHOD:REQUEST with same `UID` (only if guest booked)
 - Frontend
-  - [ ] Success toast mentions updated invite
+  - [x] Success toast mentions updated invite
 - Tests
   - [ ] Integration: both parties receive updated ICS
 - Links: PR(s)
@@ -111,7 +111,7 @@ Legend
   - [x] In DELETE path, send METHOD:CANCEL to host (+ guest if exists) pre-delete; skip if no guest
   - [x] Delete rounds then room
 - Frontend
-  - [ ] Success toast mentions cancellation sent
+  - [x] Success toast mentions cancellation sent
 - Tests
   - [ ] Integration: CANCEL sent and rows deleted afterwards
 - Links: PR(s)
