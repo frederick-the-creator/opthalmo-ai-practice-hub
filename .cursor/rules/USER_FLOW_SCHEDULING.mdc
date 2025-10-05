@@ -21,23 +21,48 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 - Actions:
   - Create room: `createRoom({ hostId, datetimeUtc, private })` → POST `/api/practice-room/create`.
   - Accept invite: `setRoomGuest({ roomId, guestId })` → POST `/api/practice-room/update`.
+  - Reschedule: `rescheduleRoom({ roomId, datetimeUtc })` → POST `/api/practice-room/update`.
+  - Cancel: `cancelRoom(roomId)` → DELETE `/api/practice-room/:roomId`.
   - Lists and detail reads: `fetchAllRooms()`, `fetchRoomsForUser(userId)`, `fetchRoomWithProfiles(roomId)`.
   - Realtime: `subscribeToAllPracticeRooms()` for lists; `subscribeToPracticeRoomByRoomId({ roomId })` for detail pages.
 
 - Auth: Axios interceptor injects `Authorization: Bearer <supabase.access_token>` on all API calls.
 
+- UX states:
+  - "Accept Invitation" is shown for non-hosts on public/open rooms and disabled when a guest is already present.
+  - Host-only reschedule dialog enforces future date/time; optimistic update with toast feedback.
+  - Cancel shows a confirm dialog; optimistic removal with toast; realtime sync updates other viewers.
+
 ## Backend
 
 - Endpoints (mounted in `app.ts` under `/api`):
   - POST `/practice-room/create` → `createPracticeRoom(...)` service
-  - POST `/practice-room/update` → `updatePracticeRoomWithReturn(...)` repository
+  - POST `/practice-room/update` → `updatePracticeRoomGuarded(...)` service
+  - DELETE `/practice-room/:roomId` → `deletePracticeRoomGuarded(...)` service
   - Middleware: `requireSupabaseUser` validates token and exposes `req.supabaseAsUser`.
 
 - Services/Repositories:
   - Service: [`apps/backend/services/practiceRoom.ts`](mdc:apps/backend/services/practiceRoom.ts)
     - `createPracticeRoom(supabaseAuthenticated, { hostId, datetimeUtc, private })`:
-      - Uses repository to insert `practice_rooms` row.
-      - Immediately creates initial `practice_rounds` row with `round_number = 1` via `createRoundWithReturn`.
+    - Provisions a Daily.co room via `createDailyRoom()` and persists `room_url`.
+    - Generates and persists stable `ics_uid` (UUID v4) used across the ICS lifecycle.
+    - Uses repository to insert `practice_rooms` row with `stage: "Prep"` and `private` flag.
+    - Immediately creates initial `practice_rounds` row with `round_number = 1` via `createRoundWithReturn`.
+  - `updatePracticeRoomGuarded(supabaseAuthenticated, currentUserId, updateFields)`:
+    - Booking guards:
+      - 403: host cannot book own session.
+      - 403: requester can only book themselves as guest.
+      - 409: if `guest_id` already set, do not overwrite.
+    - Reschedule guards:
+      - 403: only host can reschedule.
+      - 400: `datetimeUtc` must be a valid future timestamp.
+    - Notifications:
+      - Sends ICS `METHOD: REQUEST` on first successful booking.
+      - Sends ICS `METHOD: REQUEST` update on reschedule only if a guest is booked.
+  - `deletePracticeRoomGuarded(supabaseAuthenticated, currentUserId, roomId)`:
+    - 403: only host can delete; 404 when room not found.
+    - Sends ICS `METHOD: CANCEL` only if a guest had booked.
+    - Deletes dependent `practice_rounds` first, then the `practice_rooms` row.
   - Repository: [`apps/backend/repositories/practiceRoom.ts`](mdc:apps/backend/repositories/practiceRoom.ts)
     - `createRoomWithReturn`
     - `updatePracticeRoomWithReturn`
@@ -53,6 +78,7 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
     - `guest_id` (uuid, nullable)
     - `stage` (text)
     - `room_url` (text, nullable)
+    - `ics_uid` (text, stable ICS UID)
     - `private` (boolean)
     - `created_at` (timestamptz)
     - `datetime_utc` (timestamptz)
@@ -81,4 +107,56 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 - If `guest_id` is already set, acceptance should be gated in UI.
 - On missing `datetimeUtc` or invalid date, surface API error to user.
 - Invite acceptance page loads current room via `fetchRoomWithProfiles(roomId)`; if not found, show a friendly error.
+
+## Lifecycle details
+
+- Create scheduled room (no email on create):
+  - On create, the backend provisions a Daily.co room, persists `room_url`, generates `ics_uid` (UUID v4), sets `stage: "Prep"`, and seeds the first `practice_rounds` with `round_number = 1`.
+  - Typical errors: 401 (missing/invalid token), 500 (provider/DB error).
+  - No ICS/email is sent at creation time. Session appears in lists immediately via realtime.
+
+- Book an open session (guard against overwrite):
+  - POST update with `{ roomId, guestId: <currentUser> }` applies guards (403/409 as above).
+  - On first successful booking, backend sends ICS `METHOD: REQUEST` to host and guest (gated by flags below).
+  - Frontend shows success toast indicating a calendar invite; subsequent attempts return 409.
+
+- Reschedule a session:
+  - Host-only change of `datetime_utc` to a valid future timestamp; invalid/past returns 400.
+  - If a guest is booked, backend sends ICS `METHOD: REQUEST` update; otherwise no email is sent.
+  - Frontend performs optimistic update with proper error mapping and realtime sync.
+
+- Cancel (delete) a session:
+  - Host-only. If a guest had booked, backend sends ICS `METHOD: CANCEL` before deletion.
+  - Deletes dependent `practice_rounds` then the `practice_rooms` row. 404 when deleting a non-existent room.
+  - Frontend removes from list optimistically; realtime removes for others.
+
+## ICS and notifications (dark launch → enable later)
+
+- Builder and payloads:
+  - `apps/backend/services/notification.ts` constructs ICS via `buildIcs({ uid, method, startUtc, endUtc, summary, organizer, attendees, status })` with UTC timestamps and escaped text fields.
+  - Separate per-recipient emails are sent; each ICS lists only that attendee as `ATTENDEE`. `ORGANIZER` is derived from `NOTIFICATIONS_FROM_EMAIL`.
+- Sending and retries:
+  - Provider-agnostic `sendNotification` logs payloads when disabled and retries with basic exponential backoff when enabled.
+  - Resend provider is used when enabled and supports `NOTIFICATIONS_REDIRECT_TO` to route emails in dev.
+- Triggers:
+  - Booking: sends `REQUEST` to host and guest on first booking.
+  - Reschedule: sends `REQUEST` update when time changes and a guest is present.
+  - Cancel: sends `CANCEL` if booked.
+- Flags/env:
+  - `NOTIFICATIONS_ENABLED=false` (default) → dry-run logs only; no emails are sent.
+  - `NOTIFICATIONS_FROM_EMAIL` required when enabled; `NOTIFICATIONS_REDIRECT_TO` optional for dev routing.
+
+## Data and identifier notes
+
+- `practice_rooms.ics_uid` is set on create and used as the stable ICS `UID` across booking/reschedule/cancel.
+- If `ics_uid` is missing for legacy data, an ephemeral fallback `ephemeral-<roomId>` is used for logging; consider backfilling as an improvement.
+
+## HTTP semantics and error mapping
+
+- 400: Invalid request (e.g., invalid or past `datetimeUtc`).
+- 401: Missing/invalid token.
+- 403: Not allowed (host-only operations; booking self constraints).
+- 404: Not found (e.g., deleting a non-existent room).
+- 409: Conflict (already booked).
+- 5xx: Provider/DB errors; show retry-friendly messaging on the frontend.
 
