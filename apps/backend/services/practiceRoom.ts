@@ -163,7 +163,15 @@ export async function deletePracticeRoomGuarded(
   currentUserId: string,
   roomId: string
 ): Promise<{ deleted: true; roomId: string }> {
-  const existing = await getPracticeRoomById(supabaseAuthenticated, roomId);
+  let existing: PracticeRoom
+  try {
+    existing = await getPracticeRoomById(supabaseAuthenticated, roomId);
+  } catch (e: any) {
+    if (e?.message === 'Room not found') {
+      throw new HttpError(404, 'Room not found');
+    }
+    throw e
+  }
 
   if (existing.hostId !== currentUserId) {
     throw new HttpError(403, 'Only the host can delete this session');
