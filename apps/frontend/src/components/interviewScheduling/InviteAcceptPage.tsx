@@ -41,7 +41,7 @@ const InviteAcceptPage: React.FC = () => {
     setAccepting(true);
     try {
       await setRoomGuest({ roomId: roomId, guestId: user.id });
-      toast({ title: "Room accepted!" });
+      toast({ title: "Room accepted!", description: "A calendar invite will arrive by email." });
       // If the room has a roomUrl, send the user straight to the interview room
       if (room?.roomUrl) {
         navigate(`/interview-practice-room?roomId=${roomId}`);

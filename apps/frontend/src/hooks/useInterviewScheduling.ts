@@ -3,6 +3,7 @@ import { useAuth } from "@/supabase/AuthProvider";
 import { createRoom, setRoomGuest, rescheduleRoom, cancelRoom } from "@/lib/api";
 import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
 import { mapApiError } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 import type { PracticeRoomWithProfiles } from "@/types";
 
 
@@ -81,6 +82,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setError(null);
     try {
       await setRoomGuest({ roomId, guestId: user.id });
+      toast({ title: 'Room accepted!', description: 'A calendar invite will arrive by email.' });
       setLoading(false);
       // No need to refetch, realtime will update
     } catch (err: any) {

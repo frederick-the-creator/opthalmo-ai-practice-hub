@@ -144,9 +144,9 @@ export async function updatePracticeRoomGuarded(
 
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
 
-  // Dark-launch: log ICS payloads for booking/reschedule
+  // Send REQUEST on booking; for reschedule, only if a guest is present
   try {
-    if (isBooking || isReschedule) await sendIcsEmail('REQUEST', room)
+    if (isBooking || (isReschedule && existing.guestId)) await sendIcsEmail('REQUEST', room)
   } catch (e: any) {
     console.warn('[updatePracticeRoomGuarded] notification failed (ignored):', e?.message)
   }
@@ -169,11 +169,13 @@ export async function deletePracticeRoomGuarded(
     throw new HttpError(403, 'Only the host can delete this session');
   }
 
-  // Dark-launch: send CANCEL before deletion
-  try {
-    await sendIcsEmail('CANCEL', existing)
-  } catch (e: any) {
-    console.warn('[deletePracticeRoomGuarded] notification failed (ignored):', e?.message)
+  // Send CANCEL only if a guest had booked the session
+  if (existing.guestId) {
+    try {
+      await sendIcsEmail('CANCEL', existing)
+    } catch (e: any) {
+      console.warn('[deletePracticeRoomGuarded] notification failed (ignored):', e?.message)
+    }
   }
 
   // Delete dependent rows first

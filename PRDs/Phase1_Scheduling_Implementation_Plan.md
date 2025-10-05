@@ -62,9 +62,10 @@
 ### 6) Booking emails (REQUEST) enabled
 - **User story**: As a host and guest, when a session is booked I receive an Email/ICS invite.
 - **Backend**
-  - On `guest_id: null → uuid`, send ICS METHOD:REQUEST to both emails (stable `ics_uid`).
-  - Use Admin client to fetch emails; include `UID`, `DTSTART/DTEND` UTC, `ORGANIZER`, both `ATTENDEE`s.
-  - Add basic retries and log outcomes.
+  - On `guest_id: null → uuid`, send ICS METHOD:REQUEST to host and guest separately (stable `ics_uid`).
+  - Privacy: each recipient receives an ICS listing only themselves as ATTENDEE; `ORGANIZER` is taken from `NOTIFICATIONS_FROM_EMAIL`.
+  - Use Admin client to fetch emails; include `UID`, `DTSTART/DTEND` in UTC, `ORGANIZER`, `ATTENDEE` (single).
+  - Add basic retries and log outcomes. Provider: Resend behind `NOTIFICATIONS_ENABLED=true`. Optional `NOTIFICATIONS_REDIRECT_TO` for dev-only routing.
 - **Frontend**
   - Booking success toast mentions “calendar invite will arrive by email.”
 - **Acceptance**
@@ -75,6 +76,7 @@
 - **User story**: As a host and guest, when a session time changes I receive an updated Email/ICS.
 - **Backend**
   - Detect `datetime_utc` change and send METHOD:REQUEST with same `UID`.
+  - Only send if a guest is already booked; emails sent separately to host and guest as above.
 - **Frontend**
   - Reschedule success toast mentions updated invite.
 - **Acceptance**
@@ -83,7 +85,8 @@
 ### 8) Cancel emails (CANCEL)
 - **User story**: As a host and guest, when a session is deleted I receive a cancellation Email/ICS.
 - **Backend**
-  - In DELETE route, before deletion, send METHOD:CANCEL to host and (if exists) guest with same `UID`.
+  - In DELETE route, before deletion, send METHOD:CANCEL to host and guest separately with same `UID`.
+  - If no guest is booked yet, do not send a cancellation email.
   - Then delete `practice_rounds` followed by `practice_rooms`.
 - **Frontend**
   - Delete success toast mentions cancellation sent.

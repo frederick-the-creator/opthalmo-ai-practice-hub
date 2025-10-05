@@ -82,22 +82,22 @@ Legend
 - Links: PR(s)
 
 ### 6) Booking emails (REQUEST)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Detect `guest_id: null → uuid` and send METHOD:REQUEST to host + guest
-  - [ ] Retries with logging; stable `UID`
+  - [x] Detect `guest_id: null → uuid` and send METHOD:REQUEST to host + guest
+  - [x] Retries with logging; stable `UID`
 - Frontend
-  - [ ] Success toast mentions calendar invite
+  - [x] Success toast mentions calendar invite
 - Tests
   - [ ] Integration: two emails on first booking; none on 409
 - Links: PR(s)
 
 ### 7) Reschedule emails (REQUEST update)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Detect `datetime_utc` change and send METHOD:REQUEST with same `UID`
+  - [x] Detect `datetime_utc` change and send METHOD:REQUEST with same `UID` (only if guest booked)
 - Frontend
   - [ ] Success toast mentions updated invite
 - Tests
@@ -105,11 +105,11 @@ Legend
 - Links: PR(s)
 
 ### 8) Cancel emails (CANCEL)
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] In DELETE path, send METHOD:CANCEL to host (+ guest if exists) pre-delete
-  - [ ] Delete rounds then room
+  - [x] In DELETE path, send METHOD:CANCEL to host (+ guest if exists) pre-delete; skip if no guest
+  - [x] Delete rounds then room
 - Frontend
   - [ ] Success toast mentions cancellation sent
 - Tests
