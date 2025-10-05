@@ -12,7 +12,8 @@ const NOTIFICATIONS_ENABLED = (process.env.NOTIFICATIONS_ENABLED ?? 'false').toL
  */
 async function sendNotification (params: SendNotificationParams): Promise<{ logged: boolean; sent: boolean }>{
   if (!NOTIFICATIONS_ENABLED) {
-    console.log('[notification:dry-run]', JSON.stringify(params, null, 2))
+    const safe = { to_count: params.to.length, subject: params.subject, has_ics: Boolean(params.ics) }
+    console.log('[notification:dry-run]', JSON.stringify(safe))
     return { logged: true, sent: false }
   }
 
@@ -28,13 +29,11 @@ async function sendNotification (params: SendNotificationParams): Promise<{ logg
 
   const resend = new Resend(resendApiKey)
   let toList = params.to.map((t) => (t.name ? `${t.name} <${t.email}>` : t.email))
-  console.log('toList', toList)
   const redirectTo = process.env.NOTIFICATIONS_REDIRECT_TO
   if (redirectTo) {
-    console.warn('[notification] Redirecting outgoing email to', redirectTo, 'original:', toList)
+    console.warn('[notification] Redirecting outgoing email', { redirectTo, original_count: params.to.length })
     toList = [redirectTo]
   }
-  console.log('toList', toList)
   const attachments = params.ics
     ? [{
         filename: params.ics.filename,
@@ -187,7 +186,6 @@ async function buildBookingContext(room: PracticeRoom) {
   if (!hostEmail) {
     console.warn('[notification] host email not found for room', room.id)
   }
-  console.log('[notification] attendees', attendees.map(a => a.email))
   return { uid, startUtc, endUtc, summary: 'Ophthalmo Practice Session', organizer, attendees }
 }
 
