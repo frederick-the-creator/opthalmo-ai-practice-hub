@@ -1,4 +1,3 @@
-export * from './supabase'
-export * from './httpError'
+export * from './supabaseClient'
 
 

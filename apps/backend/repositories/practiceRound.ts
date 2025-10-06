@@ -1,4 +1,4 @@
-import type { TypedSupabaseClient } from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabaseClient'
 import { PracticeRound, PracticeRoundInsert, PracticeRoundUpdate, PracticeRoundMapper } from '../types'
 
 export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundInsert): Promise<PracticeRound> {

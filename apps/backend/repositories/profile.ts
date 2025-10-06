@@ -1,4 +1,4 @@
-import type { TypedSupabaseClient } from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabaseClient'
 import { Profile, ProfileInsert, ProfileUpdate, ProfileMapper } from '../types'
 
 export async function createProfileWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: ProfileInsert): Promise<Profile> {

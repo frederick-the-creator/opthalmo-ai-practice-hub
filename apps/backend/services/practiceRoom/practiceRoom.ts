@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { TypedSupabaseClient } from '../../utils/supabase'
+import type { TypedSupabaseClient } from '../../utils/supabaseClient'
 import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '../../repositories/practiceRoom';
 import { createRoundWithReturn, deleteRoundsByRoomId } from '../../repositories/practiceRound';
 import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../../types';

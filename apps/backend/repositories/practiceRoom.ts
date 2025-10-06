@@ -1,4 +1,4 @@
-import type { TypedSupabaseClient } from '../utils/supabase'
+import type { TypedSupabaseClient } from '../utils/supabaseClient'
 import { PracticeRoom, PracticeRoomInsert, PracticeRoomUpdate, PracticeRoomMapper } from '../types'
 
 
