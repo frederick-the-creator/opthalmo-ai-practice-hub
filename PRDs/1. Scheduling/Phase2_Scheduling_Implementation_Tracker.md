@@ -47,16 +47,16 @@ Legend
 - Links: PR(s)
 
 ### 3) Booking/Reschedule/Cancel sends with reliability guardrails
-- Status: [ ]
+- Status: [~]
 - Owner:
 - Backend
-  - [ ] Idempotency keys `(uid, sequence, attendee_email, method)`
-  - [ ] Retries/backoff + structured logs
-  - [ ] Ensure MIME parts and attachment naming
-  - [ ] Respect flags: `NOTIFICATIONS_ENABLED`, `NOTIFICATIONS_REDIRECT_TO`
+  - [x] Idempotency keys `(uid, sequence, attendee_email, method)`
+  - [x] Retries/backoff + structured logs
+  - [x] Ensure MIME parts and attachment naming
+  - [x] Respect flags: `NOTIFICATIONS_ENABLED`, `NOTIFICATIONS_REDIRECT_TO`
 - Frontend
-  - [ ] Expose in-app reschedule and cancel actions that call existing endpoints and trigger the same ICS flows
-  - [ ] Keep success toasts
+  - [x] Expose in-app reschedule and cancel actions that call existing endpoints and trigger the same ICS flows
+  - [x] Keep success toasts
 - Tests
   - [ ] Integration: two REQUEST on first booking; REQUEST updates on reschedule; CANCEL on delete
 - Links: PR(s)

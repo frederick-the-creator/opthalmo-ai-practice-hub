@@ -2,6 +2,8 @@ import type { IcsMethod, PracticeRoom } from '../../types'
 import { Resend } from 'resend'
 import { buildIcs } from './icsBuilder'
 import { buildBookingContext } from './bookingContextBuilder'
+import { createAdminSupabaseClient } from '../../utils/supabaseClient'
+import { claimSend, markSendSent, incrementAttemptAndFail } from '../../repositories/notificationSend'
 
 const NOTIFICATIONS_ENABLED = (process.env.NOTIFICATIONS_ENABLED ?? 'false').toLowerCase() === 'true'
 
@@ -15,7 +17,7 @@ export type SendEmailParams = {
 /**
  * Low-level email sender using Resend. No feature gating here.
  */
-async function sendEmail (params: SendEmailParams): Promise<{ logged: boolean; sent: boolean }>{
+async function sendEmail (params: SendEmailParams & { methodForCalendar?: IcsMethod }): Promise<{ logged: boolean; sent: boolean; providerMessageId: string | null }>{
 
   const resendApiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.NOTIFICATIONS_FROM_EMAIL
@@ -38,7 +40,7 @@ async function sendEmail (params: SendEmailParams): Promise<{ logged: boolean; s
     ? [{
         filename: params.ics.filename,
         content: Buffer.from(params.ics.content, 'utf8'),
-        contentType: 'text/calendar; charset=UTF-8',
+        contentType: `text/calendar; method=${params.methodForCalendar ?? 'REQUEST'}; charset=UTF-8`,
       }]
     : undefined
 
@@ -63,8 +65,9 @@ async function sendEmail (params: SendEmailParams): Promise<{ logged: boolean; s
         console.warn(`[notification:provider-error] attempt=${attempt}`, message)
         throw new Error(message)
       }
-      console.log(`[notification:sent] attempt=${attempt}`, JSON.stringify({ id: result?.data?.id ?? null }, null, 2))
-      return { logged: false, sent: true }
+      const providerMessageId = result?.data?.id ?? null
+      console.log(`[notification:sent] attempt=${attempt}`, JSON.stringify({ id: providerMessageId }, null, 2))
+      return { logged: false, sent: true, providerMessageId }
     } catch (err: any) {
       console.warn(`[notification:error] attempt=${attempt}`, err?.message || err)
       if (attempt >= maxAttempts) {
@@ -90,6 +93,7 @@ export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom)
   }
 
   // Send separate emails to each attendee, with an ICS that only lists that attendee
+  const admin = createAdminSupabaseClient()
   for (const attendee of ctx.attendees) {
     // Per-recipient subject: always include the other party's first name when available
     let subject = ctx.summary
@@ -109,12 +113,29 @@ export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom)
       organizer: ctx.organizer,
       attendees: [attendee],
     })
-    await sendEmail({
-      to: [attendee],
-      subject,
-      text: baseText,
-      ics: { filename: 'invite.ics', content: icsText },
-    })
+    const key = { uid: ctx.uid, sequence: ctx.sequence, attendeeEmail: attendee.email, method }
+    const { alreadySent, row } = await claimSend(admin as any, key)
+    if (alreadySent) {
+      console.log('[notification:idempotent-skip]', JSON.stringify({ uid: ctx.uid, sequence: ctx.sequence, method, attendee: attendee.email }))
+      continue
+    }
+    console.log('[notification:send:start]', JSON.stringify({ uid: ctx.uid, sequence: ctx.sequence, method, attendee: attendee.email }))
+    try {
+      const result = await sendEmail({
+        to: [attendee],
+        subject,
+        text: baseText,
+        ics: { filename: 'invite.ics', content: icsText },
+        methodForCalendar: method,
+      })
+      await markSendSent(admin as any, row.id, result.providerMessageId)
+      console.log('[notification:send:success]', JSON.stringify({ uid: ctx.uid, sequence: ctx.sequence, method, attendee: attendee.email, providerMessageId: result.providerMessageId }))
+    } catch (e: any) {
+      const message = e?.message || String(e)
+      await incrementAttemptAndFail(admin as any, row.id, message)
+      console.warn('[notification:send:failed]', JSON.stringify({ uid: ctx.uid, sequence: ctx.sequence, method, attendee: attendee.email, error: message }))
+      throw e
+    }
   }
 }
 
