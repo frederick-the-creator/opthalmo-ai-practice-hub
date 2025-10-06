@@ -1,7 +1,7 @@
 import {Router, Request, Response} from 'express'
 import { requireSupabaseUser } from '../utils/supabaseClient'
 import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom/practiceRoom';
-import { HttpError } from './utils/httpError';
+import { HttpError } from '../utils/httpError';
 import type { PracticeRoomUpdate } from '../types';
 
 const roomRouter = Router()
@@ -39,8 +39,6 @@ roomRouter.post('/update', requireSupabaseUser, async (req: Request, res: Respon
       res.status(500).json({ error: err.message || 'Failed to update practice room' });
     }
 });
-
-export default roomRouter
   
 // Delete room endpoint: deletes dependent rounds then the room
 roomRouter.delete('/:roomId', requireSupabaseUser, async (req: Request, res: Response) => {
@@ -59,3 +57,5 @@ roomRouter.delete('/:roomId', requireSupabaseUser, async (req: Request, res: Res
     res.status(500).json({ error: err.message || 'Failed to delete practice room' });
   }
 });
+
+export default roomRouter

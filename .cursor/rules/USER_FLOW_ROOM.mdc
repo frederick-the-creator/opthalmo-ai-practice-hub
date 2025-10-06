@@ -12,10 +12,10 @@ This rule documents the Interview Room flow: entering the room, managing stage a
 ## Frontend
 
 - Entry points:
-  - Room page: [`apps/frontend/src/pages/InterviewPracticeRoom.tsx`](mdc:apps/frontend/src/pages/InterviewPracticeRoom.tsx)
+  - Room page: [`apps/frontend/src/pages/interviewRoom/InterviewPracticeRoom.tsx`](mdc:apps/frontend/src/pages/interviewRoom/InterviewPracticeRoom.tsx)
   - Room hook: [`apps/frontend/src/hooks/useInterviewRoom.ts`](mdc:apps/frontend/src/hooks/useInterviewRoom.ts)
-  - API helpers: [`apps/frontend/src/lib/api.ts`](mdc:apps/frontend/src/lib/api.ts)
-  - Supabase data + realtime: [`apps/frontend/src/supabase/data.tsx`](mdc:apps/frontend/src/supabase/data.tsx)
+  - API helpers: [`apps/frontend/src/services/api/api.ts`](mdc:apps/frontend/src/services/api/api.ts)
+  - Supabase data + realtime: [`apps/frontend/src/services/database/data.tsx`](mdc:apps/frontend/src/services/database/data.tsx)
 
 - Reads:
   - `fetchRoomWithProfiles(roomId)` → joins `profiles` for host/guest.
@@ -39,8 +39,8 @@ This rule documents the Interview Room flow: entering the room, managing stage a
   - `/practice-round/create`, `/practice-round/update` (round lifecycle)
   - Middleware: `requireSupabaseUser` → `req.supabaseAsUser` for RLS-respecting writes.
 
-- Services/Repositories:
-  - `practiceRoom.ts` service orchestrates room creation and initial round.
+-- Services/Repositories:
+  - `apps/backend/services/practiceRoom/practiceRoom.ts` service orchestrates room creation and initial round.
   - `repositories/practiceRoom.ts` and `repositories/practiceRound.ts` encapsulate DB CRUD.
 
 ## Database

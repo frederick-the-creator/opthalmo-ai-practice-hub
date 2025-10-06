@@ -76,8 +76,6 @@ async function sendEmail (params: SendEmailParams): Promise<{ logged: boolean; s
   }
 }
 
-// types moved to ../types
-
 export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom): Promise<void> {
   const ctx = await buildBookingContext(room)
   if (!ctx) return

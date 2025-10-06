@@ -11,12 +11,12 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 
 ## Frontend
 
-- Entry points:
-  - Scheduling page: [`apps/frontend/src/pages/InterviewScheduling.tsx`](mdc:apps/frontend/src/pages/InterviewScheduling.tsx)
+-- Entry points:
+  - Scheduling page: [`apps/frontend/src/pages/interviewScheduling/InterviewScheduling.tsx`](mdc:apps/frontend/src/pages/interviewScheduling/InterviewScheduling.tsx)
   - Scheduling hook: [`apps/frontend/src/hooks/useInterviewScheduling.ts`](mdc:apps/frontend/src/hooks/useInterviewScheduling.ts)
   - Invite acceptance page: [`apps/frontend/src/components/interviewScheduling/InviteAcceptPage.tsx`](mdc:apps/frontend/src/components/interviewScheduling/InviteAcceptPage.tsx)
-  - API helpers: [`apps/frontend/src/lib/api.ts`](mdc:apps/frontend/src/lib/api.ts)
-  - Supabase data helpers and realtime: [`apps/frontend/src/supabase/data.tsx`](mdc:apps/frontend/src/supabase/data.tsx)
+  - API helpers: [`apps/frontend/src/services/api/api.ts`](mdc:apps/frontend/src/services/api/api.ts)
+  - Supabase data helpers and realtime: [`apps/frontend/src/services/database/data.tsx`](mdc:apps/frontend/src/services/database/data.tsx)
 
 - Actions:
   - Create room: `createRoom({ hostId, datetimeUtc, private })` → POST `/api/practice-room/create`.
@@ -41,8 +41,8 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
   - DELETE `/practice-room/:roomId` → `deletePracticeRoomGuarded(...)` service
   - Middleware: `requireSupabaseUser` validates token and exposes `req.supabaseAsUser`.
 
-- Services/Repositories:
-  - Service: [`apps/backend/services/practiceRoom.ts`](mdc:apps/backend/services/practiceRoom.ts)
+-- Services/Repositories:
+  - Service: [`apps/backend/services/practiceRoom/practiceRoom.ts`](mdc:apps/backend/services/practiceRoom/practiceRoom.ts)
     - `createPracticeRoom(supabaseAuthenticated, { hostId, datetimeUtc, private })`:
     - Provisions a Daily.co room via `createDailyRoom()` and persists `room_url`.
     - Generates and persists stable `ics_uid` (UUID v4) used across the ICS lifecycle.
@@ -132,8 +132,8 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 
 ## ICS and notifications (dark launch → enable later)
 
-- Builder and payloads:
-  - `apps/backend/services/notification.ts` constructs ICS via `buildIcs({ uid, method, startUtc, endUtc, summary, organizer, attendees, status })` with UTC timestamps and escaped text fields.
+-- Builder and payloads:
+  - `apps/backend/services/notifications/notification.ts` constructs ICS via `buildIcs({ uid, method, startUtc, endUtc, summary, organizer, attendees, status })` with UTC timestamps and escaped text fields. ICS generation lives in `apps/backend/services/notifications/icsBuilder.ts`.
   - Separate per-recipient emails are sent; each ICS lists only that attendee as `ATTENDEE`. `ORGANIZER` is derived from `NOTIFICATIONS_FROM_EMAIL`.
 - Sending and retries:
   - Provider-agnostic `sendNotification` logs payloads when disabled and retries with basic exponential backoff when enabled.

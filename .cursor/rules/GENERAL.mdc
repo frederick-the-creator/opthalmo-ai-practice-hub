@@ -23,13 +23,13 @@ Backend exposes endpoints under `/api/*` mounted in `app.ts`:
 - `/api/assessment` – run assessment
 - `/api/health` – health check
 
-Authentication: Backend middleware in [`apps/backend/utils/supabase.ts`](mdc:apps/backend/utils/supabase.ts) validates requests using Supabase access tokens via the `Authorization: Bearer <token>` header. Frontend attaches the token in an Axios interceptor.
+Authentication: Backend middleware in [`apps/backend/utils/supabaseClient.ts`](mdc:apps/backend/utils/supabaseClient.ts) validates requests using Supabase access tokens via the `Authorization: Bearer <token>` header. Frontend attaches the token in an Axios interceptor.
 
-Context Provider: `AuthProvider` (`apps/frontend/src/supabase/AuthProvider.tsx`) is mounted in `apps/frontend/src/App.tsx` and exposes via `useAuth()` the following: `user`, `session`, `loading`, `userProfile`, `reloadProfile()`, and `signOut()`. 
+Context Provider: `AuthProvider` (`apps/frontend/src/store/AuthProvider.tsx`) is mounted in `apps/frontend/src/App.tsx` and exposes via `useAuth()` the following: `user`, `session`, `loading`, `userProfile`, `reloadProfile()`, and `signOut()`. 
 - `user?.id` is leveraged frequently in components when calling data helpers (e.g., `fetchRoundsByCandidate(user.id)`), and show fallback UI if `!user`.
 - Use `signOut()` for logout flows.
 
-State Management: The app currently manages state with `useState`/`useEffect` and Supabase Realtime subscriptions (`subscribeToAllPracticeRooms`, `subscribeToPracticeRoomByRoomId`, `subscribeToPracticeRoundsByRoomId`) alongside direct reads (`fetchAllRooms`, `fetchRoomWithProfiles`, `fetchRoundsByCandidate`, `fetchCaseBriefs`). Writes go through `apps/frontend/src/lib/api.ts` (Axios with Supabase access token attached). Prefer local component state and explicit effects/subscriptions; adopt React Query for future caching/invalidation or where data dependencies become complex.
+State Management: The app currently manages state with `useState`/`useEffect` and Supabase Realtime subscriptions (`subscribeToAllPracticeRooms`, `subscribeToPracticeRoomByRoomId`, `subscribeToPracticeRoundsByRoomId`) alongside direct reads (`fetchAllRooms`, `fetchRoomWithProfiles`, `fetchRoundsByCandidate`, `fetchCaseBriefs`). Writes go through `apps/frontend/src/services/api/api.ts` (Axios with Supabase access token attached). Prefer local component state and explicit effects/subscriptions; adopt React Query for future caching/invalidation or where data dependencies become complex.
 
 DB use in backend vs frontend: Frontend reads simple lists/details directly from Supabase using the typed client. All writes and multi-service workflows (rooms/rounds/profile updates, recording, transcription, assessment) go through the backend Express API, which authenticates and uses a token-scoped Supabase client (`req.supabaseAsUser`) to honor RLS and encapsulate business logic.
 
@@ -70,7 +70,7 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
 - Error handling
   - Use central error utilities (e.g., `HttpError`) to carry HTTP status codes from services to routes.
   - Backend services should throw `HttpError(status, message)` from `apps/backend/utils/httpError.ts`; routes must catch it and respond with `res.status(err.status).json({ error: err.message })`. Do not put business-logic status mapping in repositories.
-  - Frontend must centralize repeated API error mapping via `mapApiError(err, context)` in `apps/frontend/src/lib/utils.ts` to keep components lean and consistent.
+  - Frontend must centralize repeated API error mapping via `mapApiError(err, context)` in `apps/frontend/src/services/api/utils.ts` to keep components lean and consistent.
     - Supported contexts: `'booking' | 'reschedule' | 'cancel' | 'round' | 'recording' | 'assessment' | 'profile' | 'generic'`.
     - Standard mappings:
       - 400 → Invalid request (e.g., reschedule: "Please select a valid future date/time.")

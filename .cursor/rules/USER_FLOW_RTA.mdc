@@ -20,7 +20,7 @@ This rule documents the Recording, Transcription, and Assessment pipeline initia
   - `stopRecording({ roomUrl, roomId })` → POST `/api/recording/stop`
 
 - Displaying results:
-  - `AssessmentHistory` (`apps/frontend/src/pages/AssessmentHistory.tsx`) loads rounds via `fetchRoundsByCandidate(user.id)` and joins room context via `fetchRoomByRoundId(roundId)`.
+  - `AssessmentHistory` (`apps/frontend/src/pages/assessmentHistory/AssessmentHistory.tsx`) loads rounds via `fetchRoundsByCandidate(user.id)` and joins room context via `fetchRoomByRoundId(roundId)`.
   - UI checks `round.assessment` and renders sections for `overall_feedback` and per-`dimensions` details.
 
 ## Backend
@@ -31,15 +31,15 @@ This rule documents the Recording, Transcription, and Assessment pipeline initia
   - All endpoints require `requireSupabaseUser`; services use `req.supabaseAsUser`.
 
 - Services:
-  - Recording: [`apps/backend/services/recording.ts`](mdc:apps/backend/services/recording.ts)
+  - Recording: [`apps/backend/services/recordTranscribeAssess/recording.ts`](mdc:apps/backend/services/recordTranscribeAssess/recording.ts)
     - `startDailyRecording(roomName)` and `stopDailyRecording(roomName)` using Daily REST API, env `DAILY_API_KEY`.
-  - Transcription: [`apps/backend/services/transcription.ts`](mdc:apps/backend/services/transcription.ts)
+  - Transcription: [`apps/backend/services/recordTranscribeAssess/transcription.ts`](mdc:apps/backend/services/recordTranscribeAssess/transcription.ts)
     - `getLatestRecordingId(roomName)`
     - `submitTranscriptionJob(recordingId)` (Daily batch-processor, preset `transcript`)
     - `pollTranscriptionStatus(transcriptionId)` until status `finished`
     - `fetchTranscriptionJson(result)` via access-link
     - `uploadTranscription(supabaseAuthenticated, roundId, transcriptionJson)` → writes to `practice_rounds.transcript`
-  - Assessment: [`apps/backend/services/assessment.ts`](mdc:apps/backend/services/assessment.ts)
+  - Assessment: [`apps/backend/services/recordTranscribeAssess/assessment.ts`](mdc:apps/backend/services/recordTranscribeAssess/assessment.ts)
     - `runAssessment(supabaseAuthenticated, roomName, roomId, roundId, caseName)`
       - Calls `transcribe(...)` pipeline
       - Extracts transcript text and calls Gemini (`geminiAssessTranscript`) with `caseName`
@@ -54,7 +54,7 @@ This rule documents the Recording, Transcription, and Assessment pipeline initia
 
 - Access pattern:
   - Writes via backend services using token-scoped client for RLS.
-  - Reads on frontend via Supabase client in `supabase/data.tsx` helpers.
+  - Reads on frontend via Supabase client in `services/database/data.tsx` helpers.
 
 ## Error handling & UX
 
