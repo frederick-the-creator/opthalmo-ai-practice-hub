@@ -3,6 +3,18 @@
 ## 0. Executive Summary
 We will deliver a privacy-preserving scheduling flow using standard iCalendar (ICS/iTIP over email) plus a universal “Request new time” link. The central organizer (a single mailbox controlled by us) sends **two separate single-attendee invites** with the same UID to host and guest so they don’t see each other’s email. Attendees can accept/decline from their own calendar apps. For rescheduling, we support (a) native iTIP COUNTER where available and (b) a tokenized email/web link that lets either party request a new time and the other party approve or decline **without logging in**. On approval, both attendees receive an updated ICS; on decline, no change (or cancel, per policy).
 
+## 0.a Current Implementation Baseline (Phase 1)
+- The application already implements scheduling and booking per `USER_FLOW_SCHEDULING` with these behaviors:
+  - A room is created via POST `/api/practice-room/create`, provisioning a Daily.co room and persisting `practice_rooms` with a stable `ics_uid` (UUID v4) and `datetime_utc`; an initial `practice_rounds` row is also created.
+  - Booking happens via POST `/api/practice-room/update` with `{ roomId, guestId: <currentUser> }`. Guards prevent host self-booking, enforce self-booking, and block overwrites if already booked.
+  - Reschedule happens via POST `/api/practice-room/update` with `{ roomId, datetimeUtc }`; guards ensure host-only and future timestamp.
+  - Delete happens via DELETE `/api/practice-room/:roomId`; host-only, deletes dependent rounds first.
+- Notification/ICS (feature-gated):
+  - On first successful booking, the backend attempts to send ICS `METHOD: REQUEST` to host and guest, as two separate single-attendee ICS emails. On reschedule, `REQUEST` is sent only if a guest is booked. On delete (if booked), `CANCEL` is sent.
+  - Organizer is derived from `NOTIFICATIONS_FROM_EMAIL`.
+  - When `NOTIFICATIONS_ENABLED=false` (default), the system does a dry-run log; no emails are sent.
+  - ICS currently includes `METHOD`, `UID` (from `practice_rooms.ics_uid`), `DTSTAMP`, `DTSTART/DTEND` (UTC, 1h duration inferred), `SUMMARY`, `ORGANIZER`, a single `ATTENDEE`, `STATUS`. It does not yet include `SEQUENCE`, and DESCRIPTION does not yet include reschedule links.
+
 ## 1. Objectives
 - Let hosts create sessions and guests book them.
 - Keep emails private between participants.
@@ -26,6 +38,8 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 - Availability slot marketplace (that is a separate phase).
 - In-app calendar UI (only minimal pages for proposal/approval).
 
+Note on current baseline: The backend already sends ICS on booking/reschedule/delete (when booked) behind a feature flag; inbound iMIP and tokenized pages are not yet implemented.
+
 ## 3. User Stories
 - **As a host**, I receive an invite via email, add it to my calendar, and can accept/decline. If I need a different time, I click “Request new time” in the invite and propose a new time; the guest gets an approval email; on approval, my calendar updates automatically.
 - **As a guest**, same as above.
@@ -34,9 +48,10 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 ## 4. Key Policies & UX
 - **Privacy:** Each attendee receives an ICS with only themselves listed as `ATTENDEE`; the other attendee’s email is never exposed.
 - **Organizer:** Central organizer mailbox is the `ORGANIZER` and is visible on invites.
-- **Decline policy:** Configurable:
-  - **Strict cancel** (default): if either attendee declines the *active* event, send CANCEL to both and close the room.
-  - **Soft decline:** keep the event if one party declines; status tracks per-attendee (optional).
+- **Decline policy:**
+  - **Guest declines:** unbook the session → remove `guest_id` so others can book; send targeted CANCEL to the guest (their invite), notify host; room remains scheduled/open for booking.
+  - **Host declines:** cancel and delete the session → send CANCEL to guest (if booked) and remove the room (and dependent rounds) from the system.
+  - (Optional) **Soft decline:** track status per-attendee without operational changes.
 - **Rescheduling:**
   - If attendee’s client supports `COUNTER`, treat it as a proposal and route to counterparty for approval.
   - Always include a **“Request new time”** link in DESCRIPTION so any attendee can propose via our simple page (no login).
@@ -49,9 +64,17 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 - Admin/service authentication to mail provider and storage only.
 
 ### 5.2 Scheduling & Booking
-- Creating a `practice_room` with a booked guest triggers **two** ICS REQUEST emails (host and guest), same `UID`, `SEQUENCE=0`.
+- Current baseline: ICS is sent on initial booking (not on room creation), and on reschedule only if a guest is booked; delete sends CANCEL if booked.
+- Phase 2 target: On booking of a `practice_room`, send **two** ICS REQUEST emails (host and guest), same `UID`, and include `SEQUENCE` management for future updates. No ICS is sent on room creation without a booking.
 - Rescheduling accepted triggers **two** ICS REQUEST updates with `SEQUENCE` incremented.
 - Deletion or strict decline triggers **two** ICS CANCEL messages.
+
+- In-app actions: Reschedule and cancel initiated from the app trigger the same ICS REQUEST/UPDATE/CANCEL flows using the existing backend endpoints.
+
+Session length selection (new requirement):
+- Frontend: When creating a room, the host selects a session length (30/60/90 minutes).
+- Backend: Persist `duration_minutes` and compute `DTEND` for ICS from `datetime_utc + duration_minutes`. Optionally persist `end_utc` (denormalized) for analytics and clarity.
+- ICS: Use the selected length to set `DTEND` (no longer infer a fixed 60 minutes).
 
 ### 5.3 Email/ICS Behavior
 - **REQUEST (initial):** send to host and guest separately, same `UID`.
@@ -61,11 +84,21 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
   - Plain text instructions
   - Universal **Reschedule** link (tokenized)
 
+Current baseline delta: ICS does not yet include `SEQUENCE`, and DESCRIPTION does not yet include reschedule links. Two separate single-attendee ICS messages are already produced by the backend when notifications are enabled.
+
+### 5.7 Invitation Acceptance Semantics
+- Accepting calendar invites is not required for the session to be considered scheduled. Once booked, the session proceeds regardless of explicit acceptance.
+- If an attendee does not accept, their client may show the event as "needs-action"/tentative; updates and cancels are still delivered and applied.
+- If an attendee explicitly declines (REPLY with `PARTSTAT=DECLINED`), apply the configured policy (default: Strict cancel → send CANCEL to both and close the room).
+- Optional enhancement (not required): send a courtesy reminder if neither party accepts within 24 hours.
+
 ### 5.4 Inbound iMIP Handling
 - Parse inbound `text/calendar`:
   - `METHOD:REPLY` → read `PARTSTAT` (ACCEPTED/DECLINED/TENTATIVE):
     - ACCEPTED: mark attendee accepted.
-    - DECLINED: apply **strict cancel** policy by default → send CANCEL to both; update DB.
+    - DECLINED:
+      - If the guest declines: remove `guest_id` (unbook), send a CANCEL to the guest’s invite only, notify host; keep room open for new bookings.
+      - If the host declines: send CANCEL to the guest (if booked), then delete the room (and dependent rounds).
   - `METHOD:COUNTER` (if present): create a **pending proposal**, notify counterparty for approval with magic links.
 
 ### 5.5 Tokenized Reschedule Flow
@@ -88,12 +121,18 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 - **IMipIngestor**: parses inbound MIME/ICS; persists events; triggers business rules.
 - **ProposalService**: creates/validates tokens (HMAC/JWT), stores `pending_proposals`, sends approval emails, applies updates.
 
+Implemented today:
+- An ICS builder constructs minimal ICS with `METHOD`, `UID`, UTC `DTSTART/DTEND`, `SUMMARY`, `ORGANIZER`, single `ATTENDEE`, `STATUS` (no `SEQUENCE` yet).
+- A notification sender integrates with Resend and supports feature gating via `NOTIFICATIONS_ENABLED` and redirect via `NOTIFICATIONS_REDIRECT_TO`.
+
 ### 6.2 Data Model (additions)
 - **practice_rooms**
-  - `ics_uid TEXT NOT NULL` (stable)
-  - `ics_sequence INT NOT NULL DEFAULT 0`
-  - `start_utc TIMESTAMP`, `end_utc TIMESTAMP`
-  - `status ENUM('scheduled','cancelled')`
+  - `ics_uid TEXT NOT NULL` (stable) — already present and set on create today
+  - `ics_sequence INT NOT NULL DEFAULT 0` — not present today; add in Phase 2
+  - `datetime_utc TIMESTAMP` — present today and used for `DTSTART` (serves as start time)
+  - `duration_minutes INT NOT NULL` — new in Phase 2; chosen by host at creation
+  - `end_utc TIMESTAMP` — optional denormalization derived from `datetime_utc + duration_minutes`
+  - `status ENUM('scheduled','cancelled')` — not present today; add in Phase 2 if needed
 - **invitations**
   - `id`, `room_id`, `uid`, `attendee_email`, `attendee_role ENUM('host','guest')`
   - `last_partstat ENUM('needs-action','accepted','declined','tentative')`
@@ -114,34 +153,24 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 
 ### 6.3 Identifiers & Mapping
 - `practice_rooms.ics_uid` is the canonical meeting identifier.
-- `ics_sequence` increments on every update REQUEST.
+- `ics_sequence` increments on every update REQUEST. Not yet implemented; Phase 2 will add column and emission.
 - Correlate inbound messages by `UID` (mandatory) and `SEQUENCE` where present.
 
 ## 7. API
-*(Internal/server-to-server; endpoints and names are illustrative — adapt to your stack.)*
+The following reflects today’s API and Phase 2 additions:
 
-- `POST /api/practice-room/create`  
-  Creates Daily room + DB rows (unchanged from Phase 1).
-- `POST /api/practice-room/book`  
-  Sets `guest_id`; triggers `SendInitialInvites(uid)`.
-- `POST /api/practice-room/delete`  
-  Triggers `SendCancel(uid)` to both; then deletes rows (or marks cancelled).
-- `POST /api/ics/send-invite` (internal)  
-  Body: `{ uid, attendeeEmail, startUtc, endUtc, sequence }`
-- `POST /api/ics/send-update` (internal)  
-  Body: `{ uid, attendeeEmail, startUtc, endUtc, sequence }`
-- `POST /api/ics/send-cancel` (internal)  
-  Body: `{ uid, attendeeEmail }`
-- `GET  /reschedule?r=<token>`  
-  Renders minimal form (start/end/note).
-- `POST /api/reschedule/propose`  
-  Body: `{ token, proposedStartUtc, proposedEndUtc, note }` → creates `pending_proposal`, emails counterparty links.
-- `GET  /approve?t=<token>` → applies update; sends two REQUEST updates; marks proposal approved.
-- `GET  /decline?t=<token>` → marks proposal declined; courtesy email to proposer.
-- `POST /api/imip/inbound` (webhook) **or** IMAP poller  
-  Receives raw MIME; extracts ICS; handles REPLY/COUNTER.
-- `POST /api/hooks/email-status`  
-  Delivery/bounce tracking (optional).
+- Existing endpoints
+  - `POST /api/practice-room/create` — Creates Daily room + DB rows; seeds first round.
+  - `POST /api/practice-room/update` — Booking (`{ roomId, guestId }`) and reschedule (`{ roomId, datetimeUtc }`) with guards.
+  - `DELETE /api/practice-room/:roomId` — Deletes dependent rounds then the room; host-only.
+- Internal ICS sending is handled inside the backend service (no public `/api/ics/*` endpoints). Phase 2 may keep this internal.
+- Phase 2 new endpoints (tokenized/iMIP):
+  - `GET  /reschedule?r=<token>` — Renders minimal form (start/end/note).
+  - `POST /api/reschedule/propose` — `{ token, proposedStartUtc, proposedEndUtc, note }` → creates `pending_proposal`, emails counterparty links.
+  - `GET  /approve?t=<token>` — Applies update; sends two REQUEST updates; marks proposal approved.
+  - `GET  /decline?t=<token>` — Marks proposal declined; courtesy email to proposer.
+  - `POST /api/imip/inbound` (webhook) or IMAP poller — Receives raw MIME; extracts ICS; handles REPLY/COUNTER.
+  - `POST /api/hooks/email-status` — Delivery/bounce tracking (optional).
 
 ## 8. Email & ICS Specifications
 
@@ -155,6 +184,9 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 - `SEQUENCE: <int>` (increment on updates)
 - `STATUS: CONFIRMED|CANCELLED`
 - `DESCRIPTION:` includes human text **and** the Reschedule URL.
+
+Current baseline emission:
+- All the above except `SEQUENCE` and `DESCRIPTION` reschedule link. End time is inferred as +1 hour from `datetime_utc`.
 
 ### 8.2 MIME Parts (best compatibility)
 - `text/plain` (or `text/html`) — human message
@@ -170,14 +202,15 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 ## 9. Flows (Sequence)
 
 ### 9.1 Booking → Initial Invites
-1. Room booked → generate `uid`, set `sequence=0`.
-2. Send REQUEST (host) + REQUEST (guest), each with only their own `ATTENDEE`.
-3. Attendees Accept/Decline via calendar; we ingest REPLY.
+1. Current baseline: ICS REQUEST is sent when a guest books an open session; not at room creation. Two separate single-attendee ICS messages are sent (feature-gated).
+2. Phase 2 target: generate `uid` (already present), set `sequence=0`, send initial REQUEST to both upon booking/create per policy.
+3. Attendees Accept/Decline via calendar; REPLY ingestion will be added in Phase 2.
 
 ### 9.2 Decline (Strict Cancel policy)
-1. Receive REPLY with `PARTSTAT=DECLINED` from either party.
-2. Send CANCEL to **both** attendees.
-3. Mark room cancelled.
+1. Receive REPLY with `PARTSTAT=DECLINED`.
+2. If the guest declines: unbook the session (remove `guest_id`), send CANCEL to the guest’s invite, notify host; keep room open.
+3. If the host declines: send CANCEL to guest (if booked) and delete the room (and dependent rounds).
+4. Current baseline: CANCEL is sent on delete only (and only if a guest had booked); inbound REPLY handling is not yet implemented.
 
 *(If Soft policy is chosen: record decline; do not cancel.)*
 
@@ -222,8 +255,8 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 - **Non-calendar replies (“can we do 3pm?”):** detect and auto-reply with a proposal link.
 
 ## 14. Migration Plan
-1. Add `ics_uid` + `ics_sequence` columns; backfill as needed.
-2. Implement `IcsService` + `NotificationService`; wire initial booking → REQUEST.
+1. `ics_uid` already exists and is set on create today. Add `ics_sequence` column; backfill as needed.
+2. Extend existing ICS builder/notification to include `SEQUENCE`, DESCRIPTION templates with reschedule link, and update-flow semantics.
 3. Stand up inbound mail processing (webhook or IMAP poller) and parser.
 4. Add tokenized proposal + approval flows and pages.
 5. Flip policy flags (strict cancel vs soft) once validated.
