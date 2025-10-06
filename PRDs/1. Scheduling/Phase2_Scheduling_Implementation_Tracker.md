@@ -31,13 +31,14 @@ Legend
 - Links: PR(s)
 
 ### 2) ICS builder: SEQUENCE + DESCRIPTION + duration-aware DTEND
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Add `SEQUENCE` support to `IcsService`
-  - [ ] Use `DTEND = DTSTART + duration_minutes`
-  - [ ] Include DESCRIPTION scaffold with reschedule link placeholder
-  - [ ] Read/write `ics_sequence` in booking/reschedule/cancel flows
+  - [x] Add `SEQUENCE` support to `IcsService`
+  - [x] Use `DTEND = DTSTART + duration_minutes`
+  - [x] Include DESCRIPTION scaffold with reschedule link placeholder
+  - [x] Read/write `ics_sequence` in booking/reschedule/cancel flows
+  - [x] Personalize per-recipient booking titles: "Ophthalmo Practice Session with <first name>"
 - Frontend
   - [ ] N/A
 - Tests

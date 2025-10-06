@@ -35,6 +35,7 @@ Related PRD: [Phase2_Scheduling_PRD.md](./Phase2_Scheduling_PRD.md)
     - `SEQUENCE` (int; start at 0 for initial, increment for updates)
     - `DTEND = DTSTART + duration_minutes`
     - `DESCRIPTION` scaffold with human text and a placeholder for a reschedule link (actual tokenized link added in Slice 4).
+    - Per-recipient `SUMMARY`/email subject personalization for booking REQUESTs: "Ophthalmo Practice Session with <first name>" where the first name is the counterparty.
   - Ensure per-recipient, single `ATTENDEE`, stable `UID = practice_rooms.ics_uid`, `ORGANIZER` from env.
   - Wire `ics_sequence` read/write in `practiceRoom` service for booking/update/cancel flows (increment only on REQUEST updates).
 - **Frontend**
@@ -42,6 +43,7 @@ Related PRD: [Phase2_Scheduling_PRD.md](./Phase2_Scheduling_PRD.md)
 - **Acceptance**
   - ICS for booking/reschedule/cancel contains `UID`, `SEQUENCE`, and duration-aware `DTEND`.
   - `SEQUENCE` remains 0 on initial sends and increments by 1 on each REQUEST update.
+  - Invite title is personalized per recipient on booking as "Ophthalmo Practice Session with <first name>".
 
 ### 3) Booking/Reschedule/Cancel sends with reliability guardrails
 - **User story**: As an attendee, I reliably receive invites/updates/cancels with correct metadata.
