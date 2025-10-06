@@ -5,9 +5,9 @@ We will deliver a privacy-preserving scheduling flow using standard iCalendar (I
 
 ## 0.a Current Implementation Baseline (Phase 1)
 - The application already implements scheduling and booking per `USER_FLOW_SCHEDULING` with these behaviors:
-  - A room is created via POST `/api/practice-room/create`, provisioning a Daily.co room and persisting `practice_rooms` with a stable `ics_uid` (UUID v4) and `datetime_utc`; an initial `practice_rounds` row is also created.
+  - A room is created via POST `/api/practice-room/create`, provisioning a Daily.co room and persisting `practice_rooms` with a stable `ics_uid` (UUID v4) and `start_utc` (formerly `datetime_utc`); an initial `practice_rounds` row is also created.
   - Booking happens via POST `/api/practice-room/update` with `{ roomId, guestId: <currentUser> }`. Guards prevent host self-booking, enforce self-booking, and block overwrites if already booked.
-  - Reschedule happens via POST `/api/practice-room/update` with `{ roomId, datetimeUtc }`; guards ensure host-only and future timestamp.
+  - Reschedule happens via POST `/api/practice-room/update` with `{ roomId, startUtc }` (formerly `{ roomId, startUtc }`); guards ensure host-only and future timestamp.
   - Delete happens via DELETE `/api/practice-room/:roomId`; host-only, deletes dependent rounds first.
 - Notification/ICS (feature-gated):
   - On first successful booking, the backend attempts to send ICS `METHOD: REQUEST` to host and guest, as two separate single-attendee ICS emails. On reschedule, `REQUEST` is sent only if a guest is booked. On delete (if booked), `CANCEL` is sent.
@@ -129,7 +129,7 @@ Implemented today:
 - **practice_rooms**
   - `ics_uid TEXT NOT NULL` (stable) — already present and set on create today
   - `ics_sequence INT NOT NULL DEFAULT 0` — not present today; add in Phase 2
-  - `datetime_utc TIMESTAMP` — present today and used for `DTSTART` (serves as start time)
+  - `start_utc TIMESTAMP` — used for `DTSTART` (serves as start time; formerly `datetime_utc`)
   - `duration_minutes INT NOT NULL` — new in Phase 2; chosen by host at creation
   - `end_utc TIMESTAMP` — optional denormalization derived from `datetime_utc + duration_minutes`
   - `status ENUM('scheduled','cancelled')` — not present today; add in Phase 2 if needed
@@ -161,7 +161,7 @@ The following reflects today’s API and Phase 2 additions:
 
 - Existing endpoints
   - `POST /api/practice-room/create` — Creates Daily room + DB rows; seeds first round.
-  - `POST /api/practice-room/update` — Booking (`{ roomId, guestId }`) and reschedule (`{ roomId, datetimeUtc }`) with guards.
+  - `POST /api/practice-room/update` — Booking (`{ roomId, guestId }`) and reschedule (`{ roomId, startUtc }`) with guards.
   - `DELETE /api/practice-room/:roomId` — Deletes dependent rounds then the room; host-only.
 - Internal ICS sending is handled inside the backend service (no public `/api/ics/*` endpoints). Phase 2 may keep this internal.
 - Phase 2 new endpoints (tokenized/iMIP):

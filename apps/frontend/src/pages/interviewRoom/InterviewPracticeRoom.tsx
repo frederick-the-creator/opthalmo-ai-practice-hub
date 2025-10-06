@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import HeaderBar from "../components/interviewRoom/HeaderBar";
-import VideoPane from "../components/interviewRoom/VideoPane";
-import PrepPanel from "../components/interviewRoom/panels/PrepPanel";
-import InterviewPanel from "../components/interviewRoom/panels/InterviewPanel";
-import WrapUpPanel from "../components/interviewRoom/panels/WrapUpPanel";
-import InterviewControls from "../components/interviewRoom/panels/InterviewPanelControls";
+import HeaderBar from "../../components/interviewRoom/HeaderBar";
+import VideoPane from "../../components/interviewRoom/VideoPane";
+import PrepPanel from "../../components/interviewRoom/panels/PrepPanel";
+import InterviewPanel from "../../components/interviewRoom/panels/InterviewPanel";
+import WrapUpPanel from "../../components/interviewRoom/panels/WrapUpPanel";
+import InterviewControls from "../../components/interviewRoom/panels/InterviewPanelControls";
 import { useNavigate } from "react-router-dom";
 import { useInterviewRoom } from "@/hooks/useInterviewRoom";
 // caseBriefs now come from useInterviewRoom

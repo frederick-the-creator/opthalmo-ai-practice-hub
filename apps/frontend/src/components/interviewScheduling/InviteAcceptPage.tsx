@@ -71,7 +71,7 @@ const InviteAcceptPage: React.FC = () => {
         <CardContent>
           <div className="mb-4">
           <div className="font-semibold">Date & Time:</div>
-            <div>{new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
+            <div>{new Date(room.startUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
           </div>
           {isHost && <div className="text-accent mb-2">You are the host of this room.</div>}
           {isGuest && <div className="text-green-600 mb-2">You have already accepted this room.</div>}

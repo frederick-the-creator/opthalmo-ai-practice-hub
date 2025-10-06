@@ -10,6 +10,9 @@ interface Props {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
+  // New: duration selector
+  durationMinutes?: number;
+  setDurationMinutes?: (minutes: number) => void;
   scheduleError: string | null;
   scheduling: boolean;
   onSchedule: () => void;
@@ -22,6 +25,8 @@ const SchedulePanel: React.FC<Props> = ({
   setSelectedDate,
   selectedTime,
   setSelectedTime,
+  durationMinutes = 60,
+  setDurationMinutes,
   scheduleError,
   scheduling,
   onSchedule,
@@ -91,6 +96,19 @@ const SchedulePanel: React.FC<Props> = ({
                   {time}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="duration">Session length</Label>
+          <Select value={String(durationMinutes)} onValueChange={(v) => setDurationMinutes && setDurationMinutes(Number(v))}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select duration" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">30 minutes</SelectItem>
+              <SelectItem value="60">60 minutes</SelectItem>
+              <SelectItem value="90">90 minutes</SelectItem>
             </SelectContent>
           </Select>
         </div>

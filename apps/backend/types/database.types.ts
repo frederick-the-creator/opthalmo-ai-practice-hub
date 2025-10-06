@@ -50,36 +50,45 @@ export type Database = {
       practice_rooms: {
         Row: {
           created_at: string | null
-          datetime_utc: string | null
+          duration_minutes: number
+          end_utc: string | null
           guest_id: string | null
           host_id: string
+          ics_sequence: number
           ics_uid: string | null
           id: string
           private: boolean
           room_url: string | null
           stage: string
+          start_utc: string | null
         }
         Insert: {
           created_at?: string | null
-          datetime_utc?: string | null
+          duration_minutes: number
+          end_utc?: string | null
           guest_id?: string | null
           host_id: string
+          ics_sequence?: number
           ics_uid?: string | null
           id?: string
           private?: boolean
           room_url?: string | null
           stage: string
+          start_utc?: string | null
         }
         Update: {
           created_at?: string | null
-          datetime_utc?: string | null
+          duration_minutes?: number
+          end_utc?: string | null
           guest_id?: string | null
           host_id?: string
+          ics_sequence?: number
           ics_uid?: string | null
           id?: string
           private?: boolean
           room_url?: string | null
           stage?: string
+          start_utc?: string | null
         }
         Relationships: [
           {

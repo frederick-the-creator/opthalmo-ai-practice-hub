@@ -9,9 +9,12 @@ export type PracticeRoom = {
 	stage: string
 	roomUrl: string | null
 	icsUid: string | null
+    icsSequence: number
 	private: boolean
 	createdAt: string | null
-	datetimeUtc: string | null
+	startUtc: string | null
+    endUtc: string | null
+    durationMinutes: number
 }
 
 export type PracticeRoomInsert = {
@@ -20,9 +23,12 @@ export type PracticeRoomInsert = {
 	stage: string
 	roomUrl?: string | null
 	icsUid?: string | null
+    icsSequence?: number
 	private?: boolean
 	createdAt?: string | null
-	datetimeUtc?: string | null
+	startUtc?: string | null
+    endUtc?: string | null
+    durationMinutes: number
 }
 
 export type PracticeRoomUpdate = {
@@ -31,9 +37,13 @@ export type PracticeRoomUpdate = {
 	guestId?: string | null
 	stage?: string
 	roomUrl?: string | null
+    // ics_uid immutable; sequence may be updated by services
+    icsSequence?: number
 	private?: boolean
 	createdAt?: string | null
-	datetimeUtc?: string | null
+	startUtc?: string | null
+    endUtc?: string | null
+    durationMinutes?: number
 }
 
 export const PracticeRoomMapper = {
@@ -44,9 +54,12 @@ export const PracticeRoomMapper = {
 			stage: insert.stage,
 			room_url: insert.roomUrl ?? null,
 			ics_uid: insert.icsUid ?? null,
+            ics_sequence: insert.icsSequence ?? 0,
 			private: insert.private ?? false,
 			created_at: insert.createdAt ?? undefined,
-			datetime_utc: insert.datetimeUtc ?? null,
+			start_utc: insert.startUtc ?? null,
+            end_utc: insert.endUtc ?? null,
+            duration_minutes: insert.durationMinutes,
 		}
 	},
 
@@ -58,9 +71,12 @@ export const PracticeRoomMapper = {
 			stage: row.stage,
 			roomUrl: row.room_url,
 			icsUid: row.ics_uid ?? null,
+            icsSequence: (row as any).ics_sequence ?? 0,
 			private: row.private,
 			createdAt: row.created_at,
-			datetimeUtc: row.datetime_utc,
+			startUtc: (row as any).start_utc ?? (row as any).datetime_utc ?? null,
+            endUtc: (row as any).end_utc ?? null,
+            durationMinutes: (row as any).duration_minutes as number,
 		}
 	},
 
@@ -72,9 +88,12 @@ export const PracticeRoomMapper = {
             ...(update.stage !== undefined && { stage: update.stage }),
             ...(update.roomUrl !== undefined && { room_url: update.roomUrl }),
             // ics_uid is immutable once set for stability across ICS lifecycle
+            ...(update.icsSequence !== undefined && { ics_sequence: update.icsSequence }),
             ...(update.private !== undefined && { private: update.private }),
             ...(update.createdAt !== undefined && { created_at: update.createdAt }),
-            ...(update.datetimeUtc !== undefined && { datetime_utc: update.datetimeUtc }),
+			...(update.startUtc !== undefined && { start_utc: update.startUtc }),
+            ...(update.endUtc !== undefined && { end_utc: update.endUtc }),
+            ...(update.durationMinutes !== undefined && { duration_minutes: update.durationMinutes }),
         };
 	},
 }

@@ -48,7 +48,7 @@ const RoomListPanel: React.FC<Props> = ({
 
   const openRescheduleDialog = (room: PracticeRoomWithProfiles) => {
     try {
-      const dt = room.datetimeUtc ? new Date(room.datetimeUtc) : new Date();
+      const dt = room.startUtc ? new Date(room.startUtc) : new Date();
       setRescheduleDate(dt);
       const hrs = String(dt.getHours()).padStart(2, '0');
       const mins = String(dt.getMinutes() - (dt.getMinutes() % 15)).padStart(2, '0');
@@ -137,9 +137,8 @@ const RoomListPanel: React.FC<Props> = ({
                       <p className="font-medium">{hostName}</p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{
-                          new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                        }</span>
+                        <span>{ new Date(room.startUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) }</span>
+                        <span className="ml-2">{room.durationMinutes} min</span>
                         {isGuestPresent && <span className="ml-2 text-green-600">Guest Joined</span>}
                       </div>
                     </div>
@@ -180,9 +179,8 @@ const RoomListPanel: React.FC<Props> = ({
                       </p>
                       <p className="text-sm text-gray-600">Guest: {guestName}</p>
                       <div className="flex text-sm text-gray-500">
-                        <span>{
-                          new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                        }</span>
+                        <span>{ new Date(room.startUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) }</span>
+                        <span className="ml-2">{room.durationMinutes} min</span>
                       </div>
                     </div>
                   </div>

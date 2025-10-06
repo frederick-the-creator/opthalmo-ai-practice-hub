@@ -10,8 +10,8 @@ import { ProfileMapper, PracticeRoomWithProfilesMapper, PracticeRoundMapper, Cas
 export async function fetchRoomWithProfiles(roomId: string): Promise<PracticeRoomWithProfiles | null> {
   const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
-    .order('datetime_utc', { ascending: true })
+    .select('id, host_id, guest_id, start_utc, end_utc, duration_minutes, ics_sequence, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .order('start_utc', { ascending: true })
     .eq('id', roomId)
     .single();
 
@@ -29,8 +29,8 @@ export async function fetchRoomWithProfiles(roomId: string): Promise<PracticeRoo
 export async function fetchAllRooms(): Promise<PracticeRoomWithProfiles[] | []> {
   const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
-    .order('datetime_utc', { ascending: true });
+    .select('id, host_id, guest_id, start_utc, end_utc, duration_minutes, ics_sequence, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .order('start_utc', { ascending: true });
 
   if (error) {
     console.log('[fetchAllRooms] DB error: ', error)
@@ -55,9 +55,9 @@ export async function fetchAllRooms(): Promise<PracticeRoomWithProfiles[] | []> 
 export const fetchRoomsForUser = async (userId: string): Promise<PracticeRoomWithProfiles[] | []> => {
   const { data, error } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, start_utc, end_utc, duration_minutes, ics_sequence, room_url, ics_uid, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
-    .order('datetime_utc', { ascending: false });
+    .order('start_utc', { ascending: false });
 
   if (error) {
     console.error('[fetchRoomsForUser] Database error:', error);
@@ -125,7 +125,7 @@ export const fetchRoomByRoundId = async (roundId: string): Promise<PracticeRoomW
 
   const { data: room, error: roomError } = await supabase
     .from('practice_rooms')
-    .select('id, host_id, guest_id, datetime_utc, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
+    .select('id, host_id, guest_id, start_utc, end_utc, duration_minutes, ics_sequence, room_url, stage, private, created_at, host_profile:profiles!practice_rooms_host_id_fkey(user_id, first_name, last_name, avatar), guest_profile:profiles!practice_rooms_guest_id_fkey(user_id, first_name, last_name, avatar)')
     .eq('id', round.room_id as string)
     .single();
 

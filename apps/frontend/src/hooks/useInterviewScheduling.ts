@@ -15,6 +15,8 @@ export interface UseInterviewSchedulingResult {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
+  durationMinutes: number;
+  setDurationMinutes: (minutes: number) => void;
   scheduling: boolean;
   scheduleError: string | null;
   handleAcceptInvitation: (roomId: string) => Promise<void>;
@@ -34,6 +36,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("12:00");
+  const [durationMinutes, setDurationMinutes] = useState(60);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -114,12 +117,13 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       const day = selectedDate.getDate();
       const [hours, minutes] = selectedTime.split(":").map(Number);
       const localDateTime = new Date(year, month, day, hours, minutes, 0, 0);
-      const datetimeUtc = localDateTime.toISOString();
+      const startUtc = localDateTime.toISOString();
       // Call backend to create room (creates Daily room and DB row)
       const response = await createRoom({
         hostId,
-        datetimeUtc,
+        startUtc,
         private: isPrivate,
+        durationMinutes,
       });
       if (response.error) {
         setScheduleError(response.error || "Failed to schedule room.");
@@ -155,12 +159,12 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
         0,
         0
       );
-      const datetimeUtc = updatedLocal.toISOString();
+      const startUtc = updatedLocal.toISOString();
 
       // Optimistic update: update local list first
-      setRooms(prev => prev.map(r => r.id === roomId ? { ...r, datetimeUtc } : r));
+      setRooms(prev => prev.map(r => r.id === roomId ? { ...r, startUtc } : r));
 
-      await rescheduleRoom({ roomId, datetimeUtc });
+      await rescheduleRoom({ roomId, startUtc });
       toast({ title: 'Session rescheduled', description: 'Updated calendar invite will arrive by email.' });
       // Realtime will also sync; if backend rejects, we revert below
     } catch (err: any) {
@@ -201,7 +205,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       // Filter out rooms that are more than 1 hour past start time
       const now = new Date();
       const filtered = (data as PracticeRoomWithProfiles[]).filter((room) => {
-        const roomStart = new Date(room.datetimeUtc as string);
+        const roomStart = new Date(room.startUtc as string);
         return now < new Date(roomStart.getTime() + 60 * 60 * 1000);
       });
       setRooms(filtered);
@@ -227,6 +231,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
+    durationMinutes,
+    setDurationMinutes,
     scheduling,
     scheduleError,
     handleAcceptInvitation,

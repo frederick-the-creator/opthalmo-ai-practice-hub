@@ -38,22 +38,33 @@ export async function createDailyRoom(): Promise<string> {
 * @returns The created room object
 */
 export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseClient, input: PracticeRoomInsert): Promise<any> {
-  const { hostId, datetimeUtc, private: isPrivate } = input;
+  const { hostId, startUtc, private: isPrivate, durationMinutes } = input;
 
-  if (!hostId || !datetimeUtc) {
+  if (!hostId || !startUtc) {
     throw new Error('Missing required fields');
+  }
+
+  // Validate duration
+  const allowedDurations = [30, 60, 90];
+  if (!durationMinutes || !allowedDurations.includes(durationMinutes)) {
+    throw new Error('Invalid duration');
   }
 
   const roomUrl = await createDailyRoom();
   const icsUid = randomUUID();
 
+  const startIso = new Date(startUtc);
+  const endUtc = new Date(startIso.getTime() + durationMinutes * 60 * 1000).toISOString();
+
   const roomData = await createRoomWithReturn(supabaseAuthenticated, {
     hostId,
     roomUrl,
-    datetimeUtc,
+    startUtc,
     icsUid,
     private: !!isPrivate,
     stage: "Prep",
+    durationMinutes,
+    endUtc,
   });
 
   const roomId = roomData.id
@@ -118,17 +129,17 @@ export async function updatePracticeRoomGuarded(
     }
   }
 
-  // Reschedule guard: only host can change datetime; must be future
-  if (updateFields.datetimeUtc !== undefined) {
+  // Reschedule guard: only host can change startUtc; must be future
+  if (updateFields.startUtc !== undefined) {
     if (existing.hostId !== currentUserId) {
       throw new HttpError(403, 'Only the host can reschedule the session');
     }
 
-    if (updateFields.datetimeUtc == null) {
+    if (updateFields.startUtc == null) {
       throw new HttpError(400, 'Invalid datetime');
     }
 
-    const newDate = new Date(updateFields.datetimeUtc);
+    const newDate = new Date(updateFields.startUtc);
     if (isNaN(newDate.getTime())) {
       throw new HttpError(400, 'Invalid datetime');
     }
@@ -140,7 +151,7 @@ export async function updatePracticeRoomGuarded(
   }
 
   const isBooking = updateFields.guestId !== undefined && existing.guestId == null && updateFields.guestId !== null
-  const isReschedule = updateFields.datetimeUtc !== undefined && updateFields.datetimeUtc != null && updateFields.datetimeUtc !== existing.datetimeUtc
+  const isReschedule = updateFields.startUtc !== undefined && updateFields.startUtc != null && updateFields.startUtc !== existing.startUtc
 
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
 

@@ -46,7 +46,7 @@ Authentication & Identity
 - Existing Supabase auth; backend validates via `Authorization: Bearer <token>`.
 
 Scheduling & Booking
-- Create room with `{ hostId, datetimeUtc, private }`; server creates Daily room and inserts `practice_rooms`, creates initial `practice_rounds`.
+- Create room with `{ hostId, startUtc, private }`; server creates Daily room and inserts `practice_rooms`, creates initial `practice_rounds`.
 - Booking sets `guest_id` if it is null (guard against overwriting if already set). Any authenticated user (not the host) can book an open session.
 
 Email/ICS Triggers
@@ -62,9 +62,9 @@ UI Notes
 ### **3.3 API**
 
 - POST `/api/practice-room/create` → creates Daily room, inserts `practice_rooms`, creates initial `practice_rounds`.
-- POST `/api/practice-room/update` → updates room fields (e.g., `guestId`, `datetimeUtc`, `private`, `stage`).
+- POST `/api/practice-room/update` → updates room fields (e.g., `guestId`, `startUtc`, `private`, `stage`).
   - If `guestId` transitions from null to a value (booking) → trigger host and guest ICS REQUEST.
-  - If `datetimeUtc` changes → trigger host and guest ICS REQUEST update.
+  - If `startUtc` changes → trigger host and guest ICS REQUEST update.
   - Guard booking: if `guest_id` is already set, return 409; do not overwrite.
 - DELETE `/api/practice-room/:roomId` (new) → load room + profiles, send ICS CANCEL to both host and guest, then delete `practice_rounds` followed by `practice_rooms`.
 - (Optional) POST `/api/hooks/email-status` → provider webhook for bounces/deliverability audits.

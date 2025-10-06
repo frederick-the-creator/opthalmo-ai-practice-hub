@@ -12,16 +12,21 @@ Related PRD: [Phase2_Scheduling_PRD.md](./Phase2_Scheduling_PRD.md)
   - Add DB columns on `practice_rooms`:
     - `ics_sequence INT NOT NULL DEFAULT 0`
     - `duration_minutes INT NOT NULL` (required; validate allowed values: 30, 60, 90)
-    - `end_utc TIMESTAMP` (optional denormalization = `datetime_utc + duration_minutes`)
+    - `end_utc TIMESTAMP` (optional denormalization = `start_utc + duration_minutes`)
+  - Constraints and data hygiene:
+    - Add `CHECK (duration_minutes IN (30, 60, 90))`.
+    - Backfill legacy rows: set `duration_minutes = 60` where null; compute `end_utc` where `start_utc` present (legacy rows may still have `datetime_utc`).
   - Types: update `apps/backend/types/database.types.ts` and shared domain types (`apps/backend/types/index.ts`).
-  - Services: update `createPracticeRoom(...)` to accept and persist `duration_minutes`; compute and persist `end_utc` if present.
+  - Services: update `createPracticeRoom(...)` to accept `startUtc` and persist `duration_minutes`; compute and persist `end_utc` if present.
   - Regenerate TS DB types using the root script: `npm run generate:types`.
 - **Frontend**
   - Add session length selector to host room creation UI (`InterviewScheduling.tsx` / hook) and pass `durationMinutes` in create request.
   - Update frontend domain types (`apps/frontend/src/types/index.ts`) as needed.
+  - Ensure Supabase selects include `duration_minutes`, `end_utc`, and `ics_sequence` in `practice_rooms` fetches.
+  - Display the chosen duration in the scheduling lists (`RoomListPanel.tsx`).
 - **Acceptance**
   - Room creation persists `duration_minutes` (and `end_utc` if present) with valid values only.
-  - Lists and details load without regressions.
+  - Lists and details load without regressions and show the session duration.
 
 ### 2) ICS builder: SEQUENCE + DESCRIPTION + duration-aware DTEND
 - **User story**: As an attendee, my calendar invite includes the correct end time and is ready for future updates via `SEQUENCE`.

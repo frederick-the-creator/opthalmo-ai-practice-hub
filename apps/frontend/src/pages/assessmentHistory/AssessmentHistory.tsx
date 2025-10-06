@@ -108,8 +108,8 @@ const AssessmentHistory: React.FC = () => {
             .sort((a, b) => {
               const ra = roomsById[a.roomId as string];
               const rb = roomsById[b.roomId as string];
-              const da = ra?.datetimeUtc ? new Date(ra.datetimeUtc as string).getTime() : 0;
-              const db = rb?.datetimeUtc ? new Date(rb.datetimeUtc as string).getTime() : 0;
+              const da = ra?.startUtc ? new Date(ra.startUtc as string).getTime() : 0;
+              const db = rb?.startUtc ? new Date(rb.startUtc as string).getTime() : 0;
               return db - da;
             })
             .map((round) => {
@@ -133,7 +133,7 @@ const AssessmentHistory: React.FC = () => {
                       <span className="mx-2">•</span>
                       <span>Guest: {guestName}</span>
                       <span className="mx-2">•</span>
-                      <span>{room?.datetimeUtc ? new Date(room.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}</span>
+                      <span>{room?.startUtc ? new Date(room.startUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}</span>
                       {room?.stage === 'Finished' && <span className="ml-2 text-green-600">Finished</span>}
                     </div>
                   </div>
@@ -164,7 +164,7 @@ const AssessmentHistory: React.FC = () => {
                                 <div>
                                   <h2 className="text-lg font-semibold">Assessment Overview</h2>
                                   <p className="text-sm text-muted-foreground">
-                                    Interview • {dialogRoom?.datetimeUtc ? new Date(dialogRoom.datetimeUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
+                                    Interview • {dialogRoom?.startUtc ? new Date(dialogRoom.startUtc as string).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown date'}
                                   </p>
                                 </div>
                                 <div className="text-right">

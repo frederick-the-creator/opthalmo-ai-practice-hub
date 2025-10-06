@@ -13,18 +13,21 @@ Legend
 ---
 
 ### 1) Migrations + Session length selection
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Add `ics_sequence INT NOT NULL DEFAULT 0` to `practice_rooms`
-  - [ ] Add `duration_minutes INT NOT NULL` (allowed values: 30, 60, 90) and optional `end_utc TIMESTAMP`
-  - [ ] Update services to persist `duration_minutes` and compute `end_utc`
-  - [ ] Regenerate types using root script (`npm run generate:types`) and commit
+  - [x] Add `ics_sequence INT NOT NULL DEFAULT 0` to `practice_rooms`
+  - [x] Add `duration_minutes INT NOT NULL` (allowed values: 30, 60, 90) and optional `end_utc TIMESTAMP` (= `start_utc + duration_minutes`)
+  - [x] Add `CHECK (duration_minutes IN (30, 60, 90))` and backfill defaults; compute `end_utc` for legacy rows
+  - [x] Update services to persist `duration_minutes` and compute `end_utc`
+  - [x] Regenerate types using root script (`npm run generate:types`) and commit
 - Frontend
-  - [ ] Add session length selector and wire to create flow
+  - [x] Add session length selector and wire to create flow
+  - [x] Update lists to display duration
+  - [x] Ensure selects include `start_utc`, `duration_minutes`, `end_utc`, `ics_sequence`
 - Tests/Docs
-  - [ ] Unit: validations for duration values
-  - [ ] README: note new vars/fields
+  - [x] Unit: validations for duration values (service-level validation)
+  - [x] README/PRD notes updated in plan with constraints/backfill and UI display
 - Links: PR(s)
 
 ### 2) ICS builder: SEQUENCE + DESCRIPTION + duration-aware DTEND

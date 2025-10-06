@@ -36,9 +36,9 @@
 ### 3) Reschedule a session (no email yet)
 - **User story**: As a host, I can reschedule a session by changing `datetime_utc`.
 - **Backend**
-  - POST `/api/practice-room/update` with `{ roomId, datetimeUtc }` validates:
+  - POST `/api/practice-room/update` with `{ roomId, startUtc }` validates:
     - Only host can reschedule (403 if not host).
-    - `datetimeUtc` must be a valid future timestamp (400 on invalid/past).
+    - `startUtc` must be a valid future timestamp (400 on invalid/past).
   - On change, service triggers ICS `METHOD: REQUEST` update only if a guest is already booked; gated by `NOTIFICATIONS_ENABLED` (dry-run when disabled).
 - **Frontend**
   - Host-only “Reschedule” opens date/time dialog; optimistic update of local list then calls `rescheduleRoom`.

@@ -21,8 +21,8 @@ async function safeGetEmail(userId: string | null): Promise<string | null> {
 }
 
 export async function buildBookingContext(room: PracticeRoom) {
-  if (!room.datetimeUtc) return null
-  const startUtc = room.datetimeUtc
+  if (!room.startUtc) return null
+  const startUtc = room.startUtc
   const endUtc = new Date(new Date(startUtc).getTime() + 60 * 60 * 1000).toISOString()
   const hostEmail = await safeGetEmail(room.hostId)
   const guestEmail = room.guestId ? await safeGetEmail(room.guestId) : null

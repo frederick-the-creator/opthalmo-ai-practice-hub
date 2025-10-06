@@ -19,9 +19,9 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
   - Supabase data helpers and realtime: [`apps/frontend/src/services/database/data.tsx`](mdc:apps/frontend/src/services/database/data.tsx)
 
 - Actions:
-  - Create room: `createRoom({ hostId, datetimeUtc, private })` → POST `/api/practice-room/create`.
+  - Create room: `createRoom({ hostId, startUtc, private })` → POST `/api/practice-room/create`.
   - Accept invite: `setRoomGuest({ roomId, guestId })` → POST `/api/practice-room/update`.
-  - Reschedule: `rescheduleRoom({ roomId, datetimeUtc })` → POST `/api/practice-room/update`.
+  - Reschedule: `rescheduleRoom({ roomId, startUtc })` → POST `/api/practice-room/update`.
   - Cancel: `cancelRoom(roomId)` → DELETE `/api/practice-room/:roomId`.
   - Lists and detail reads: `fetchAllRooms()`, `fetchRoomsForUser(userId)`, `fetchRoomWithProfiles(roomId)`.
   - Realtime: `subscribeToAllPracticeRooms()` for lists; `subscribeToPracticeRoomByRoomId({ roomId })` for detail pages.
@@ -36,14 +36,14 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 ## Backend
 
 - Endpoints (mounted in `app.ts` under `/api`):
-  - POST `/practice-room/create` → `createPracticeRoom(...)` service
+  - POST `/practice-room/create` → `createPracticeRoom(...)` service (accepts `startUtc`)
   - POST `/practice-room/update` → `updatePracticeRoomGuarded(...)` service
   - DELETE `/practice-room/:roomId` → `deletePracticeRoomGuarded(...)` service
   - Middleware: `requireSupabaseUser` validates token and exposes `req.supabaseAsUser`.
 
 -- Services/Repositories:
   - Service: [`apps/backend/services/practiceRoom/practiceRoom.ts`](mdc:apps/backend/services/practiceRoom/practiceRoom.ts)
-    - `createPracticeRoom(supabaseAuthenticated, { hostId, datetimeUtc, private })`:
+    - `createPracticeRoom(supabaseAuthenticated, { hostId, startUtc, private })`:
     - Provisions a Daily.co room via `createDailyRoom()` and persists `room_url`.
     - Generates and persists stable `ics_uid` (UUID v4) used across the ICS lifecycle.
     - Uses repository to insert `practice_rooms` row with `stage: "Prep"` and `private` flag.
@@ -55,7 +55,7 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
       - 409: if `guest_id` already set, do not overwrite.
     - Reschedule guards:
       - 403: only host can reschedule.
-      - 400: `datetimeUtc` must be a valid future timestamp.
+      - 400: `startUtc` must be a valid future timestamp.
     - Notifications:
       - Sends ICS `METHOD: REQUEST` on first successful booking.
       - Sends ICS `METHOD: REQUEST` update on reschedule only if a guest is booked.
@@ -105,7 +105,7 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 ## Error handling & UX notes
 
 - If `guest_id` is already set, acceptance should be gated in UI.
-- On missing `datetimeUtc` or invalid date, surface API error to user.
+- On missing `startUtc` or invalid date, surface API error to user.
 - Invite acceptance page loads current room via `fetchRoomWithProfiles(roomId)`; if not found, show a friendly error.
 
 ## Lifecycle details
@@ -153,7 +153,7 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 
 ## HTTP semantics and error mapping
 
-- 400: Invalid request (e.g., invalid or past `datetimeUtc`).
+- 400: Invalid request (e.g., invalid or past `startUtc`).
 - 401: Missing/invalid token.
 - 403: Not allowed (host-only operations; booking self constraints).
 - 404: Not found (e.g., deleting a non-existent room).

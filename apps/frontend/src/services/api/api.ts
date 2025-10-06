@@ -1,5 +1,5 @@
 import axios from "axios";
-import { supabase } from "@/services/database/supabaseClient";
+import { supabase } from "@/utils/supabaseClient";
 
 // Base API URL - update this to point to your actual backend API
 const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -29,9 +29,9 @@ api.interceptors.request.use(async (config) => {
 });
 
 
-export async function createRoom({ hostId, datetimeUtc, private: isPrivate }: { hostId: string, datetimeUtc: string, private: boolean }) {
+export async function createRoom({ hostId, startUtc, private: isPrivate, durationMinutes }: { hostId: string, startUtc: string, private: boolean, durationMinutes: number }) {
 
-  const createFields = { hostId, datetimeUtc, private: isPrivate }
+  const createFields = { hostId, startUtc, private: isPrivate, durationMinutes }
 
   const response = await api.post("/practice-room/create", { createFields });
   return response.data;
@@ -49,8 +49,8 @@ export async function setRoomStage({ roomId, stage }: { roomId: string, stage: s
   return data.room;
 }
 
-export async function rescheduleRoom({ roomId, datetimeUtc }: { roomId: string, datetimeUtc: string }) {
-  const updateFields = { roomId, datetimeUtc };
+export async function rescheduleRoom({ roomId, startUtc }: { roomId: string, startUtc: string }) {
+  const updateFields = { roomId, startUtc };
   const { data } = await api.post("/practice-room/update", { updateFields });
   return data.room;
 }

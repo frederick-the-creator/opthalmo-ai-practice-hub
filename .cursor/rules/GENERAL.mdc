@@ -62,10 +62,12 @@ DB use in backend vs frontend: Frontend reads simple lists/details directly from
   - Services enforce domain rules (e.g., booking guards, role checks) and orchestrate repository calls.
 
 - Shared types over inline types.
-  - Prefer importing shared TypeScript types from `apps/backend/types/index.ts` (e.g., `PracticeRoomUpdate`) instead of defining inline ad-hoc shapes in routes or services.
+ - Type definitions placement.
+  - Prefer defining types in the same module as the function/component that uses them.
+  - When a type is needed across multiple modules or layers, move it to centralized shared types: backend in `apps/backend/types/index.ts`, frontend in `apps/frontend/src/types/index.ts`.
   - Keep mappers in `types/index.ts` the single source of truth for DB <-> domain conversions.
-  - On the frontend, prefer importing domain/view types from `apps/frontend/src/types/index.ts` (e.g., `PracticeRoomWithProfiles`) instead of re-declaring shapes in components or hooks.
-  - All new backend types (including service DTOs like ICS/notifications) must be defined and exported from `apps/backend/types/index.ts`. Do not declare ad-hoc types inside services/routes.
+  - Time fields: use `startUtc` in domain models; DB column is `start_utc` (legacy `datetime_utc`).
+  - Avoid ad-hoc, duplicated type declarations; promote shared types instead when reuse emerges.
 
 - Error handling
   - Use central error utilities (e.g., `HttpError`) to carry HTTP status codes from services to routes.

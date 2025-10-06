@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { TypedSupabaseClient } from '../utils/supabase'
+import type { TypedSupabaseClient } from '../../utils/supabaseClient'
 
 /**
  * Get the latest recording ID for a Daily.co room.

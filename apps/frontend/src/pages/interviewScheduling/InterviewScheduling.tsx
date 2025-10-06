@@ -1,14 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useInterviewScheduling } from "../hooks/useInterviewScheduling";
-import RoomListPanel from "../components/interviewScheduling/RoomListPanel";
-import SchedulePanel from "../components/interviewScheduling/SchedulePanel";
+import { useInterviewScheduling } from "../../hooks/useInterviewScheduling";
+import RoomListPanel from "../../components/interviewScheduling/RoomListPanel";
+import SchedulePanel from "../../components/interviewScheduling/SchedulePanel";
 
 const InterviewScheduling: React.FC = () => {
   const {
     rooms, loading, error,
     selectedDate, setSelectedDate,
     selectedTime, setSelectedTime,
+    durationMinutes, setDurationMinutes,
     scheduling, scheduleError,
     handleAcceptInvitation, handleScheduleRoom, handleReschedule, handleCancel,
     isPrivate, setIsPrivate,
@@ -48,6 +49,8 @@ const InterviewScheduling: React.FC = () => {
           setSelectedDate={setSelectedDate}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
+          durationMinutes={durationMinutes}
+          setDurationMinutes={setDurationMinutes}
           scheduleError={scheduleError}
           scheduling={scheduling}
           onSchedule={handleScheduleRoom}
