@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
-import { Assessment, AssessmentSchema } from "../schemas/assessment";
+import { Assessment, AssessmentSchema } from "./assessmentSchema";
 import fs from "fs";
 import path from "path";
 import { transcribe } from "./transcription";
-import type { TypedSupabaseClient } from "../utils/supabase";
+import type { TypedSupabaseClient } from "../../utils/supabase";
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;

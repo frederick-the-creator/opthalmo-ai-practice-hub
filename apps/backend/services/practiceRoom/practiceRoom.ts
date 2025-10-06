@@ -1,11 +1,11 @@
 import axios from 'axios'
-import type { TypedSupabaseClient } from '../utils/supabase'
-import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '../repositories/practiceRoom';
-import { createRoundWithReturn, deleteRoundsByRoomId } from '../repositories/practiceRound';
-import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../types';
-import { HttpError } from '../utils';
+import type { TypedSupabaseClient } from '../../utils/supabase'
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '../../repositories/practiceRoom';
+import { createRoundWithReturn, deleteRoundsByRoomId } from '../../repositories/practiceRound';
+import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../../types';
+import { HttpError } from '../../utils';
 import { randomUUID } from 'crypto'
-import { sendIcsEmail } from './notification'
+import { sendIcsNotification } from '../notifications/notification'
 
 
 
@@ -146,7 +146,7 @@ export async function updatePracticeRoomGuarded(
 
   // Send REQUEST on booking; for reschedule, only if a guest is present
   try {
-    if (isBooking || (isReschedule && existing.guestId)) await sendIcsEmail('REQUEST', room)
+    if (isBooking || (isReschedule && existing.guestId)) await sendIcsNotification('REQUEST', room)
   } catch (e: any) {
     console.warn('[updatePracticeRoomGuarded] notification failed (ignored):', e?.message)
   }
@@ -180,7 +180,7 @@ export async function deletePracticeRoomGuarded(
   // Send CANCEL only if a guest had booked the session
   if (existing.guestId) {
     try {
-      await sendIcsEmail('CANCEL', existing)
+      await sendIcsNotification('CANCEL', existing)
     } catch (e: any) {
       console.warn('[deletePracticeRoomGuarded] notification failed (ignored):', e?.message)
     }

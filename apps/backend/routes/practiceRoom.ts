@@ -1,6 +1,6 @@
 import {Router, Request, Response} from 'express'
 import { requireSupabaseUser } from '../utils/supabase'
-import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom';
+import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom/practiceRoom';
 import { HttpError } from '../utils/httpError';
 import { updatePracticeRoomWithReturn } from '../repositories/practiceRoom';
 import type { PracticeRoomUpdate } from '../types';

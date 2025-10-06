@@ -214,31 +214,3 @@ export const ProfileMapper = {
 
 export type IcsMethod = 'REQUEST' | 'CANCEL'
 
-export type BuildIcsParams = {
-  uid: string
-  method: IcsMethod
-  startUtc: string
-  endUtc: string
-  summary: string
-  organizer: { name?: string; email: string }
-  attendees: Array<{ name?: string; email: string }>
-  status?: 'CONFIRMED' | 'CANCELLED' | 'TENTATIVE'
-  description?: string
-  location?: string
-}
-
-export type SendNotificationParams = {
-  to: Array<{ email: string, name?: string }>
-  subject: string
-  text: string
-  ics?: { filename: string, content: string }
-}
-
-export type BookingContext = {
-  uid: string
-  startUtc: string
-  endUtc: string
-  summary: string
-  organizer: { name?: string; email: string }
-  attendees: Array<{ name?: string; email: string }>
-}
