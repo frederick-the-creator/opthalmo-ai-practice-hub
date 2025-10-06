@@ -1,5 +1,5 @@
 import type { PracticeRoom } from '../../types'
-import { getUserEmailById } from './adminRetrieveUsers'
+import { getUserEmailById, getUserFirstNameById } from './adminRetrieveUsers'
 
 export function resolveOrganizerFromEnv(): { name?: string; email: string } {
   const from = process.env.NOTIFICATIONS_FROM_EMAIL ?? 'Ophthalmo Practice <no-reply@localhost>'
@@ -27,7 +27,12 @@ export async function buildBookingContext(room: PracticeRoom) {
   if (!endUtc) return null
   const hostEmail = await safeGetEmail(room.hostId)
   const guestEmail = room.guestId ? await safeGetEmail(room.guestId) : null
-  const attendees = [hostEmail, guestEmail].filter(Boolean).map(email => ({ email: email as string }))
+  const hostFirst = await getUserFirstNameById(room.hostId)
+  const guestFirst = room.guestId ? await getUserFirstNameById(room.guestId) : null
+  const attendees = [
+    hostEmail ? { email: hostEmail as string, name: hostFirst ?? undefined } : null,
+    guestEmail ? { email: guestEmail as string, name: guestFirst ?? undefined } : null,
+  ].filter(Boolean) as Array<{ email: string; name?: string }>
   if (attendees.length === 0) return null
   const uid = room.icsUid ?? 'ephemeral-' + room.id
   const organizer = resolveOrganizerFromEnv()
@@ -40,7 +45,20 @@ export async function buildBookingContext(room: PracticeRoom) {
   if (!hostEmail) {
     console.warn('[notification] host email not found for room', room.id)
   }
-  return { uid, sequence, startUtc, endUtc, summary: 'Ophthalmo Practice Session', description, organizer, attendees }
+  return {
+    uid,
+    sequence,
+    startUtc,
+    endUtc,
+    summary: 'Ophthalmo Practice Session',
+    description,
+    organizer,
+    attendees,
+    hostFirst,
+    guestFirst,
+    hostEmail,
+    guestEmail,
+  }
 }
 
 

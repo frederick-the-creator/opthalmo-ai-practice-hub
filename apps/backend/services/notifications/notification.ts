@@ -91,20 +91,29 @@ export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom)
 
   // Send separate emails to each attendee, with an ICS that only lists that attendee
   for (const attendee of ctx.attendees) {
+    // Per-recipient subject: include the other party's first name when booking (REQUEST)
+    let subject = ctx.summary
+    if (method === 'REQUEST') {
+      const isHost = attendee.email === ctx.hostEmail
+      const counterpartyFirst = isHost ? ctx.guestFirst : ctx.hostFirst
+      if (counterpartyFirst) {
+        subject = `Ophthalmo Practice Session with ${counterpartyFirst}`
+      }
+    }
     const icsText = buildIcs({
       uid: ctx.uid,
       sequence: ctx.sequence,
       method,
       startUtc: ctx.startUtc,
       endUtc: ctx.endUtc,
-      summary: ctx.summary,
+      summary: subject,
       description: ctx.description,
       organizer: ctx.organizer,
       attendees: [attendee],
     })
     await sendEmail({
       to: [attendee],
-      subject: ctx.summary,
+      subject,
       text: baseText,
       ics: { filename: 'invite.ics', content: icsText },
     })
