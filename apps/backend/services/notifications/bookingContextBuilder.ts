@@ -23,20 +23,24 @@ async function safeGetEmail(userId: string | null): Promise<string | null> {
 export async function buildBookingContext(room: PracticeRoom) {
   if (!room.startUtc) return null
   const startUtc = room.startUtc
-  const endUtc = new Date(new Date(startUtc).getTime() + 60 * 60 * 1000).toISOString()
+  const endUtc = room.endUtc
+  if (!endUtc) return null
   const hostEmail = await safeGetEmail(room.hostId)
   const guestEmail = room.guestId ? await safeGetEmail(room.guestId) : null
   const attendees = [hostEmail, guestEmail].filter(Boolean).map(email => ({ email: email as string }))
   if (attendees.length === 0) return null
   const uid = room.icsUid ?? 'ephemeral-' + room.id
   const organizer = resolveOrganizerFromEnv()
+  const sequence = room.icsSequence ?? 0
+  // Minimal human-friendly description with placeholder for reschedule (Slice 4 will wire live link)
+  const description = `Practice session via Ophthalmo Practice Hub.\n\nIf you need to reschedule, visit: https://example.com/reschedule?uid=${encodeURIComponent(uid)}\n\nThis event is managed by a central organizer.`
   if (!guestEmail) {
     console.warn('[notification] guest email not found for room', room.id)
   }
   if (!hostEmail) {
     console.warn('[notification] host email not found for room', room.id)
   }
-  return { uid, startUtc, endUtc, summary: 'Ophthalmo Practice Session', organizer, attendees }
+  return { uid, sequence, startUtc, endUtc, summary: 'Ophthalmo Practice Session', description, organizer, attendees }
 }
 
 

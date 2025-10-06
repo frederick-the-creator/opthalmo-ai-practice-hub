@@ -93,10 +93,12 @@ export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom)
   for (const attendee of ctx.attendees) {
     const icsText = buildIcs({
       uid: ctx.uid,
+      sequence: ctx.sequence,
       method,
       startUtc: ctx.startUtc,
       endUtc: ctx.endUtc,
       summary: ctx.summary,
+      description: ctx.description,
       organizer: ctx.organizer,
       attendees: [attendee],
     })

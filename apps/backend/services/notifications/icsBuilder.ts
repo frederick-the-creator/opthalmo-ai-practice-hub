@@ -23,6 +23,7 @@ function escapeText(input: string): string {
 export type BuildIcsParams = {
   uid: string
   method: IcsMethod
+  sequence: number
   startUtc: string
   endUtc: string
   summary: string
@@ -37,6 +38,7 @@ export function buildIcs(params: BuildIcsParams): string {
   const {
     uid,
     method,
+    sequence,
     startUtc,
     endUtc,
     summary,
@@ -63,6 +65,7 @@ export function buildIcs(params: BuildIcsParams): string {
     `METHOD:${method}`,
     'BEGIN:VEVENT',
     `UID:${uid}`,
+    `SEQUENCE:${sequence}`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,

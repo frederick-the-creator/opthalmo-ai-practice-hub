@@ -153,7 +153,16 @@ export async function updatePracticeRoomGuarded(
   const isBooking = updateFields.guestId !== undefined && existing.guestId == null && updateFields.guestId !== null
   const isReschedule = updateFields.startUtc !== undefined && updateFields.startUtc != null && updateFields.startUtc !== existing.startUtc
 
-  const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, updateFields);
+  // If rescheduling, recompute endUtc and bump icsSequence
+  let nextUpdate: PracticeRoomUpdate = { ...updateFields }
+  if (isReschedule) {
+    const duration = existing.durationMinutes
+    const newStart = updateFields.startUtc as string
+    const newEnd = new Date(new Date(newStart).getTime() + duration * 60 * 1000).toISOString()
+    nextUpdate = { ...nextUpdate, endUtc: newEnd, icsSequence: (existing.icsSequence ?? 0) + 1 }
+  }
+
+  const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, nextUpdate);
 
   // Send REQUEST on booking; for reschedule, only if a guest is present
   try {
