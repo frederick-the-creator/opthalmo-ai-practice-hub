@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/supabase/client';
+import { supabase } from '@/services/database/supabaseClient';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "./client";
-import { fetchProfile } from "@/supabase/data";
+import { supabase } from "../utils/supabaseClient";
+import { fetchProfile } from "@/services/database/data";
 import type { Profile } from "@/types";
 import { toast as showToast } from "@/hooks/use-toast";
 

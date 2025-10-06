@@ -1,4 +1,4 @@
-import { supabase } from "./client";
+import { supabase } from "../../utils/supabaseClient";
 import type { Case, Profile, PracticeRoomWithProfiles, PracticeRound } from "@/types";
 import { ProfileMapper, PracticeRoomWithProfilesMapper, PracticeRoundMapper, CaseMapper } from "@/types";
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/supabase/AuthProvider";
-import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/supabase/data";
+import { useAuth } from "@/store/AuthProvider";
+import { fetchRoundsByCandidate, fetchRoomByRoundId, fetchCasebyCaseId } from "@/services/database/data";
 import type { PracticeRound, Case, Profile, PracticeRoomWithProfiles } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

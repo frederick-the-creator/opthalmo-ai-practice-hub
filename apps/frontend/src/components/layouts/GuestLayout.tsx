@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import NavBar from "../shared/NavBar";
 import Footer from "../shared/Footer";
-import { useAuth } from '@/supabase/AuthProvider';
+import { useAuth } from '@/store/AuthProvider';
 
 const GuestLayout: React.FC = () => {
   const location = useLocation();

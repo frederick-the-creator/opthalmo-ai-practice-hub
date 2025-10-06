@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { setRoomGuest } from "@/lib/api";
-import { fetchRoomWithProfiles } from "@/supabase/data";
+import { setRoomGuest } from "@/services/api/api";
+import { fetchRoomWithProfiles } from "@/services/database/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { mapApiError } from "@/lib/utils";
-import { useAuth } from '@/supabase/AuthProvider'
+import { mapApiError } from "@/services/api/utils";
+import { useAuth } from '@/store/AuthProvider'
 
 import type { PracticeRoomWithProfiles } from "@/types";
 

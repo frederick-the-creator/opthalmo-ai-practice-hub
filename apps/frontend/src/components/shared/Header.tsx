@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/supabase/AuthProvider";
+import { useAuth } from "@/store/AuthProvider";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Eye, LayoutDashboard, Video, ListChecks, LogOut } from "lucide-react";
 

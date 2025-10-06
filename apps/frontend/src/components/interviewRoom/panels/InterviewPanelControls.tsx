@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
-import { startRecording, stopRecording, assessCandidatePerformance } from '@/lib/api';
-import { mapApiError } from '@/lib/utils';
+import { startRecording, stopRecording, assessCandidatePerformance } from '@/services/api/api';
+import { mapApiError } from '@/services/api/utils';
 
 type InterviewControlsProps = {
   room: any | null;

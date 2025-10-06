@@ -3,23 +3,23 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Dashboard from "./pages/Dashboard";
-import InterviewScheduling from "./pages/InterviewScheduling";
+import Dashboard from "./pages/dashboard/Dashboard";
+import InterviewScheduling from "./pages/interviewScheduling/InterviewScheduling";
 import AuthLayout from "./components/layouts/AuthLayout";
 import GuestLayout from "./components/layouts/GuestLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import CompleteProfile from "./pages/auth/CompleteProfile";
+import CompleteProfile from "./pages/profile/CompleteProfile";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
-import Landing from "./pages/Landing";
+import Landing from "./pages/landing/Landing";
 
-import InterviewPracticeRoom from "./pages/InterviewPracticeRoom";
-import NotFound from "./pages/NotFound";
+import InterviewPracticeRoom from "./pages/interviewRoom/InterviewPracticeRoom";
+import NotFound from "./pages/notFound/NotFound";
 import InviteAcceptPage from "./components/interviewScheduling/InviteAcceptPage";
-import AssessmentHistory from "./pages/AssessmentHistory";
-import Profile from "./pages/Profile";
-import { AuthProvider } from "./supabase/AuthProvider";
+import AssessmentHistory from "./pages/assessmentHistory/AssessmentHistory";
+import Profile from "./pages/profile/Profile";
+import { AuthProvider } from "./store/AuthProvider";
 
 const App = () => (
   <TooltipProvider>

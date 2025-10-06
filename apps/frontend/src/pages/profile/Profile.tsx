@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/supabase/client";
-import { useAuth } from "@/supabase/AuthProvider";
-import { updateProfile } from "@/lib/api";
-import { mapApiError } from "@/lib/utils";
+import { supabase } from "@/utils/supabaseClient";
+import { useAuth } from "@/store/AuthProvider";
+import { updateProfile } from "@/services/api/api";
+import { mapApiError } from "@/services/api/utils";
 
 
 const Profile: React.FC = () => {

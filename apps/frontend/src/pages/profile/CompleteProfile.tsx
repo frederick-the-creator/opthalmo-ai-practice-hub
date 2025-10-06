@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { useAuth } from '@/supabase/AuthProvider';
-import { createProfile } from '@/lib/api';
-import { mapApiError } from '@/lib/utils';
+import { useAuth } from '@/store/AuthProvider';
+import { createProfile } from '@/services/api/api';
+import { mapApiError } from '@/services/api/utils';
 
 const CompleteProfile: React.FC = () => {
   const [firstName, setFirstName] = useState("");

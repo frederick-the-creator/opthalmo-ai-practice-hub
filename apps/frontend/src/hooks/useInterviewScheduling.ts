@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/supabase/AuthProvider";
-import { createRoom, setRoomGuest, rescheduleRoom, cancelRoom } from "@/lib/api";
-import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/supabase/data";
-import { mapApiError } from "@/lib/utils";
+import { useAuth } from "@/store/AuthProvider";
+import { createRoom, setRoomGuest, rescheduleRoom, cancelRoom } from "@/services/api/api";
+import { fetchAllRooms, subscribeToAllPracticeRooms } from "@/services/database/data";
+import { mapApiError } from "@/services/api/utils";
 import { toast } from "@/components/ui/use-toast";
 import type { PracticeRoomWithProfiles } from "@/types";
 

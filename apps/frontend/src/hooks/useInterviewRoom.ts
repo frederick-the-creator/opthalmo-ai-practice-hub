@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/supabase/data';
-import { useAuth } from '@/supabase/AuthProvider';
-import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/lib/api";
-import { mapApiError } from "@/lib/utils";
+import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/services/database/data';
+import { useAuth } from '@/store/AuthProvider';
+import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/services/api/api";
+import { mapApiError } from "@/services/api/utils";
 import type { PracticeRoomWithProfiles, PracticeRound, Case } from '@/types';
 
 // Define the return type for clarity (can be expanded later)
