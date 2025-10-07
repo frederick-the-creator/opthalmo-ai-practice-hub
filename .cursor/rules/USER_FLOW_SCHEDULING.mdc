@@ -125,6 +125,31 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
   - If a guest is booked, backend sends ICS `METHOD: REQUEST` update; otherwise no email is sent.
   - Frontend performs optimistic update with proper error mapping and realtime sync.
 
+### Tokenized Rescheduling (public, no login)
+
+- Email link in ICS/notification:
+  - Each attendee receives a per-recipient reschedule URL embedded in the email/ICS description when the initial booking occurs: `${FRONTEND_URL}/reschedule?r=<token>`.
+  - Token is HMAC-signed, short-lived, and stored server-side as a hash in `magic_links`.
+  - Implemented in service `notification.ts` using services from `token.ts`
+  - Notification repository keeps track of notification status, stores user emails but RLS enabled and only accessed via admin supabase
+
+- Public reschedule form (frontend):
+  - Route: `/reschedule` → `apps/frontend/src/pages/reschedule/RescheduleForm.tsx`.
+  - On load, validates the token via `validateRescheduleToken(r)` and extracts room current timing from token (Using route `reschedule.ts`)
+  - On submit, posts `proposedStartUtc`, `proposedEndUtc`, and optional `note` via `proposeReschedule(...)`. Submits proposal request using new times from UI and room details from token. (Using route `reschedule.ts`)
+
+- Backend endpoints (mounted under `/api/reschedule`):
+  - `GET /api/reschedule?r=<token>` → validates token, returns form descriptor `{ ok, uid, actorEmail, actorRole, expiresAt }`.
+  - `POST /api/reschedule/propose` → accepts `{ token, proposedStartUtc, proposedEndUtc, note }`, creates `pending_proposals` row, returns `{ ok, proposalId }`.
+
+- Database (added):
+  - `magic_links(id, purpose, uid, room_id, actor_email, actor_role, token_hash, expires_at, used_at, created_at)`.
+  - `pending_proposals(id, room_id, uid, proposed_by, proposer_email, proposed_start_utc, proposed_end_utc, note, status, created_at, expires_at, approved_by, decision_at)`.
+
+- Notes:
+  - This slice only collects proposals; approval/decline links are introduced in the next slice.
+  - Invalid/expired tokens return 400 with a friendly error message in the public page.
+
 - Cancel (delete) a session:
   - Host-only. If a guest had booked, backend sends ICS `METHOD: CANCEL` before deletion.
   - Deletes dependent `practice_rounds` then the `practice_rooms` row. 404 when deleting a non-existent room.

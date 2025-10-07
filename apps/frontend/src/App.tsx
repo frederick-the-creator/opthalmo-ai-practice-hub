@@ -19,6 +19,7 @@ import NotFound from "./pages/notFound/NotFound";
 import InviteAcceptPage from "./components/interviewScheduling/InviteAcceptPage";
 import AssessmentHistory from "./pages/assessmentHistory/AssessmentHistory";
 import Profile from "./pages/profile/Profile";
+import RescheduleForm from "./pages/reschedule/RescheduleForm";
 import { AuthProvider } from "./store/AuthProvider";
 
 const App = () => (
@@ -53,6 +54,7 @@ const App = () => (
 
           {/* Public Routes */}
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reschedule" element={<RescheduleForm />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>

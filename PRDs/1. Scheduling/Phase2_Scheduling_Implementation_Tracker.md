@@ -62,16 +62,16 @@ Legend
 - Links: PR(s)
 
 ### 4) Tokenized reschedule: proposal form (no login) → pending proposal
-- Status: [ ]
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] Create `pending_proposals` and `magic_links` tables
-  - [ ] Implement token generation/validation (HMAC/JWT)
-  - [ ] `GET /reschedule?r=<token>`: validate and render form
-  - [ ] `POST /api/reschedule/propose`: persist proposal and notify counterparty
-  - [ ] Update ICS DESCRIPTION to include live reschedule URL
+  - [x] Create `pending_proposals` and `magic_links` tables
+  - [x] Implement token generation/validation (HMAC/JWT)
+  - [x] `GET /reschedule?r=<token>`: validate and render form
+  - [x] `POST /api/reschedule/propose`: persist proposal and notify counterparty
+  - [x] Update ICS DESCRIPTION to include live reschedule URL
 - Frontend
-  - [ ] Public reschedule form page and success screen
+  - [x] Public reschedule form page and success screen
 - Tests
   - [ ] Unit: token validation and proposal persistence
   - [ ] Integration: proposal happy path

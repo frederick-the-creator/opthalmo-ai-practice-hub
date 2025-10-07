@@ -37,8 +37,9 @@ export async function buildBookingContext(room: PracticeRoom) {
   const uid = room.icsUid ?? 'ephemeral-' + room.id
   const organizer = resolveOrganizerFromEnv()
   const sequence = room.icsSequence ?? 0
-  // Minimal human-friendly description with placeholder for reschedule (Slice 4 will wire live link)
-  const description = `Practice session via Ophthalmo Practice Hub.\n\nIf you need to reschedule, visit: https://example.com/reschedule?uid=${encodeURIComponent(uid)}\n\nThis event is managed by a central organizer.`
+  // Include generic reschedule landing link for convenience; tokenized link is added per email
+  const base = (process.env.FRONTEND_URL?.replace(/\/$/, '') || 'http://localhost:5173')
+  const description = `Practice session via Ophthalmo Practice Hub.\n\nIf you need to reschedule, visit: ${base}/reschedule\n\nThis event is managed by a central organizer.`
   if (!guestEmail) {
     console.warn('[notification] guest email not found for room', room.id)
   }

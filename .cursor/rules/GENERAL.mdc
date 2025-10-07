@@ -33,6 +33,8 @@ State Management: The app currently manages state with `useState`/`useEffect` an
 
 DB use in backend vs frontend: Frontend reads simple lists/details directly from Supabase using the typed client. All writes and multi-service workflows (rooms/rounds/profile updates, recording, transcription, assessment) go through the backend Express API, which authenticates and uses a token-scoped Supabase client (`req.supabaseAsUser`) to honor RLS and encapsulate business logic.
 
+Any database calls in the backend should be done in the `apps/backend/repositories` file and not directly in the services or routes
+
 ## User Flow and Services
 
 - Interview Scheduling and Acceptance: See detailed rule: [`USER_FLOW_SCHEDULING`](mdc:.cursor/rules/USER_FLOW_SCHEDULING.mdc). Host creates rooms, guests accept invites; lists and details update via Supabase reads and realtime.

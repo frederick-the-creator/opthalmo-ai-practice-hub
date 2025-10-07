@@ -106,3 +106,21 @@ export async function cancelRoom(roomId: string) {
   const { data } = await api.delete(`/practice-room/${roomId}`);
   return data as { deleted: true; roomId: string };
 }
+
+// Reschedule (public, tokenized)
+export type RescheduleValidateResponse = {
+  ok: boolean;
+  uid: string;
+  startUtc: string | null;
+  endUtc: string | null;
+}
+
+export async function validateRescheduleToken(token: string): Promise<RescheduleValidateResponse> {
+  const { data } = await api.get('/proposal', { params: { r: token } })
+  return data as RescheduleValidateResponse
+}
+
+export async function proposeReschedule(params: { token: string; proposedStartUtc: string; proposedEndUtc: string; note?: string }): Promise<{ ok: boolean; proposalId: string }> {
+  const { data } = await api.post('/proposal/propose', params)
+  return data as { ok: boolean; proposalId: string }
+}

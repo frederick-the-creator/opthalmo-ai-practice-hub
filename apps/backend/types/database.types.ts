@@ -47,6 +47,151 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_links: {
+        Row: {
+          actor_email: string
+          actor_role: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          room_id: string | null
+          token_hash: string
+          uid: string
+          used_at: string | null
+        }
+        Insert: {
+          actor_email: string
+          actor_role: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          room_id?: string | null
+          token_hash: string
+          uid: string
+          used_at?: string | null
+        }
+        Update: {
+          actor_email?: string
+          actor_role?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          room_id?: string | null
+          token_hash?: string
+          uid?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_links_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "practice_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_sends: {
+        Row: {
+          attempts: number
+          attendee_email: string
+          created_at: string
+          id: string
+          last_error: string | null
+          method: string
+          provider_message_id: string | null
+          sequence: number
+          status: string
+          uid: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          attendee_email: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          method: string
+          provider_message_id?: string | null
+          sequence: number
+          status?: string
+          uid: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          attendee_email?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          method?: string
+          provider_message_id?: string | null
+          sequence?: number
+          status?: string
+          uid?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pending_proposals: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          decision_at: string | null
+          expires_at: string | null
+          id: string
+          note: string | null
+          proposed_by: string
+          proposed_end_utc: string
+          proposed_start_utc: string
+          proposer_email: string
+          room_id: string
+          status: string
+          uid: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          decision_at?: string | null
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          proposed_by: string
+          proposed_end_utc: string
+          proposed_start_utc: string
+          proposer_email: string
+          room_id: string
+          status?: string
+          uid: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          decision_at?: string | null
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          proposed_by?: string
+          proposed_end_utc?: string
+          proposed_start_utc?: string
+          proposer_email?: string
+          room_id?: string
+          status?: string
+          uid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_proposals_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "practice_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_rooms: {
         Row: {
           created_at: string | null

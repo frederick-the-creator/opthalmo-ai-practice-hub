@@ -7,6 +7,7 @@ import roundRouter from './routes/practiceRound'
 import profileRouter from './routes/profile'
 import recordingRouter from './routes/recording'
 import assessmentRouter from './routes/assessment'
+import proposalsRouter from './routes/proposals'
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/practice-room', roomRouter)
 app.use('/api/practice-round', roundRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/recording', recordingRouter)
+app.use('/api/proposal', proposalsRouter)
 app.use('/api/assessment', assessmentRouter)
 
 export default app

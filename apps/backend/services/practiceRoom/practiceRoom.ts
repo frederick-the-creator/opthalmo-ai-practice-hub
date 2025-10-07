@@ -111,10 +111,11 @@ export async function updatePracticeRoomGuarded(
   currentUserId: string,
   updateFields: PracticeRoomUpdate
 ): Promise<PracticeRoom> {
-  console.log('Update service')
+
+  // Retrieve existing practice room to implement update guards
   const existing = await getPracticeRoomById(supabaseAuthenticated, updateFields.roomId);
 
-  // Booking guard
+  // Booking guard: Only bookable if no current guest
   if (updateFields.guestId !== undefined) {
     if (existing.hostId === currentUserId) {
       throw new HttpError(403, 'Host cannot book own session');
@@ -150,10 +151,12 @@ export async function updatePracticeRoomGuarded(
     }
   }
 
+  // Determine type of update (initial booking or reschedule)
   const isBooking = updateFields.guestId !== undefined && existing.guestId == null && updateFields.guestId !== null
   const isReschedule = updateFields.startUtc !== undefined && updateFields.startUtc != null && updateFields.startUtc !== existing.startUtc
 
-  // If rescheduling, recompute endUtc and bump icsSequence
+  // If rescheduling, recompute updateFields with new endUtc and bump icsSequence
+  // Else update practice room with updateFields as is
   let nextUpdate: PracticeRoomUpdate = { ...updateFields }
   if (isReschedule) {
     const duration = existing.durationMinutes
@@ -161,10 +164,9 @@ export async function updatePracticeRoomGuarded(
     const newEnd = new Date(new Date(newStart).getTime() + duration * 60 * 1000).toISOString()
     nextUpdate = { ...nextUpdate, endUtc: newEnd, icsSequence: (existing.icsSequence ?? 0) + 1 }
   }
-
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, nextUpdate);
 
-  // Send REQUEST on booking; for reschedule, only if a guest is present
+  // Send notification email for case when booking or reschedule. In case of reschedule, room passed will have new details
   try {
     if (isBooking || (isReschedule && existing.guestId)) await sendIcsNotification('REQUEST', room)
   } catch (e: any) {

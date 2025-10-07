@@ -64,6 +64,7 @@ export async function markSendSent(
   if (error) throw new Error(error.message)
 }
 
+// 
 export async function incrementAttemptAndFail(
   admin: SupabaseClient<Database>,
   id: string,
