@@ -3,6 +3,7 @@ import { validateMagicToken } from '../services/proposals/magicLink'
 import { createPendingProposal } from '../repositories/proposal'
 import { createAdminSupabaseClient, type TypedSupabaseClient } from '../utils/supabaseClient'
 import { getPracticeRoomById } from '../repositories/practiceRoom'
+import { issueDecisionLinksAndNotify, decideByToken } from '../services/proposals/proposal'
 
 const proposalRouter = Router()
 
@@ -56,13 +57,57 @@ proposalRouter.post('/propose', async (req: Request, res: Response) => {
       note: note ?? null,
     })
 
-    // Notify counterparty via a lightweight email (no ICS) - optional placeholder
-    // For now, we just log. Future slices will send Approve/Decline links.
-    console.log('[reschedule:proposal:created]', JSON.stringify({ proposalId, uid: payload.uid }))
+    // Issue decision links via service and notify counterparty
+    await issueDecisionLinksAndNotify({
+      roomId: payload.roomId,
+      uid: payload.uid,
+      proposerRole: payload.actorRole,
+      proposerEmail: payload.actorEmail,
+      proposalId,
+    })
 
     return res.json({ ok: true, proposalId })
   } catch (e: any) {
+    console.log(e?.message)
     return res.status(400).json({ error: e?.message || 'Invalid token or request' })
+  }
+})
+
+// (Approve/Decline endpoints retired in favor of single-link decision flow)
+
+// Decision flow (single-link): validate token for page load
+proposalRouter.get('/decision', async (req: Request, res: Response) => {
+  try {
+    const token = String(req.query.t || '')
+    if (!token) return res.status(400).json({ error: 'Missing token' })
+    const payload = await validateMagicToken(token, 'reschedule_decide')
+    let startUtc: string | null = null
+    let endUtc: string | null = null
+    const proposedStartUtc = (payload as any).proposedStartUtc ?? null
+    const proposedEndUtc = (payload as any).proposedEndUtc ?? null
+    if (payload.roomId) {
+      const admin = createAdminSupabaseClient() as TypedSupabaseClient
+      try {
+        const room = await getPracticeRoomById(admin, payload.roomId)
+        startUtc = room.startUtc
+        endUtc = room.endUtc
+      } catch (_e) {}
+    }
+    return res.json({ ok: true, uid: payload.uid, proposalId: payload.proposalId ?? null, startUtc, endUtc, proposedStartUtc, proposedEndUtc })
+  } catch (e: any) {
+    return res.status(400).json({ error: e?.message || 'Invalid token' })
+  }
+})
+
+// Decision flow submit: { token, action, proposedStartUtc?, proposedEndUtc?, note? }
+proposalRouter.post('/decision', async (req: Request, res: Response) => {
+  try {
+    const { token, action, proposedStartUtc, proposedEndUtc, note } = req.body || {}
+    if (!token || !action) return res.status(400).json({ error: 'Missing fields' })
+    const result = await decideByToken(token, action, { proposedStartUtc, proposedEndUtc, note })
+    return res.json(result)
+  } catch (e: any) {
+    return res.status(400).json({ error: e?.message || 'Invalid request' })
   }
 })
 

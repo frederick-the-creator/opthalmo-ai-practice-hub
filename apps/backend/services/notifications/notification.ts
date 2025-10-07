@@ -18,7 +18,7 @@ export type SendEmailParams = {
 /**
  * Low-level email sender using Resend. No feature gating here.
  */
-async function sendEmail (params: SendEmailParams & { methodForCalendar?: IcsMethod }): Promise<{ logged: boolean; sent: boolean; providerMessageId: string | null }>{
+export async function sendEmail (params: SendEmailParams & { methodForCalendar?: IcsMethod }): Promise<{ logged: boolean; sent: boolean; providerMessageId: string | null }>{
 
   // Load environment variables
   const resendApiKey = process.env.RESEND_API_KEY
@@ -111,6 +111,11 @@ export async function sendIcsNotification(method: IcsMethod, room: PracticeRoom)
     if (counterpartyFirst) {
       subject = `Ophthalmo Practice Session with ${counterpartyFirst}`
     }
+    // Prepend notification type
+    let prefix: string | null = null
+    if (method === 'CANCEL') prefix = 'Cancelled'
+    if (method === 'REQUEST') prefix = (ctx.sequence ?? 0) > 0 ? 'New Time Proposed' : 'Booked'
+    if (prefix) subject = `${prefix}: ${subject}`
     // Build per-recipient description with tokenized reschedule link for REQUESTs
     let description = ctx.description
     let rescheduleLink: string | null = null

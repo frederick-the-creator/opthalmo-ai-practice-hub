@@ -84,19 +84,21 @@ Related PRD: [Phase2_Scheduling_PRD.md](./Phase2_Scheduling_PRD.md)
   - Valid token opens form; invalid/expired token shows error with restart guidance.
   - Submitting a valid proposal creates a `pending_proposals` record and emails the counterparty notification.
 
-### 5) Approve/Decline magic links → apply or reject proposal
-- **User story**: As the counterparty, I can approve or decline a proposed new time via one-click magic links.
+### 5) Single decision link → agree / propose alternative / cancel
+- **User story**: As the counterparty, I open one decision link and choose to agree, propose an alternative, or cancel the meeting.
 - **Backend**
-  - Extend `ProposalService` to issue Approve/Decline tokens and emails.
+  - Extend `ProposalService` to issue a single decision token carrying `{ uid, roomId, proposalId, proposedStartUtc, proposedEndUtc }`.
   - Endpoints:
-    - `GET /approve?t=<token>` — Validate, update room times, bump `ics_sequence`, send two REQUEST updates (sequence += 1), mark proposal approved, mark token used.
-    - `GET /decline?t=<token>` — Validate, mark proposal declined; optional courtesy email to proposer.
-  - Idempotency: If `ics_sequence` already advanced, return success and mark token used (no duplicate sends).
+    - `GET /api/proposal/decision?t=<token>` — Validate and return room current `startUtc/endUtc` and the token’s proposed times.
+    - `POST /api/proposal/decision` — Body: `{ token, action: 'agree' | 'propose' | 'cancel', proposedStartUtc?, proposedEndUtc? }`.
+      - `agree`: update room times, bump `ics_sequence`, send REQUEST updates to both, mark proposal approved, mark token used.
+      - `propose`: create a new pending proposal with the provided times and email a fresh decision link to the other party.
+      - `cancel`: send CANCEL to both (and optionally delete per policy), mark token used.
+  - Email subjects follow the standard: `Booked:` initial REQUEST, `New Time Proposed:` for REQUEST updates, `Cancelled:` for CANCEL.
 - **Frontend**
-  - Minimal public confirmation pages for approve/decline outcomes.
+  - Public Decision page (`/decision`) showing current and proposed times with actions for Agree, Propose alternative (reveals date/time picker), and Cancel.
 - **Acceptance**
-  - Approval updates room time, increments sequence, and delivers updated ICS to both attendees.
-  - Decline records properly and does not change the event.
+  - Valid token shows current and proposed times; Agree applies the update and sends updated ICS; Propose generates a counter-proposal; Cancel sends CANCEL; tokens are single-use/idempotent.
 
 ### 6) Inbound iMIP — REPLY accept/decline with Strict Cancel policy
 - **User story**: As an admin/system, attendee acceptances/declines from calendar are ingested and applied per policy.

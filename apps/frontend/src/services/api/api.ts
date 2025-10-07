@@ -124,3 +124,16 @@ export async function proposeReschedule(params: { token: string; proposedStartUt
   const { data } = await api.post('/proposal/propose', params)
   return data as { ok: boolean; proposalId: string }
 }
+
+// approve/decline (legacy) removed in favor of decision flow
+
+// Single-link decision flow
+export async function validateDecisionToken(token: string): Promise<{ ok: boolean; uid: string; proposalId: string | null; startUtc: string | null; endUtc: string | null; proposedStartUtc: string | null; proposedEndUtc: string | null }>{
+  const { data } = await api.get('/proposal/decision', { params: { t: token } })
+  return data as { ok: boolean; uid: string; proposalId: string | null; startUtc: string | null; endUtc: string | null; proposedStartUtc: string | null; proposedEndUtc: string | null }
+}
+
+export async function decideProposal(params: { token: string; action: 'agree' | 'propose' | 'cancel'; proposedStartUtc?: string; proposedEndUtc?: string; note?: string }): Promise<{ ok: boolean }>{
+  const { data } = await api.post('/proposal/decision', params)
+  return data as { ok: boolean }
+}

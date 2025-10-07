@@ -4,7 +4,7 @@ import type { Database } from '../types/database.types'
 export async function insertMagicLink(
   admin: SupabaseClient<Database>,
   params: {
-    purpose: 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline'
+    purpose: 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline' | 'reschedule_decide'
     uid: string
     roomId: string | null
     actorEmail: string
@@ -38,4 +38,14 @@ export async function findActiveMagicLinkByHash(
     .maybeSingle()
   if (error) throw new Error(error.message || 'Token lookup failed')
   return data ?? null
+}
+
+export async function markMagicLinkUsedByHash(
+  admin: SupabaseClient<Database>,
+  tokenHash: string
+): Promise<void> {
+  const { error } = await (admin.from('magic_links' as any) as any)
+    .update({ used_at: new Date().toISOString() })
+    .eq('token_hash', tokenHash)
+  if (error) throw new Error(error.message || 'Failed to mark magic link as used')
 }

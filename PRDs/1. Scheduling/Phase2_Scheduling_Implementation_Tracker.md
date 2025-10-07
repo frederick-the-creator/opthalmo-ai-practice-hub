@@ -77,17 +77,17 @@ Legend
   - [ ] Integration: proposal happy path
 - Links: PR(s)
 
-### 5) Approve/Decline magic links → apply or reject proposal
-- Status: [ ]
+### 5) Single decision link → agree / propose alternative / cancel
+- Status: [x]
 - Owner:
 - Backend
-  - [ ] `GET /approve?t=<token>`: apply update, bump sequence, send REQUEST updates
-  - [ ] `GET /decline?t=<token>`: mark declined, courtesy email
-  - [ ] Idempotency on double-approve / sequence already advanced
+  - [x] `GET /api/proposal/decision` returns current and proposed times; token validation
+  - [x] `POST /api/proposal/decision` processes agree/propose/cancel, updates room and sends ICS
+  - [x] Decision token embeds proposed times; idempotent and single-use
 - Frontend
-  - [ ] Public confirmation pages for approve/decline outcomes
+  - [x] Public Decision page with current/proposed summaries, lazy date/time picker for propose
 - Tests
-  - [ ] Integration: approval updates time and emails both; decline no change
+  - [ ] Integration: agree applies update and emails both; propose creates counter-proposal; cancel sends CANCEL
 - Links: PR(s)
 
 ### 6) Inbound iMIP — REPLY accept/decline with Strict Cancel policy

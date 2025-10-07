@@ -1,14 +1,17 @@
 import crypto from 'crypto'
 import { createAdminSupabaseClient } from '../../utils'
 import type { TypedSupabaseClient } from '../../utils/supabaseClient'
-import { insertMagicLink, findActiveMagicLinkByHash } from '../../repositories/magicLink'
+import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '../../repositories/magicLink'
 
 type ActorRole = 'host' | 'guest'
-type MagicPurpose = 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline'
+type MagicPurpose = 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline' | 'reschedule_decide'
 
 export type MagicTokenPayload = {
   uid: string
   roomId: string | null
+  proposalId?: string | null
+  proposedStartUtc?: string | null
+  proposedEndUtc?: string | null
   actorEmail: string
   actorRole: ActorRole
   purpose: MagicPurpose
@@ -100,4 +103,10 @@ export async function validateMagicToken(token: string, purpose?: MagicPurpose):
   const data = await findActiveMagicLinkByHash(admin as TypedSupabaseClient, tokenHash)
   if (!data) throw new Error('Token not found or already used')
   return payload
+}
+
+export async function markMagicTokenUsed(token: string): Promise<void> {
+  const tokenHash = hashToken(token)
+  const admin = createAdminSupabaseClient()
+  await markMagicLinkUsedByHash(admin as TypedSupabaseClient, tokenHash)
 }
