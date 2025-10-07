@@ -7,7 +7,7 @@ import roundRouter from './routes/practiceRound'
 import profileRouter from './routes/profile'
 import recordingRouter from './routes/recording'
 import assessmentRouter from './routes/assessment'
-import proposalsRouter from './routes/proposals'
+import proposalsRouter from './routes/proposal'
 
 const app = express();
 
