@@ -1,6 +1,6 @@
 import {Router, Request, Response} from 'express'
-import { requireSupabaseUser } from '../utils/supabaseClient.js'
-import { createRoundWithReturn, updatePracticeRoundWithReturn } from '../repositories/practiceRound.js';
+import { requireSupabaseUser } from '@/utils/supabaseClient.js'
+import { createRoundWithReturn, updatePracticeRoundWithReturn } from '@/repositories/practiceRound.js';
 
 const roundRouter = Router()
 

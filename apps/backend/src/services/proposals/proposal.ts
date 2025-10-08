@@ -1,10 +1,10 @@
-import type { TypedSupabaseClient } from '../../utils/supabaseClient.js'
-import { createAdminSupabaseClient } from '../../utils/supabaseClient.js'
+import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
+import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from './magicLink.js'
-import { getPendingProposalById, markProposalDecision } from '../../repositories/proposal.js'
-import { getPracticeRoomById, updatePracticeRoomWithReturn } from '../../repositories/practiceRoom.js'
-import { buildBookingContext } from '../notifications/bookingContextBuilder.js'
-import { sendEmail, sendIcsNotification } from '../notifications/notification.js'
+import { getPendingProposalById, markProposalDecision } from '@/repositories/proposal.js'
+import { getPracticeRoomById, updatePracticeRoomWithReturn } from '@/repositories/practiceRoom.js'
+import { buildBookingContext } from '@/notifications/bookingContextBuilder.js'
+import { sendEmail, sendIcsNotification } from '@/notifications/notification.js'
 
 export async function issueDecisionLinksAndNotify(params: {
   roomId: string
@@ -90,7 +90,7 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
 
   // action === 'propose' → create a new counter-proposal back to the other party
   if (!proposalNote?.proposedStartUtc || !proposalNote?.proposedEndUtc) throw new Error('Missing proposed times')
-  const { createPendingProposal } = await import('../../repositories/proposal.js')
+  const { createPendingProposal } = await import('@/repositories/proposal.js')
   // Persist a new proposal from the decider (counterparty)
   const newProposalId = await createPendingProposal({
     roomId: proposal.roomId,

@@ -1,11 +1,11 @@
 import axios from 'axios'
-import type { TypedSupabaseClient } from '../../utils/supabaseClient.js'
-import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '../../repositories/practiceRoom.js';
-import { createRoundWithReturn, deleteRoundsByRoomId } from '../../repositories/practiceRound.js';
-import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '../../types/index.js';
-import { HttpError } from '../..//utils/index.js';
+import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/repositories/practiceRoom.js';
+import { createRoundWithReturn, deleteRoundsByRoomId } from '@/repositories/practiceRound.js';
+import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '@/types/index.js';
+import { HttpError } from '@//utils/index.js';
 import { randomUUID } from 'crypto'
-import { sendIcsNotification } from '../notifications/notification.js'
+import { sendIcsNotification } from '@/notifications/notification.js'
 
 
 

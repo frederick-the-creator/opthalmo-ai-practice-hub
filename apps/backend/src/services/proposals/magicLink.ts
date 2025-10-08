@@ -1,7 +1,7 @@
 import crypto from 'crypto'
-import { createAdminSupabaseClient } from '../..//utils/index.js'
-import type { TypedSupabaseClient } from '../../utils/supabaseClient.js'
-import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '../../repositories/magicLink.js'
+import { createAdminSupabaseClient } from '@//utils/index.js'
+import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
+import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '@/repositories/magicLink.js'
 
 type ActorRole = 'host' | 'guest'
 type MagicPurpose = 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline' | 'reschedule_decide'

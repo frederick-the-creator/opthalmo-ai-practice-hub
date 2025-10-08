@@ -19,6 +19,13 @@
     /* Completeness */
     "skipLibCheck": true,                          /* Skip type checking all .d.ts files. */
     "forceConsistentCasingInFileNames": true,     /* Ensure that casing is correct in imports. */
+
+    /* === Paths & Base Config === */
+    // Set root folder for module resolution so can use @/* to refer to ./src/*
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
   },
   "include": ["src"]
 }

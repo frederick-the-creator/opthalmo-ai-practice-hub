@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '../types/database.types.js'
+import type { Database } from '@/types/database.types.js'
 
 export async function insertMagicLink(
   admin: SupabaseClient<Database>,

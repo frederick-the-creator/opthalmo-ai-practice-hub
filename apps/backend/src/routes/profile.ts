@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
-import { requireSupabaseUser } from '../utils/supabaseClient.js'
-import { createProfileWithReturn, updateProfileWithReturn } from '../repositories/profile.js'
+import { requireSupabaseUser } from '@/utils/supabaseClient.js'
+import { createProfileWithReturn, updateProfileWithReturn } from '@/repositories/profile.js'
 
 const profileRouter = Router()
 
