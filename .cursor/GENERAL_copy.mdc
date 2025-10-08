@@ -1,0 +1,49 @@
+---
+alwaysApply: false
+---
+This rule provides guidance to AI coding assistants when working in this repository.
+
+## Repository Overview
+
+Backend exposes endpoints under `/api/*` mounted in `app.ts`:
+- `/api/practice-room` – room creation and updates
+- `/api/practice-round` – round creation and updates
+- `/api/profile` – profile creation and updates
+- `/api/recording` – start/stop recording
+- `/api/assessment` – run assessment
+- `/api/health` – health check
+
+
+
+- `user?.id` is leveraged frequently in components when calling data helpers (e.g., `fetchRoundsByCandidate(user.id)`), and show fallback UI if `!user`.
+- Use `signOut()` for logout flows.
+
+State Management:  Writes go through `apps/frontend/src/services/api/api.ts` (Axios with Supabase access token attached). Prefer local component state and explicit effects/subscriptions; adopt React Query for future caching/invalidation or where data dependencies become complex.
+
+
+
+## Available Tools
+- The Supabase MCP server should be used to understand the database schema and policies to ensure plans and implementation take account of these
+- Project documents such as PRDs, implementation plans and implementation trackers are used for each feature, make sure to update these with any necessary deviations from the plan identified whilst carrying out implementation and also update the tracker with progress.
+
+
+## Architectural Conventions
+
+
+
+- Error handling
+    - Supported contexts: `'booking' | 'reschedule' | 'cancel' | 'round' | 'recording' | 'assessment' | 'profile' | 'generic'`.
+    - Standard mappings:
+      - 400 → Invalid request (e.g., reschedule: "Please select a valid future date/time.")
+      - 401 → Session expired → prompt sign-in
+      - 403 → Not allowed (context-specific description)
+      - 404 → Not found
+      - 409 → Conflict (booking: "Already booked"; recording: state prevents action; otherwise generic conflict)
+      - 5xx → Server/provider error with retry-friendly copy
+
+## Database Types Generation
+
+- When the database schema changes, regenerate TS database types for both apps using the root script:
+  - `npm run generate:types`
+- This updates `apps/frontend/src/types/database.types.ts` and `apps/backend/types/database.types.ts`. Commit both files with schema changes.
+
