@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
-import { Assessment, AssessmentSchema } from "./assessmentSchema";
+import { Assessment, AssessmentSchema } from "./assessmentSchema.js";
 import fs from "fs";
 import path from "path";
-import { transcribe } from "./transcription";
+import { transcribe } from "./transcription.js";
 import type { TypedSupabaseClient } from "../../utils/supabaseClient";
 
 

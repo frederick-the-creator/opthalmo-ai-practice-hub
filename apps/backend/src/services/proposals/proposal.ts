@@ -1,10 +1,10 @@
 import type { TypedSupabaseClient } from '../../utils/supabaseClient'
 import { createAdminSupabaseClient } from '../../utils/supabaseClient'
-import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from './magicLink'
+import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from './magicLink.js'
 import { getPendingProposalById, markProposalDecision } from '../../repositories/proposal'
 import { getPracticeRoomById, updatePracticeRoomWithReturn } from '../../repositories/practiceRoom'
-import { buildBookingContext } from '../notifications/bookingContextBuilder'
-import { sendEmail, sendIcsNotification } from '../notifications/notification'
+import { buildBookingContext } from '../notifications/bookingContextBuilder.js'
+import { sendEmail, sendIcsNotification } from '../notifications/notification.js'
 
 export async function issueDecisionLinksAndNotify(params: {
   roomId: string

@@ -1,19 +1,41 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
   "compilerOptions": {
+    /* === Language & Environment === */
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["node"],
+
+    /* === Linting & Strictness === */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "noFallthroughCasesInSwitch": false,
+    "skipLibCheck": true,
+
+    /* === Paths & Base Config === */
+    // Set root folder for module resolution so can use @/* to refer to ./src/*
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "noImplicitAny": false,
-    "noUnusedParameters": false,
-    "skipLibCheck": true,
+
+    /* === Misc === */
     "allowJs": true,
-    "noUnusedLocals": false,
     "strictNullChecks": false
-  }
+  },
+
+  /* === Included Files === */
+  // Files included in typechecks and compilation
+  "include": [
+    "src",
+    "vite.config.ts"
+  ]
 }
