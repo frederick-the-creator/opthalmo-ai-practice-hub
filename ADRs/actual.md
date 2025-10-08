@@ -6,11 +6,11 @@ Monorepo structure
         - `apps/backend/` - Express + TypeScript API server 
     - Currently no shared libs
     - Root package.json with workspaces array; 
-    - dependency-cruiser rules for layers + no cross-app imports + “only import from package public API” (enforce index.ts barrels).
+    - dependency-cruiser rules for layers + no cross-app imports + “only import from package public API” (enforce index.ts barrels). **ToDo** 
 Frontend Structure
     - Layered / Type-based architecture structure under `apps/frontend/src/`
     - Use React Router with route modules under src/routes/. **ToDo**
-    - Components colocated with routes/features; each feature exposes a public API via index.ts **ToDo** Depcruise rule: routes cannot import other routes directly (only via features/shared).  **ToDo**
+    - Components colocated with routes/features; each feature exposes a public API via index.ts Depcruise rule: routes cannot import other routes directly (only via features/shared).  **ToDo**
 Backend Structure
     - Layered routes/ → services/ → repos/ (currently no controllers/  **ToDo**)
         - Routes should remain thin: parse/validate input, authenticate, call a service, translate errors to HTTP status codes.
