@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
-import NavBar from "../shared/NavBar";
-import Footer from "../shared/Footer";
+import NavBar from "@/components/shared/NavBar";
+import Footer from "@/components/shared/Footer";
 import { useAuth } from '@/store/AuthProvider';
 
 const GuestLayout: React.FC = () => {

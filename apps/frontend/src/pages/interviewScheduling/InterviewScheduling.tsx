@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useInterviewScheduling } from "../../hooks/useInterviewScheduling";
-import RoomListPanel from "../../components/interviewScheduling/RoomListPanel";
-import SchedulePanel from "../../components/interviewScheduling/SchedulePanel";
+import { useInterviewScheduling } from "@/hooks/useInterviewScheduling";
+import RoomListPanel from "@/components/interviewScheduling/RoomListPanel";
+import SchedulePanel from "@/components/interviewScheduling/SchedulePanel";
 
 const InterviewScheduling: React.FC = () => {
   const {

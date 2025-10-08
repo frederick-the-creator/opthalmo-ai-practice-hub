@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
-import Header from "../shared/Header";
+import Header from "@/components/shared/Header";
 import { useAuth } from '@/store/AuthProvider';
 
 interface AuthLayoutProps { fullscreen?: boolean }
