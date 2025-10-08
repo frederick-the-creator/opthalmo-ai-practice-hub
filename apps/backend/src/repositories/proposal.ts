@@ -1,5 +1,5 @@
-import { createAdminSupabaseClient } from '../utils'
-import type { TypedSupabaseClient } from '../utils/supabaseClient'
+import { createAdminSupabaseClient } from '..//utils/index.js'
+import type { TypedSupabaseClient } from '../utils/supabaseClient.js'
 
 export type PendingProposalInsert = {
   roomId: string

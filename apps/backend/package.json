@@ -4,7 +4,7 @@
   "description": "Express backend for the Ophthalmo AI Practice Hub.",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "postbuild": "mkdir -p dist/services/recordTranscribeAssess && cp services/recordTranscribeAssess/system-instructions.txt dist/services/recordTranscribeAssess/",
     "start": "node dist/index.js",

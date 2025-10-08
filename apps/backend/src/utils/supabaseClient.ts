@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Request, Response, NextFunction } from 'express';
-import type { Database } from '../types/database.types'
+import type { Database } from '../types/database.types.js'
 
 export const SUPABASE_URL = process.env.SUPABASE_URL as string;
 export const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY as string;

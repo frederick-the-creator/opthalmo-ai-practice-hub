@@ -1,4 +1,4 @@
-import { createAdminSupabaseClient } from '../../utils/supabaseClient'
+import { createAdminSupabaseClient } from '../../utils/supabaseClient.js'
 
 export async function getUserEmailById(userId: string): Promise<string | null> {
   const admin = createAdminSupabaseClient()

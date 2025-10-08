@@ -1,4 +1,4 @@
-import type { PracticeRoom } from '../../types'
+import type { PracticeRoom } from '../../types/index.js'
 import { getUserEmailById, getUserFirstNameById } from './adminRetrieveUsers.js'
 
 export function resolveOrganizerFromEnv(): { name?: string; email: string } {

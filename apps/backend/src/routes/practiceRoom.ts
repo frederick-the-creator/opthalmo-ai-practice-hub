@@ -1,8 +1,8 @@
 import {Router, Request, Response} from 'express'
-import { requireSupabaseUser } from '../utils/supabaseClient'
-import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom/practiceRoom';
-import { HttpError } from '../utils/httpError';
-import type { PracticeRoomUpdate } from '../types';
+import { requireSupabaseUser } from '../utils/supabaseClient.js'
+import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '../services/practiceRoom/practiceRoom.js';
+import { HttpError } from '../utils/httpError.js';
+import type { PracticeRoomUpdate } from '../types/index.js';
 
 const roomRouter = Router()
 

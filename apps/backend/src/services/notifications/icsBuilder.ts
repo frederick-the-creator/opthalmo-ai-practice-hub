@@ -1,4 +1,4 @@
-import { IcsMethod } from "../../types"
+import { IcsMethod } from "../../types/index.js"
 
 function toIcsDate(isoUtc: string): string {
   const d = new Date(isoUtc)

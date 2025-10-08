@@ -1,8 +1,8 @@
-import type { TypedSupabaseClient } from '../../utils/supabaseClient'
-import { createAdminSupabaseClient } from '../../utils/supabaseClient'
+import type { TypedSupabaseClient } from '../../utils/supabaseClient.js'
+import { createAdminSupabaseClient } from '../../utils/supabaseClient.js'
 import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from './magicLink.js'
-import { getPendingProposalById, markProposalDecision } from '../../repositories/proposal'
-import { getPracticeRoomById, updatePracticeRoomWithReturn } from '../../repositories/practiceRoom'
+import { getPendingProposalById, markProposalDecision } from '../../repositories/proposal.js'
+import { getPracticeRoomById, updatePracticeRoomWithReturn } from '../../repositories/practiceRoom.js'
 import { buildBookingContext } from '../notifications/bookingContextBuilder.js'
 import { sendEmail, sendIcsNotification } from '../notifications/notification.js'
 

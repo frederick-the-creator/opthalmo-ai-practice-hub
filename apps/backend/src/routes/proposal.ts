@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
-import { validateMagicToken } from '../services/proposals/magicLink'
-import { createPendingProposal } from '../repositories/proposal'
-import { createAdminSupabaseClient, type TypedSupabaseClient } from '../utils/supabaseClient'
-import { getPracticeRoomById } from '../repositories/practiceRoom'
-import { issueDecisionLinksAndNotify, decideByToken } from '../services/proposals/proposal'
+import { validateMagicToken } from '../services/proposals/magicLink.js'
+import { createPendingProposal } from '../repositories/proposal.js'
+import { createAdminSupabaseClient, type TypedSupabaseClient } from '../utils/supabaseClient.js'
+import { getPracticeRoomById } from '../repositories/practiceRoom.js'
+import { issueDecisionLinksAndNotify, decideByToken } from '../services/proposals/proposal.js'
 
 const proposalRouter = Router()
 

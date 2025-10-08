@@ -3,7 +3,11 @@ import { Assessment, AssessmentSchema } from "./assessmentSchema.js";
 import fs from "fs";
 import path from "path";
 import { transcribe } from "./transcription.js";
-import type { TypedSupabaseClient } from "../../utils/supabaseClient";
+import type { TypedSupabaseClient } from "../../utils/supabaseClient.js";
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname  = dirname(__filename)
 
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
