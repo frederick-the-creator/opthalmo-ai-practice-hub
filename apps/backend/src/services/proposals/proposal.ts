@@ -90,7 +90,7 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
 
   // action === 'propose' → create a new counter-proposal back to the other party
   if (!proposalNote?.proposedStartUtc || !proposalNote?.proposedEndUtc) throw new Error('Missing proposed times')
-  const { createPendingProposal } = await import('../../repositories/proposal')
+  const { createPendingProposal } = await import('../../repositories/proposal.js')
   // Persist a new proposal from the decider (counterparty)
   const newProposalId = await createPendingProposal({
     roomId: proposal.roomId,

@@ -6,7 +6,6 @@ Monorepo structure
         - `apps/backend/` - Express + TypeScript API server 
     - Currently no shared libs
     - Root package.json with workspaces array; 
-    - tsconfig path aliases; CI forbids cross-app relative imports. **ToDo**
     - dependency-cruiser rules for layers + no cross-app imports + “only import from package public API” (enforce index.ts barrels).
 Frontend Structure
     - Layered / Type-based architecture structure under `apps/frontend/src/`
