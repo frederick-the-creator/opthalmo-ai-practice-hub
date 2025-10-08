@@ -5,7 +5,7 @@ import { createRoundWithReturn, deleteRoundsByRoomId } from '@/repositories/prac
 import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '@/types/index.js';
 import { HttpError } from '@//utils/index.js';
 import { randomUUID } from 'crypto'
-import { sendIcsNotification } from '@/notifications/notification.js'
+import { sendIcsNotification } from '@/services/notifications/notification.js'
 
 
 

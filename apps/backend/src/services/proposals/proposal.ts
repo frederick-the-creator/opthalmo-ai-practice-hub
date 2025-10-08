@@ -3,8 +3,8 @@ import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from './magicLink.js'
 import { getPendingProposalById, markProposalDecision } from '@/repositories/proposal.js'
 import { getPracticeRoomById, updatePracticeRoomWithReturn } from '@/repositories/practiceRoom.js'
-import { buildBookingContext } from '@/notifications/bookingContextBuilder.js'
-import { sendEmail, sendIcsNotification } from '@/notifications/notification.js'
+import { buildBookingContext } from '@/services/notifications/bookingContextBuilder.js'
+import { sendEmail, sendIcsNotification } from '@/services/notifications/notification.js'
 
 export async function issueDecisionLinksAndNotify(params: {
   roomId: string

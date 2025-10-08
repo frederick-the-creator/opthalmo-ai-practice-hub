@@ -2,7 +2,7 @@ import type { IcsMethod, PracticeRoom } from '@/types/index.js'
 import { Resend } from 'resend'
 import { buildIcs } from './icsBuilder.js'
 import { buildBookingContext } from './bookingContextBuilder.js'
-import { issueMagicLink } from '@/proposals/magicLink.js'
+import { issueMagicLink } from '@/services/proposals/magicLink.js'
 import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { claimSend, markSendSent, incrementAttemptAndFail } from '@/repositories/notification.js'
 
