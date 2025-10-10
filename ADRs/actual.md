@@ -8,6 +8,12 @@ Monorepo structure
     - Root package.json with workspaces array; 
     - dependency-cruiser rules for layers + no cross-app imports + “only import from package public API” (enforce index.ts barrels). **ToDo** 
     **Implement tsconfig and lint type enforcement. Lint scripts. Automate linting before commit**
+Types
+    - “Domain persistence” types for repositories/mappers (what the DB needs) - Domain types are created automatically from supabase generated types so when DB changes this is reflected.
+    - “API DTOs” for boundary validation (what the client may send) - Eliminate drift by deriving the API DTO’s TypeScript type from the domain type, and make the Zod schema conform to that type using Zod’s generic type parameter.
+     are driven by database.types.ts to capture change to database
+    - Domain types
+    - What about implementing zod validation at DB
 Frontend Structure
     - Layered / Type-based architecture structure under `apps/frontend/src/`
     - Use React Router with route modules under src/routes/. **ToDo**

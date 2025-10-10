@@ -1,12 +1,11 @@
 import axios from 'axios'
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/repositories/practiceRoom.js';
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/features/practiceRoom/practiceRoom.repo.js';
 import { createRoundWithReturn, deleteRoundsByRoomId } from '@/repositories/practiceRound.js';
-import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '@/types/index.js';
+import { PracticeRoom, CreatePracticeRoom, UpdatePracticeRoom, DeletePracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js';
 import { HttpError } from '@//utils/index.js';
 import { randomUUID } from 'crypto'
 import { sendIcsNotification } from '@/services/notifications/notification.js'
-import { NewRoom } from '@/validation/practiceRoom.schemas.js';
 
 
 
@@ -17,7 +16,7 @@ import { NewRoom } from '@/validation/practiceRoom.schemas.js';
  */
 export async function createDailyRoom(): Promise<string> {
   try {
-    const dailyRes = await axios.post(
+    const dailyRes = await axios.post<{ url: string }>(
       'https://api.daily.co/v1/rooms',
       {},
       {
@@ -28,9 +27,12 @@ export async function createDailyRoom(): Promise<string> {
       }
     );
     return dailyRes.data.url;
-  } catch (error: any) {
-    console.error('Error creating Daily.co room:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || error.message || 'Failed to create Daily.co room');
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error creating Daily.co room:', error.response?.data || error.message);
+      throw new Error((error.response?.data as any)?.error || error.message || 'Failed to create Daily.co room');
+    }
+    throw new Error('Failed to create Daily.co room');
   }
 }
 
@@ -38,12 +40,11 @@ export async function createDailyRoom(): Promise<string> {
 * Create a practice room by provisioning a Daily.co room and inserting the room in Supabase.
 * @returns The created room object
 */
-export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseClient, input: NewRoom): Promise<PracticeRoom> {
+export async function createPracticeRoom(
+  supabaseAuthenticated: TypedSupabaseClient,
+  input: CreatePracticeRoom
+): Promise<PracticeRoom> {
   const { hostId, startUtc, private: isPrivate, durationMinutes } = input;
-
-  if (!hostId || !startUtc) {
-    throw new Error('Missing required fields');
-  }
 
   // Validate duration
   const allowedDurations = [30, 60, 90];
@@ -110,7 +111,7 @@ export async function updateSupabaseRound(
 export async function updatePracticeRoomGuarded(
   supabaseAuthenticated: TypedSupabaseClient,
   currentUserId: string,
-  updateFields: PracticeRoomUpdate
+  updateFields: UpdatePracticeRoom
 ): Promise<PracticeRoom> {
 
   // Retrieve existing practice room to implement update guards
@@ -158,7 +159,7 @@ export async function updatePracticeRoomGuarded(
 
   // If rescheduling, recompute updateFields with new endUtc and bump icsSequence
   // Else update practice room with updateFields as is
-  let nextUpdate: PracticeRoomUpdate = { ...updateFields }
+  let nextUpdate: UpdatePracticeRoom = { ...updateFields }
   if (isReschedule) {
     const duration = existing.durationMinutes
     const newStart = updateFields.startUtc as string

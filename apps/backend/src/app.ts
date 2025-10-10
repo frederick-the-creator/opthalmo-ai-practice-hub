@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import roomRouter from './routes/practiceRoom.router.js'
-import roundRouter from './routes/practiceRound.js'
-import profileRouter from './routes/profile.js'
-import recordingRouter from './routes/recording.js'
-import assessmentRouter from './routes/assessment.js'
-import proposalsRouter from './routes/proposal.js'
+import roomRouter from '@/features/practiceRoom/practiceRoom.router.js'
+import roundRouter from '@/routes/practiceRound.js'
+import profileRouter from '@/routes/profile.js'
+import recordingRouter from '@/routes/recording.js'
+import assessmentRouter from '@/routes/assessment.js'
+import proposalsRouter from '@/routes/proposal.js'
 import { errorMiddleware } from '@/middleware/error.middleware.js';
 
 const app = express();

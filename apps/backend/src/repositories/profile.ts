@@ -1,5 +1,5 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { Profile, ProfileInsert, ProfileUpdate, ProfileMapper } from '@/types/index.js'
+import { Profile, ProfileInsert, ProfileUpdate, ProfileMapper } from '@/features/practiceRoom/practiceRoom.types.js'
 
 export async function createProfileWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: ProfileInsert): Promise<Profile> {
 	const { data, error } = await supabaseAuthenticated

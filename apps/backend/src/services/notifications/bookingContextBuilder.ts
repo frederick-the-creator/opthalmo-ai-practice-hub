@@ -1,5 +1,5 @@
-import type { PracticeRoom } from '@/types/index.js'
-import { getUserEmailById, getUserFirstNameById } from './adminRetrieveUsers.js'
+import type { PracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js'
+import { getUserEmailById, getUserFirstNameById } from '@/adminRetrieveUsers.js'
 
 export function resolveOrganizerFromEnv(): { name?: string; email: string } {
   const from = process.env.NOTIFICATIONS_FROM_EMAIL ?? 'Ophthalmo Practice <no-reply@localhost>'

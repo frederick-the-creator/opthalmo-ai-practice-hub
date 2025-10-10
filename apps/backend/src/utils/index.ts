@@ -1,2 +1,2 @@
-export * from './supabaseClient.js'
-export * from '../lib/httpError.js'
+export * from '@/supabaseClient.js'
+export * from '@/lib/httpError.js'

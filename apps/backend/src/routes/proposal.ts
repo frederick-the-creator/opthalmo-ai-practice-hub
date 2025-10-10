@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express'
 import { validateMagicToken } from '@/services/proposals/magicLink.js'
 import { createPendingProposal } from '@/repositories/proposal.js'
 import { createAdminSupabaseClient, type TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { getPracticeRoomById } from '@/repositories/practiceRoom.js'
+import { getPracticeRoomById } from '@/features/practiceRoom/practiceRoom.repo.js'
 import { issueDecisionLinksAndNotify, decideByToken } from '@/services/proposals/proposal.js'
 
 const proposalRouter = Router()

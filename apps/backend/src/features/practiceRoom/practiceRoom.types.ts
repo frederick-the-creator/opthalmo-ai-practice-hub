@@ -1,102 +1,52 @@
-import { Tables, TablesInsert, TablesUpdate, Json } from './database.types.js'
+import { Tables, TablesInsert, TablesUpdate, Json } from '@/types/database.types.js'
+import { SnakeToCamelKeys, camelToSnakeObject, snakeToCamelObject } from '@/types/casing.js'
 
-// Practice Rooms
+// Practice Rooms - Derive Domain Types from DB Generated types
+// export type PracticeRoom = SnakeToCamelKeys<Tables<'practice_rooms'>>
+// export type PracticeRoomInsert = Omit<SnakeToCamelKeys<TablesInsert<'practice_rooms'>>, 'id'>
+// export type PracticeRoomUpdate = { roomId: string } & SnakeToCamelKeys<Omit<TablesUpdate<'practice_rooms'>, 'id'>>
 
-export type PracticeRoom = {
-	id: string
-	hostId: string
-	guestId: string | null
-	stage: string
-	roomUrl: string | null
-	icsUid: string | null
-    icsSequence: number
-	private: boolean
-	createdAt: string | null
-	startUtc: string | null
-    endUtc: string | null
-    durationMinutes: number
-}
+// export const PracticeRoomMapper = {
+//     insertToDb(insert: PracticeRoomInsert): TablesInsert<'practice_rooms'> {
+//         const mapped = camelToSnakeObject(insert) as TablesInsert<'practice_rooms'>
+//         return mapped
+//     },
+//     updateToDb(update: PracticeRoomUpdate): TablesUpdate<'practice_rooms'> {
+//         const { roomId, ...rest } = update
+//         const mapped = camelToSnakeObject(rest) as Omit<TablesUpdate<'practice_rooms'>, 'id'>
+//         return { id: roomId, ...mapped }
+//     },
+// 	fromDb(row: Tables<'practice_rooms'>): PracticeRoom {
+//         const domain = snakeToCamelObject(row) as PracticeRoom
+//         return domain
+//     }
+// }
 
-export type PracticeRoomInsert = {
-	hostId: string
-	guestId?: string | null
-	stage: string
-	roomUrl?: string | null
-	icsUid?: string | null
-    icsSequence?: number
-	private?: boolean
-	createdAt?: string | null
-	startUtc?: string | null
-    endUtc?: string | null
-    durationMinutes: number
-}
+export type PracticeRoomRow = Tables<'practice_rooms'>
+export type PracticeRoomInsert = TablesInsert<'practice_rooms'>
+export type PracticeRoomUpdate = TablesUpdate<'practice_rooms'>
 
-export type PracticeRoomUpdate = {
-	roomId: string
-	hostId?: string
-	guestId?: string | null
-	stage?: string
-	roomUrl?: string | null
-    // ics_uid immutable; sequence may be updated by services
-    icsSequence?: number
-	private?: boolean
-	createdAt?: string | null
-	startUtc?: string | null
-    endUtc?: string | null
-    durationMinutes?: number
-}
+export type PracticeRoom = SnakeToCamelKeys<Tables<'practice_rooms'>>
+export type CreatePracticeRoom = Omit<SnakeToCamelKeys<TablesInsert<'practice_rooms'>>, 'id'>
+export type UpdatePracticeRoom = { roomId: string } & SnakeToCamelKeys<Omit<TablesUpdate<'practice_rooms'>, 'id'>>
+export type DeletePracticeRoom = { roomId: string }
 
 export const PracticeRoomMapper = {
-	insertToDb(insert: PracticeRoomInsert): TablesInsert<'practice_rooms'> {
-		return {
-			host_id: insert.hostId,
-			guest_id: insert.guestId ?? null,
-			stage: insert.stage,
-			room_url: insert.roomUrl ?? null,
-			ics_uid: insert.icsUid ?? null,
-            ics_sequence: insert.icsSequence ?? 0,
-			private: insert.private ?? false,
-			created_at: insert.createdAt ?? undefined,
-			start_utc: insert.startUtc ?? null,
-            end_utc: insert.endUtc ?? null,
-            duration_minutes: insert.durationMinutes,
-		}
-	},
-
-	fromDb(row: Tables<'practice_rooms'>): PracticeRoom {
-		return {
-			id: row.id,
-			hostId: row.host_id,
-			guestId: row.guest_id,
-			stage: row.stage,
-			roomUrl: row.room_url,
-			icsUid: row.ics_uid ?? null,
-            icsSequence: (row as any).ics_sequence ?? 0,
-			private: row.private,
-			createdAt: row.created_at,
-			startUtc: (row as any).start_utc ?? (row as any).datetime_utc ?? null,
-            endUtc: (row as any).end_utc ?? null,
-            durationMinutes: (row as any).duration_minutes as number,
-		}
-	},
-
-	updateToDb(update: PracticeRoomUpdate): TablesUpdate<'practice_rooms'> {
-        return {
-            id: update.roomId, // required
-            ...(update.hostId !== undefined && { host_id: update.hostId }),
-            ...(update.guestId !== undefined && { guest_id: update.guestId }),
-            ...(update.stage !== undefined && { stage: update.stage }),
-            ...(update.roomUrl !== undefined && { room_url: update.roomUrl }),
-            // ics_uid is immutable once set for stability across ICS lifecycle
-            ...(update.icsSequence !== undefined && { ics_sequence: update.icsSequence }),
-            ...(update.private !== undefined && { private: update.private }),
-            ...(update.createdAt !== undefined && { created_at: update.createdAt }),
-			...(update.startUtc !== undefined && { start_utc: update.startUtc }),
-            ...(update.endUtc !== undefined && { end_utc: update.endUtc }),
-            ...(update.durationMinutes !== undefined && { duration_minutes: update.durationMinutes }),
-        };
-	},
+    insertToDb(insert: CreatePracticeRoom): PracticeRoomInsert {
+        const mapped = camelToSnakeObject(insert) as PracticeRoomInsert
+        return mapped
+    },
+    updateToDb(update: UpdatePracticeRoom): PracticeRoomUpdate {
+        const { roomId, ...rest } = update
+        const mapped = camelToSnakeObject(rest) as PracticeRoomUpdate
+        return { id: roomId, ...mapped }
+    },
+	fromDb(row: PracticeRoomRow): PracticeRoom {
+        const domain = snakeToCamelObject(row) as PracticeRoom
+        return domain
+    }
 }
+
 
 // Practice Rounds
 

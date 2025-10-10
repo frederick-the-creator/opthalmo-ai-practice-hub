@@ -35,20 +35,17 @@ export async function createRoom({ hostId, startUtc, private: isPrivate, duratio
 }
 
 export async function setRoomGuest({ roomId, guestId }: { roomId: string, guestId: string }) {
-  const updateFields = {roomId, guestId}
-  const response = await api.post("/practice-room/update", { updateFields });
+  const response = await api.post("/practice-room/update", { roomId, guestId });
   return response.data;
 }
 
 export async function setRoomStage({ roomId, stage }: { roomId: string, stage: string }) {
-  const updateFields = { roomId, stage }
-  const { data } = await api.post("/practice-room/update", { updateFields });
+  const { data } = await api.post("/practice-room/update", { roomId, stage });
   return data.room;
 }
 
 export async function rescheduleRoom({ roomId, startUtc }: { roomId: string, startUtc: string }) {
-  const updateFields = { roomId, startUtc };
-  const { data } = await api.post("/practice-room/update", { updateFields });
+  const { data } = await api.post("/practice-room/update", { roomId, startUtc });
   return data.room;
 }
 

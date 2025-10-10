@@ -1,5 +1,5 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { PracticeRound, PracticeRoundInsert, PracticeRoundUpdate, PracticeRoundMapper } from '@/types/index.js'
+import { PracticeRound, PracticeRoundInsert, PracticeRoundUpdate, PracticeRoundMapper } from '@/features/practiceRoom/practiceRoom.types.js'
 
 export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundInsert): Promise<PracticeRound> {
 	const { data, error } = await supabaseAuthenticated

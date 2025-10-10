@@ -1,8 +1,8 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { PracticeRoom, PracticeRoomInsert, PracticeRoomUpdate, PracticeRoomMapper } from '@/types/index.js'
+import { PracticeRoom, PracticeRoomMapper, CreatePracticeRoom, UpdatePracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js'
 
 
-export async function createRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoomInsert): Promise<PracticeRoom> {
+export async function createRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: CreatePracticeRoom): Promise<PracticeRoom> {
 
 	const { data, error } = await supabaseAuthenticated
         .from('practice_rooms')
@@ -22,7 +22,7 @@ export async function createRoomWithReturn(supabaseAuthenticated: TypedSupabaseC
 	return PracticeRoomMapper.fromDb(data);
 }
 
-export async function updatePracticeRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoomUpdate): Promise<PracticeRoom> {
+export async function updatePracticeRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: UpdatePracticeRoom): Promise<PracticeRoom> {
 
 	const { data, error } = await supabaseAuthenticated
 		.from('practice_rooms')

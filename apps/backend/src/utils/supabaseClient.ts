@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import type { Request, Response, NextFunction } from 'express';
 import type { Database } from '@/types/database.types.js'
-import { HttpError } from '../lib/httpError.js';
+import { HttpError } from '@/lib/httpError.js';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 export const SUPABASE_URL = process.env.SUPABASE_URL as string;
