@@ -30,10 +30,7 @@ api.interceptors.request.use(async (config) => {
 
 
 export async function createRoom({ hostId, startUtc, private: isPrivate, durationMinutes }: { hostId: string, startUtc: string, private: boolean, durationMinutes: number }) {
-
-  const createFields = { hostId, startUtc, private: isPrivate, durationMinutes }
-
-  const response = await api.post("/practice-room/create", { createFields });
+  const response = await api.post("/practice-room/create", { hostId, startUtc, private: isPrivate, durationMinutes });
   return response.data;
 }
 

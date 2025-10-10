@@ -1,26 +1,31 @@
 import {Router, Request, Response} from 'express'
-import { requireSupabaseUser } from '@/utils/supabaseClient.js'
-import { createPracticeRoom, updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '@/services/practiceRoom/practiceRoom.js';
-import { HttpError } from '@/utils/httpError.js';
-import type { PracticeRoomUpdate } from '@/types/index.js';
+import { requireSupabaseUser } from '@/middleware/auth.middleware.js';
+import { validate } from '@/middleware/validate.middleware.js'
+import { newRoomSchema } from '@/validation/practiceRoom.schemas.js';
+import { asyncHandler } from '@/utils/asyncHandler.js';
+import { createPracticeRoomController } from '@/controllers/practiceRoom.controller.js'
+
 
 const roomRouter = Router()
 
-// Create room endpoint: creates Daily room, then inserts room in Supabase
-roomRouter.post('/create', requireSupabaseUser, async (req: Request, res: Response) => {
-    const { createFields } = req.body;
+// Router
+/*
+All middleware passed must be a function that returns void and accepts the standard typed parameters (req: Request, res: Response, next: NextFunction) => void
+  - requireSupabaseUser - Sync wrapper function that when run it triggers the nested async IIFE (Immediately Invoked Function Expression)
+  - validate(newRoomSchema) - Calling validate at startup / runtime returns a function specific to newRoomSchema ready to be called when the route is hit. 
+*/
+roomRouter.post(
+	'/create',
+	requireSupabaseUser, // Authenticate user
+	validate(newRoomSchema), // Add room parser using Zod to guarantee req.body is correct schema at runtime
+	createPracticeRoomController
+);
 
-    try {
-      const supabaseAuthenticated = req.supabaseAsUser!;
-      const room = await createPracticeRoom(supabaseAuthenticated, createFields);
-      res.json({ room });
-      
-    } catch (error: any) {
-      console.error('Error creating room:', error.response?.data || error.message);
-      res.status(500).json({ error: 'Failed to create room' });
-    }
-});
-  
+
+import { updatePracticeRoomGuarded, deletePracticeRoomGuarded } from '@/services/practiceRoom/practiceRoom.service.js';
+import type { PracticeRoomUpdate } from '@/types/index.js';
+import { HttpError } from '@/lib/httpError.js';
+
 roomRouter.post('/update', requireSupabaseUser, async (req: Request, res: Response) => {
     console.log('Update route')
     const { updateFields } = req.body as { updateFields: PracticeRoomUpdate };

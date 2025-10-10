@@ -9,7 +9,15 @@ type ApiContext = 'booking' | 'reschedule' | 'cancel' | 'round' | 'recording' | 
 
 export function mapApiError(err: any, context: ApiContext = 'generic'): { title: string; description?: string } {
   const status = err?.response?.status
-  const message = err?.response?.data?.error || err?.message || ''
+  const data = err?.response?.data
+  const issues = Array.isArray(data?.issues) ? data.issues as Array<{ path?: string; message?: string } | string> : undefined
+  const issuesText = issues?.map((i: any) => {
+    const path = typeof i === 'object' ? String(i?.path || '') : ''
+    const cleanPath = path.replace(/^body\./, '')
+    const msg = typeof i === 'object' ? i?.message : String(i)
+    return cleanPath ? `${cleanPath}: ${msg}` : String(msg)
+  }).join('; ')
+  const message = data?.error || issuesText || err?.message || ''
 
   if (status === 401) return { title: 'Session expired', description: 'Please sign in again.' }
   if (status === 403) {

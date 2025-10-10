@@ -6,6 +6,7 @@ import { PracticeRoomInsert, PracticeRoomUpdate, PracticeRoom } from '@/types/in
 import { HttpError } from '@//utils/index.js';
 import { randomUUID } from 'crypto'
 import { sendIcsNotification } from '@/services/notifications/notification.js'
+import { NewRoom } from '@/validation/practiceRoom.schemas.js';
 
 
 
@@ -37,7 +38,7 @@ export async function createDailyRoom(): Promise<string> {
 * Create a practice room by provisioning a Daily.co room and inserting the room in Supabase.
 * @returns The created room object
 */
-export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseClient, input: PracticeRoomInsert): Promise<any> {
+export async function createPracticeRoom(supabaseAuthenticated: TypedSupabaseClient, input: NewRoom): Promise<PracticeRoom> {
   const { hostId, startUtc, private: isPrivate, durationMinutes } = input;
 
   if (!hostId || !startUtc) {

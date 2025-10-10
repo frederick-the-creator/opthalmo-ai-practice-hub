@@ -137,7 +137,8 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
       setScheduling(false);
       // No need to refetch, realtime will update
     } catch (err: any) {
-      setScheduleError("Failed to schedule room.");
+      const { title, description } = mapApiError(err, 'booking');
+      setScheduleError(title + (description ? ": " + description : ""));
       setScheduling(false);
     }
   };

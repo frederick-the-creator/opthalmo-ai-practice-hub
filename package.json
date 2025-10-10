@@ -13,12 +13,17 @@
     "generate:types": "npx supabase gen types typescript --project-id hhdrrepogausvduqscmo | tee apps/frontend/src/types/database.types.ts apps/backend/types/database.types.ts > /dev/null"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5",
+    "@eslint/js": "^9.37.0",
+    "@stylistic/eslint-plugin": "^5.4.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "^22.18.9",
     "concurrently": "^9.2.0",
+    "eslint": "^9.37.0",
     "supabase": "^2.39.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22"
   }
 }

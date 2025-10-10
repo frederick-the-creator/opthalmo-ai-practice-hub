@@ -7,6 +7,7 @@ Monorepo structure
     - Currently no shared libs
     - Root package.json with workspaces array; 
     - dependency-cruiser rules for layers + no cross-app imports + “only import from package public API” (enforce index.ts barrels). **ToDo** 
+    **Implement tsconfig and lint type enforcement. Lint scripts. Automate linting before commit**
 Frontend Structure
     - Layered / Type-based architecture structure under `apps/frontend/src/`
     - Use React Router with route modules under src/routes/. **ToDo**
@@ -47,7 +48,7 @@ Authentication
 ## Technology / Tooling Architecture - The concrete tech stack and developer tooling
 Monorepo workspace manager - Using npm workspaces
 Frontend built with React + Vite + Typescript
-Backend with Node.js + Express + Typescript
+Backend with Node.js + Express 5 + Typescript
 Zod for data validation
 React Router
 pino
