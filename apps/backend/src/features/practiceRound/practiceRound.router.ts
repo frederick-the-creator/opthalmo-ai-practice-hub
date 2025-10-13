@@ -1,8 +1,8 @@
 import {Router} from 'express'
 import { requireSupabaseUser } from '@/middleware/auth.middleware.js';
 import { validate } from '@/middleware/validate.middleware.js'
-import { newRoundSchemaAPI } from '@/features/practiceRound/practiceRound.schemas.js'
-import { createPracticeRoundController } from '@/features/practiceRound/practiceRound.controller.js'
+import { newRoundSchemaAPI, updateRoundSchemaAPI } from '@/features/practiceRound/practiceRound.schemas.js'
+import { createPracticeRoundController, updatePracticeRoundController } from '@/features/practiceRound/practiceRound.controller.js'
 
 const roundRouter = Router()
 
@@ -13,6 +13,11 @@ roundRouter.post(
   createPracticeRoundController
 );
 
-roundRouter.post('/update', requireSupabaseUser, async () => {})
+roundRouter.post(
+  '/update',
+  requireSupabaseUser,
+  validate(updateRoundSchemaAPI),
+  updatePracticeRoundController
+)
 
 export default roundRouter
