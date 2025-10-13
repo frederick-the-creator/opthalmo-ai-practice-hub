@@ -1,19 +1,20 @@
 import type { RequestHandler} from "express";
-import type { PracticeRoom } from "@/features/practiceRoom/practiceRoom.types.js";
+import type { PracticeRoom } from "@/features/scheduling/practiceRoom/practiceRoom.types.js";
 import {
   createPracticeRoom
-} from "@/features/practiceRoom/practiceRoom.service.js";
+} from "@/features/scheduling/practiceRoom/practiceRoom.service.js";
 import type { AuthenticatedRequest } from "@/utils/supabaseClient.js";
 import type { ParamsDictionary } from "express-serve-static-core";
 import { HttpError } from "@/lib/httpError.js";
-import type { DeleteRoomParams } from "@/features/practiceRoom/practiceRoom.schemas.js";
-import { deletePracticeRoomGuarded, updatePracticeRoomGuarded } from "@/features/practiceRoom/practiceRoom.service.js";
-import { CreatePracticeRoom, UpdatePracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js';
+import type { DeleteRoomParams, NewRoomBody, UpdateRoomBody } from "@/features/scheduling/practiceRoom/practiceRoom.schemas.js";
+import { deletePracticeRoomGuarded, updatePracticeRoomGuarded } from "@/features/scheduling/practiceRoom/practiceRoom.service.js";
+
+
 
 export const createPracticeRoomController: RequestHandler<
   ParamsDictionary,
   PracticeRoom,
-  CreatePracticeRoom
+  NewRoomBody
 > = async (req, res) => {
     // if this route is ever mounted without the auth middleware,
     // fail fast and hand off to the error middleware
@@ -31,7 +32,7 @@ export const createPracticeRoomController: RequestHandler<
 export const updatePracticeRoomController: RequestHandler<
 	ParamsDictionary,
 	PracticeRoom,
-	UpdatePracticeRoom
+	UpdateRoomBody
 > = async (req, res) => {
   if (!('supabaseAsUser' in req)) {
     throw HttpError.Unauthorized('Expected authenticated request');

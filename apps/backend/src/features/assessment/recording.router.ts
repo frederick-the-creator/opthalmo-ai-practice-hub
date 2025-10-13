@@ -1,6 +1,6 @@
 import {Router, Request, Response} from 'express'
 import { requireSupabaseUser } from '@/utils/supabaseClient.js'
-import { startDailyRecording, stopDailyRecording } from '@/services/recordTranscribeAssess/recording.js';
+import { startDailyRecording, stopDailyRecording } from '@/features/assessment/recording.service.js';
 
 const recordingRouter = Router()
 

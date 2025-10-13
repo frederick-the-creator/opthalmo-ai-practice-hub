@@ -1,4 +1,4 @@
-import type { PracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js'
+import type { PracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js'
 import { getUserEmailById, getUserFirstNameById } from '@/adminRetrieveUsers.js'
 
 export function resolveOrganizerFromEnv(): { name?: string; email: string } {

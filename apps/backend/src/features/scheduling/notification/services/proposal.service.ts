@@ -1,10 +1,10 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
 import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { issueMagicLink, validateMagicToken, markMagicTokenUsed } from '@/magicLink.js'
-import { getPendingProposalById, markProposalDecision } from '@/repositories/proposal.js'
-import { getPracticeRoomById, updatePracticeRoomWithReturn } from '@/features/practiceRoom/practiceRoom.repo.js'
-import { buildBookingContext } from '@/services/notifications/bookingContextBuilder.js'
-import { sendEmail, sendIcsNotification } from '@/services/notifications/notification.js'
+import { getPendingProposalById, markProposalDecision } from '@/features/scheduling/notification/repos/proposal.repo.js'
+import { getPracticeRoomById, updatePracticeRoomWithReturn } from '@/features/scheduling/practiceRoom/practiceRoom.repo.js'
+import { buildBookingContext } from '@/features/scheduling/notification/services/bookingContextBuilder.service.js'
+import { sendEmail, sendIcsNotification } from '@/features/scheduling/notification/services/notification.service.js'
 
 export async function issueDecisionLinksAndNotify(params: {
   roomId: string
@@ -13,7 +13,7 @@ export async function issueDecisionLinksAndNotify(params: {
   proposerEmail: string
   proposalId: string
 }): Promise<void> {
-  const admin = createAdminSupabaseClient() as TypedSupabaseClient
+  const admin = createAdminSupabaseClient()
   const room = await getPracticeRoomById(admin, params.roomId)
   const ctx = await buildBookingContext(room)
   if (!ctx) return
@@ -56,7 +56,7 @@ export async function issueDecisionLinksAndNotify(params: {
 export async function decideByToken(token: string, action: 'agree' | 'propose' | 'cancel', proposalNote?: { proposedStartUtc?: string, proposedEndUtc?: string, note?: string }): Promise<{ ok: boolean }> {
   const payload = await validateMagicToken(token, 'reschedule_decide')
   if (!payload.roomId || !payload.proposalId) throw new Error('Invalid token payload')
-  const admin = createAdminSupabaseClient() as TypedSupabaseClient
+  const admin = createAdminSupabaseClient()
   const proposal = await getPendingProposalById(payload.proposalId)
 
   if (action === 'agree') {
@@ -90,7 +90,7 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
 
   // action === 'propose' → create a new counter-proposal back to the other party
   if (!proposalNote?.proposedStartUtc || !proposalNote?.proposedEndUtc) throw new Error('Missing proposed times')
-  const { createPendingProposal } = await import('@/repositories/proposal.js')
+  const { createPendingProposal } = await import('@/features/scheduling/notification/repos/proposal.repo.js')
   // Persist a new proposal from the decider (counterparty)
   const newProposalId = await createPendingProposal({
     roomId: proposal.roomId,
@@ -117,7 +117,7 @@ export async function approveProposalByToken(token: string): Promise<{ ok: boole
   const payload = await validateMagicToken(token, 'reschedule_approve')
   if (!payload.roomId || !payload.proposalId) throw new Error('Invalid token payload')
 
-  const admin = createAdminSupabaseClient() as TypedSupabaseClient
+  const admin = createAdminSupabaseClient()
   const proposal = await getPendingProposalById(payload.proposalId)
   if (proposal.status === 'approved') return { ok: true, alreadyApplied: true }
   if (proposal.status === 'declined') throw new Error('Proposal already declined')

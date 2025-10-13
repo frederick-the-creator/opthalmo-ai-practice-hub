@@ -13,7 +13,7 @@ export type PendingProposalInsert = {
 
 export async function createPendingProposal(insert: PendingProposalInsert): Promise<string> {
   const admin = createAdminSupabaseClient()
-  const { data, error } = await (admin as TypedSupabaseClient)
+  const { data, error } = await admin
     .from('pending_proposals')
     .insert({
       room_id: insert.roomId,
@@ -43,7 +43,7 @@ export async function getPendingProposalById(id: string): Promise<{
   approvedBy: 'host' | 'guest' | null
 }> {
   const admin = createAdminSupabaseClient()
-  const { data, error } = await (admin as TypedSupabaseClient)
+  const { data, error } = await admin
     .from('pending_proposals')
     .select('id, room_id, uid, proposed_by, proposer_email, proposed_start_utc, proposed_end_utc, status, approved_by')
     .eq('id', id)
@@ -69,7 +69,7 @@ export async function markProposalDecision(params: {
   approvedBy: 'host' | 'guest' | null
 }): Promise<void> {
   const admin = createAdminSupabaseClient()
-  const { error } = await (admin as TypedSupabaseClient)
+  const { error } = await admin
     .from('pending_proposals')
     .update({ status: params.status, approved_by: params.approvedBy, decision_at: new Date().toISOString() })
     .eq('id', params.id)

@@ -1,10 +1,10 @@
-import type { IcsMethod, PracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js'
+import type { IcsMethod, PracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js'
 import { Resend } from 'resend'
-import { buildIcs } from '@/icsBuilder.js'
-import { buildBookingContext } from '@/bookingContextBuilder.js'
-import { issueMagicLink } from '@/services/proposals/magicLink.js'
+import { buildIcs } from '@/features/scheduling/notification/services/icsBuilder.service.js'
+import { buildBookingContext } from '@/features/scheduling/notification/services/bookingContextBuilder.service.js'
+import { issueMagicLink } from '@/features/scheduling/notification/services/magicLink.service.js'
 import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
-import { claimSend, markSendSent, incrementAttemptAndFail } from '@/repositories/notification.js'
+import { claimSend, markSendSent, incrementAttemptAndFail } from '@/features/scheduling/notification/repos/notification.repo.js'
 
 const NOTIFICATIONS_ENABLED = (process.env.NOTIFICATIONS_ENABLED ?? 'false').toLowerCase() === 'true'
 

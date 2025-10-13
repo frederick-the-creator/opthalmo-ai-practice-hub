@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
-import { validateMagicToken } from '@/services/proposals/magicLink.js'
-import { createPendingProposal } from '@/repositories/proposal.js'
-import { createAdminSupabaseClient, type TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { getPracticeRoomById } from '@/features/practiceRoom/practiceRoom.repo.js'
-import { issueDecisionLinksAndNotify, decideByToken } from '@/services/proposals/proposal.js'
+import { validateMagicToken } from '@/features/scheduling/notification/services/magicLink.service.js'
+import { createPendingProposal } from '@/features/scheduling/notification/repos/proposal.repo.js'
+import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
+import { getPracticeRoomById } from '@/features/scheduling/practiceRoom/practiceRoom.repo.js'
+import { issueDecisionLinksAndNotify, decideByToken } from '@/features/scheduling/notification/services/proposal.service.js'
 
 const proposalRouter = Router()
 
@@ -19,7 +19,7 @@ proposalRouter.get('/', async (req: Request, res: Response) => {
     let startUtc: string | null = null
     let endUtc: string | null = null
     if (payload.roomId) {
-      const admin = createAdminSupabaseClient() as TypedSupabaseClient
+      const admin = createAdminSupabaseClient()
       try {
         const room = await getPracticeRoomById(admin, payload.roomId)
         startUtc = room.startUtc
@@ -86,7 +86,7 @@ proposalRouter.get('/decision', async (req: Request, res: Response) => {
     const proposedStartUtc = (payload as any).proposedStartUtc ?? null
     const proposedEndUtc = (payload as any).proposedEndUtc ?? null
     if (payload.roomId) {
-      const admin = createAdminSupabaseClient() as TypedSupabaseClient
+      const admin = createAdminSupabaseClient()
       try {
         const room = await getPracticeRoomById(admin, payload.roomId)
         startUtc = room.startUtc

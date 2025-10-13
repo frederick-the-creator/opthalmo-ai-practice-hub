@@ -1,11 +1,11 @@
 import type { RequestHandler } from "express";
 import type { ParsedQs } from "qs";
 import type { ParamsDictionary } from "express-serve-static-core";
-import { AnyZodObject } from "zod";
+import { type ZodTypeAny } from "zod";
 import { HttpError } from "@/lib/httpError.js";
 
 
-export function validate(schema: AnyZodObject): RequestHandler<ParamsDictionary, unknown, unknown, ParsedQs> {
+export function validate(schema: ZodTypeAny): RequestHandler<ParamsDictionary, unknown, unknown, ParsedQs> {
 	return async ( // Returns a function specific to schema to be used when the route is hit
 		req, _res, next
 	) => {

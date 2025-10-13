@@ -1,5 +1,5 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { PracticeRoom, PracticeRoomMapper, CreatePracticeRoom, UpdatePracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js'
+import { PracticeRoom, PracticeRoomMapper, CreatePracticeRoom, UpdatePracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js'
 
 
 export async function createRoomWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: CreatePracticeRoom): Promise<PracticeRoom> {

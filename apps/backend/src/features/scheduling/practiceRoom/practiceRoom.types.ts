@@ -1,34 +1,13 @@
 import { Tables, TablesInsert, TablesUpdate, Json } from '@/types/database.types.js'
 import { SnakeToCamelKeys, camelToSnakeObject, snakeToCamelObject } from '@/types/casing.js'
 
-// Practice Rooms - Derive Domain Types from DB Generated types
-// export type PracticeRoom = SnakeToCamelKeys<Tables<'practice_rooms'>>
-// export type PracticeRoomInsert = Omit<SnakeToCamelKeys<TablesInsert<'practice_rooms'>>, 'id'>
-// export type PracticeRoomUpdate = { roomId: string } & SnakeToCamelKeys<Omit<TablesUpdate<'practice_rooms'>, 'id'>>
-
-// export const PracticeRoomMapper = {
-//     insertToDb(insert: PracticeRoomInsert): TablesInsert<'practice_rooms'> {
-//         const mapped = camelToSnakeObject(insert) as TablesInsert<'practice_rooms'>
-//         return mapped
-//     },
-//     updateToDb(update: PracticeRoomUpdate): TablesUpdate<'practice_rooms'> {
-//         const { roomId, ...rest } = update
-//         const mapped = camelToSnakeObject(rest) as Omit<TablesUpdate<'practice_rooms'>, 'id'>
-//         return { id: roomId, ...mapped }
-//     },
-// 	fromDb(row: Tables<'practice_rooms'>): PracticeRoom {
-//         const domain = snakeToCamelObject(row) as PracticeRoom
-//         return domain
-//     }
-// }
-
 export type PracticeRoomRow = Tables<'practice_rooms'>
 export type PracticeRoomInsert = TablesInsert<'practice_rooms'>
 export type PracticeRoomUpdate = TablesUpdate<'practice_rooms'>
 
-export type PracticeRoom = SnakeToCamelKeys<Tables<'practice_rooms'>>
-export type CreatePracticeRoom = Omit<SnakeToCamelKeys<TablesInsert<'practice_rooms'>>, 'id'>
-export type UpdatePracticeRoom = { roomId: string } & SnakeToCamelKeys<Omit<TablesUpdate<'practice_rooms'>, 'id'>>
+export type PracticeRoom = SnakeToCamelKeys<PracticeRoomRow>
+export type CreatePracticeRoom = Omit<SnakeToCamelKeys<PracticeRoomInsert>, 'id'>
+export type UpdatePracticeRoom = { roomId: string } & SnakeToCamelKeys<Omit<PracticeRoomUpdate, 'id'>>
 export type DeletePracticeRoom = { roomId: string }
 
 export const PracticeRoomMapper = {

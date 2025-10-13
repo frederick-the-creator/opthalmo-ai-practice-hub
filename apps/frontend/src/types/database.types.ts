@@ -205,7 +205,7 @@ export type Database = {
           private: boolean
           room_url: string | null
           stage: string
-          start_utc: string | null
+          start_utc: string
         }
         Insert: {
           created_at?: string | null
@@ -219,7 +219,7 @@ export type Database = {
           private?: boolean
           room_url?: string | null
           stage: string
-          start_utc?: string | null
+          start_utc: string
         }
         Update: {
           created_at?: string | null
@@ -233,7 +233,7 @@ export type Database = {
           private?: boolean
           room_url?: string | null
           stage?: string
-          start_utc?: string | null
+          start_utc?: string
         }
         Relationships: [
           {

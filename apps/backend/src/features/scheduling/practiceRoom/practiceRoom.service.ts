@@ -1,12 +1,12 @@
 import axios from 'axios'
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/features/practiceRoom/practiceRoom.repo.js';
-import { createRoundWithReturn, deleteRoundsByRoomId } from '@/repositories/practiceRound.js';
-import { PracticeRoom, CreatePracticeRoom, UpdatePracticeRoom, DeletePracticeRoom } from '@/features/practiceRoom/practiceRoom.types.js';
+import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/features/scheduling/practiceRoom/practiceRoom.repo.js';
+import { createRoundWithReturn, deleteRoundsByRoomId } from '@/features/practiceRound/practiceRound.repo.js';
+import { PracticeRoom, UpdatePracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js';
 import { HttpError } from '@//utils/index.js';
 import { randomUUID } from 'crypto'
-import { sendIcsNotification } from '@/services/notifications/notification.js'
-
+import { sendIcsNotification } from '@/features/scheduling/notification/services/notification.service.js'
+import { NewRoomBody } from './practiceRoom.schemas.js';
 
 
 /**
@@ -28,11 +28,7 @@ export async function createDailyRoom(): Promise<string> {
     );
     return dailyRes.data.url;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error creating Daily.co room:', error.response?.data || error.message);
-      throw new Error((error.response?.data as any)?.error || error.message || 'Failed to create Daily.co room');
-    }
-    throw new Error('Failed to create Daily.co room');
+    throw new Error(`Failed to create Daily.co room with error: ${error}`);
   }
 }
 
@@ -42,7 +38,7 @@ export async function createDailyRoom(): Promise<string> {
 */
 export async function createPracticeRoom(
   supabaseAuthenticated: TypedSupabaseClient,
-  input: CreatePracticeRoom
+  input: NewRoomBody
 ): Promise<PracticeRoom> {
   const { hostId, startUtc, private: isPrivate, durationMinutes } = input;
 
@@ -73,33 +69,6 @@ export async function createPracticeRoom(
   await createRoundWithReturn(supabaseAuthenticated, { roundNumber: 1, roomId })
 
   return roomData;
-}
-
-
-/**
-* Update a practice room with given fields.
-* @param roomId - The room ID to update.
-* @param fields - The fields to update (e.g., { guest_id: '...', candidate_id: '...' }).
-* @returns The updated room object.
-* @throws If the update fails.
-*/
-export async function updateSupabaseRound(
-  supabaseAuthenticated: TypedSupabaseClient,
-  roundId: string,
-  fields: Record<string, any>
-  ): Promise<any> {
-  const { data, error } = await supabaseAuthenticated
-    .from('practice_rounds')
-    .update(fields)
-    .eq('id', roundId)
-    .select();
-  if (error) {
-    throw new Error(error.message || 'Failed to update room');
-  }
-  if (!data || !data[0]) {
-    throw new Error('No room found or updated');
-  }
-  return { data, error: null };
 }
 
 /**
@@ -169,11 +138,9 @@ export async function updatePracticeRoomGuarded(
   const room = await updatePracticeRoomWithReturn(supabaseAuthenticated, nextUpdate);
 
   // Send notification email for case when booking or reschedule. In case of reschedule, room passed will have new details
-  try {
-    if (isBooking || (isReschedule && existing.guestId)) await sendIcsNotification('REQUEST', room)
-  } catch (e: any) {
-    console.warn('[updatePracticeRoomGuarded] notification failed (ignored):', e?.message)
-  }
+
+  if (isBooking || (isReschedule && existing.guestId)) await sendIcsNotification('REQUEST', room)
+
   return room;
 }
 
@@ -187,28 +154,17 @@ export async function deletePracticeRoomGuarded(
   currentUserId: string,
   roomId: string
 ): Promise<{ deleted: true; roomId: string }> {
-  let existing: PracticeRoom
-  try {
-    existing = await getPracticeRoomById(supabaseAuthenticated, roomId);
-  } catch (e: any) {
-    if (e?.message === 'Room not found') {
-      throw new HttpError(404, 'Room not found');
-    }
-    throw e
-  }
+
+
+  const existing = await getPracticeRoomById(supabaseAuthenticated, roomId);
 
   if (existing.hostId !== currentUserId) {
     throw new HttpError(403, 'Only the host can delete this session');
   }
 
   // Send CANCEL only if a guest had booked the session
-  if (existing.guestId) {
-    try {
-      await sendIcsNotification('CANCEL', existing)
-    } catch (e: any) {
-      console.warn('[deletePracticeRoomGuarded] notification failed (ignored):', e?.message)
-    }
-  }
+  if (existing.guestId) await sendIcsNotification('CANCEL', existing)
+
 
   // Delete dependent rows first
   await deleteRoundsByRoomId(supabaseAuthenticated, roomId);

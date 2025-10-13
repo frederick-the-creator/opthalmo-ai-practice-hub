@@ -1,7 +1,8 @@
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { PracticeRound, PracticeRoundInsert, PracticeRoundUpdate, PracticeRoundMapper } from '@/features/practiceRoom/practiceRoom.types.js'
+import { CreatePracticeRound, UpdatePracticeRound, PracticeRound, PracticeRoundMapper } from '@/features/practiceRound/practiceRound.types.js'
 
-export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundInsert): Promise<PracticeRound> {
+
+export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: CreatePracticeRound): Promise<PracticeRound> {
 	const { data, error } = await supabaseAuthenticated
 		.from('practice_rounds')
 		.insert(PracticeRoundMapper.insertToDb(fields))
@@ -21,7 +22,7 @@ export async function createRoundWithReturn(supabaseAuthenticated: TypedSupabase
 }
 
 
-export async function updatePracticeRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: PracticeRoundUpdate): Promise<PracticeRound> {
+export async function updatePracticeRoundWithReturn(supabaseAuthenticated: TypedSupabaseClient, fields: UpdatePracticeRound): Promise<PracticeRound> {
 
 	const { data, error } = await supabaseAuthenticated
 		.from('practice_rounds')
@@ -31,12 +32,12 @@ export async function updatePracticeRoundWithReturn(supabaseAuthenticated: Typed
 		.single();
 
 	if (error) {
-		console.log('[upsertRoomWithReturn] DB error: ', error)
-		throw new Error(error.message || 'Failed to upsert room');
+		console.log('[updatePracticeRoundWithReturn] DB error: ', error)
+		throw new Error(error.message || 'Failed to update round');
 	}
 
 	if (!data) {
-		throw new Error('Failed to upsert room: no data returned');
+		throw new Error('Failed to update round: no data returned');
 	}
 
 	return PracticeRoundMapper.fromDb(data);

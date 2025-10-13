@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { createAdminSupabaseClient } from '@//utils/index.js'
 import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
-import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '@/repositories/magicLink.js'
+import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '@/features/scheduling/notification/repos/magicLink.repo.js'
 
 type ActorRole = 'host' | 'guest'
 type MagicPurpose = 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline' | 'reschedule_decide'
@@ -82,7 +82,7 @@ export async function issueMagicLink(
   const expiresAtIso = new Date(exp * 1000).toISOString()
 
   const admin = createAdminSupabaseClient()
-  await insertMagicLink(admin as TypedSupabaseClient, {
+  await insertMagicLink(admin, {
     purpose: params.purpose,
     uid: params.uid,
     roomId: params.roomId,

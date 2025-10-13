@@ -1,8 +1,8 @@
 import {Router} from 'express'
 import { requireSupabaseUser } from '@/middleware/auth.middleware.js';
 import { validate } from '@/middleware/validate.middleware.js'
-import { newRoomSchemaAPI, updateRoomSchemaAPI, deleteRoomSchemaAPI } from '@/features/practiceRoom/practiceRoom.schemas.js';
-import { createPracticeRoomController, updatePracticeRoomController, deletePracticeRoomController } from '@/features/practiceRoom/practiceRoom.controller.js'
+import { newRoomSchemaAPI, updateRoomSchemaAPI, deleteRoomSchemaAPI } from '@/features/scheduling/practiceRoom/practiceRoom.schemas.js';
+import { createPracticeRoomController, updatePracticeRoomController, deletePracticeRoomController } from '@/features/scheduling/practiceRoom/practiceRoom.controller.js'
 
 
 const roomRouter = Router()

@@ -50,9 +50,8 @@ export async function rescheduleRoom({ roomId, startUtc }: { roomId: string, sta
 }
 
 export async function createRound({ roomId, roundNumber }: { roomId: string, roundNumber: number }) {
-  const createFields = { roomId, roundNumber }
-  const { data } = await api.post("/practice-round/create", { createFields });
-  return data.round;
+  const { data } = await api.post("/practice-round/create", { roomId, roundNumber });
+  return data;
 }
 
 

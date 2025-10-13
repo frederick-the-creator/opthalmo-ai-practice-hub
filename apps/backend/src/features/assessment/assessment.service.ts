@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
-import { Assessment, AssessmentSchema } from "@/assessmentSchema.js";
+import { Assessment, AssessmentSchema } from "@/features/assessment/assessment.schema.js";
 import fs from "fs";
 import path from "path";
-import { transcribe } from "@/transcription.js";
+import { transcribe } from "@/features/assessment/transcription.service.js";
 import type { TypedSupabaseClient } from "@/utils/supabaseClient.js";
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
