@@ -1,14 +1,11 @@
 import crypto from 'crypto'
-import { createAdminSupabaseClient } from '@//utils/index.js'
-import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
+import { TypedSupabaseClient, createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { insertMagicLink, findActiveMagicLinkByHash, markMagicLinkUsedByHash } from '@/features/scheduling/notification/repos/magicLink.repo.js'
-
-type ActorRole = 'host' | 'guest'
-type MagicPurpose = 'reschedule_propose' | 'reschedule_approve' | 'reschedule_decline' | 'reschedule_decide'
+import { ActorRole, CreateMagicLink, MagicPurpose,  } from '@/features/scheduling/notification/types/magicLink.types.js'
 
 export type MagicTokenPayload = {
   uid: string
-  roomId: string | null
+  roomId: string
   proposalId?: string | null
   proposedStartUtc?: string | null
   proposedEndUtc?: string | null
@@ -70,37 +67,43 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex')
 }
 
-export async function issueMagicLink(
-  params: Omit<MagicTokenPayload, 'exp' | 'nonce'> & { ttlSeconds?: number }
-): Promise<{ token: string; expiresAtIso: string }> {
-  const ttl = params.ttlSeconds ?? 60 * 60 * 24 // 24h
-  const exp = Math.floor(Date.now() / 1000) + ttl
+export async function createMagicToken(
+  params: Pick<CreateMagicLink, 'uid' | 'purpose' | 'roomId' | 'actorEmail' | 'actorRole'>
+): Promise<{ token: string; expiresAt: string }> {
+
+  // Calculate expiry date of token
+  const ttl = 60 * 60 * 24 * 7 // 7 days in seconds
+  const exp = Math.floor(Date.now() / 1000) + ttl // current date plus 7 days in seconds
+  const expiresAt = new Date(exp * 1000).toISOString() 
+
   const nonce = crypto.randomBytes(8).toString('hex')
-  const payload: MagicTokenPayload = { ...params, exp, nonce }
+  const payload = { ...params, ttl, exp, nonce }
+
   const { token } = sign(payload)
   const tokenHash = hashToken(token)
-  const expiresAtIso = new Date(exp * 1000).toISOString()
 
   const admin = createAdminSupabaseClient()
+
   await insertMagicLink(admin, {
-    purpose: params.purpose,
     uid: params.uid,
+    purpose: params.purpose,
     roomId: params.roomId,
     actorEmail: params.actorEmail,
     actorRole: params.actorRole,
     tokenHash,
-    expiresAtIso,
+    expiresAt,
   })
-  return { token, expiresAtIso }
+
+  return { token, expiresAt }
 }
 
-export async function validateMagicToken(token: string, purpose?: MagicPurpose): Promise<MagicTokenPayload> {
+export async function validateMagicTokenReturnPaylad(token: string, purpose?: MagicPurpose): Promise<MagicTokenPayload> {
   const payload = verify(token)
   if (!payload) throw new Error('Invalid or expired token')
   if (purpose && payload.purpose !== purpose) throw new Error('Invalid token purpose')
   const tokenHash = hashToken(token)
   const admin = createAdminSupabaseClient()
-  const data = await findActiveMagicLinkByHash(admin as TypedSupabaseClient, tokenHash)
+  const data = await findActiveMagicLinkByHash(admin, tokenHash)
   if (!data) throw new Error('Token not found or already used')
   return payload
 }
@@ -108,5 +111,5 @@ export async function validateMagicToken(token: string, purpose?: MagicPurpose):
 export async function markMagicTokenUsed(token: string): Promise<void> {
   const tokenHash = hashToken(token)
   const admin = createAdminSupabaseClient()
-  await markMagicLinkUsedByHash(admin as TypedSupabaseClient, tokenHash)
+  await markMagicLinkUsedByHash(admin, tokenHash)
 }

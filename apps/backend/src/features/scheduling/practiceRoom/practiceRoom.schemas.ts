@@ -8,7 +8,9 @@ export const newRoomSchemaAPI = z.object({
         guestId: z.string().nullable().optional(), // Remove as this is not provided on creation
         private: z.boolean().optional(), // Change from optional as this is mandatory
         startUtc: z.string(),
-        durationMinutes: z.number(),
+        durationMinutes: z.number().refine((val) => [30, 60, 90].includes(val), {
+            message: 'Invalid duration',
+        }),
     }) as z.ZodType<Pick<CreatePracticeRoom, 'hostId' | 'guestId' | 'private' | 'durationMinutes' | 'startUtc'>>
 });
 

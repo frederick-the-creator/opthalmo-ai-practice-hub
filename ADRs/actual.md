@@ -11,6 +11,7 @@ Monorepo structure
     **Code rules - Never use Type Assertion**
     **Favor being explicit - E.g. with typing, using DNR to reduce inline types. E.g. throw New Error instead of throw Error**
     **Avoid type casting. Want to take advantage of TS structural typing to trigger compile-time failure if mistmatches**
+    **Never give optional defaults for environment variables**
 Types
     - “Domain persistence” types for repositories/mappers (what the DB needs) - Domain types are created automatically from supabase generated types so when DB changes this is reflected.
     - “API DTOs” for boundary validation (what the client may send) - Eliminate drift by deriving the API DTO’s TypeScript type from the domain type, and make the Zod schema conform to that type using Zod’s generic type parameter.

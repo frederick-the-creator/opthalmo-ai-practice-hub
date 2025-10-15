@@ -3,7 +3,7 @@ import type { PracticeRoom } from "@/features/scheduling/practiceRoom/practiceRo
 import {
   createPracticeRoom
 } from "@/features/scheduling/practiceRoom/practiceRoom.service.js";
-import type { AuthenticatedRequest } from "@/utils/supabaseClient.js";
+import type { AuthenticatedRequest } from "@/middleware/auth.middleware.js";
 import type { ParamsDictionary } from "express-serve-static-core";
 import { HttpError } from "@/lib/httpError.js";
 import type { DeleteRoomParams, NewRoomBody, UpdateRoomBody } from "@/features/scheduling/practiceRoom/practiceRoom.schemas.js";

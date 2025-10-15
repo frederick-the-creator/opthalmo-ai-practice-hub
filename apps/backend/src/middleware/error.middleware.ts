@@ -20,6 +20,12 @@ export function errorMiddleware(err: unknown, _req: Request, res: Response, _nex
     res.status(err.status).json({ error: err.message });
     return;
   }
-  console.error(err);
+
+  if (err instanceof Error) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+    return
+  }
+  
   res.status(500).json({ error: 'Internal Server Error' });
 }

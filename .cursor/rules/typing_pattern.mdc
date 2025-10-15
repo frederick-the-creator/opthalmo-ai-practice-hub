@@ -17,3 +17,9 @@ Applicable to backend
 
 Do not use type assertions except for the following:
 const supabase = (req as AuthenticatedRequest).supabaseAsUser;
+
+
+Do not do this:
+type BookingContext = Awaited<ReturnType<typeof buildBookingContext>>
+
+**How are domain types created if there is no relevant database table??**

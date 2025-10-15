@@ -1,4 +1,4 @@
-import { IcsMethod } from "@/features/scheduling/practiceRoom/practiceRoom.types.js"
+import { IcsMethod } from "@/features/scheduling/notification/types/ics.types.js"
 
 function toIcsDate(isoUtc: string): string {
   const d = new Date(isoUtc)

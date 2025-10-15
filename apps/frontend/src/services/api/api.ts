@@ -109,7 +109,7 @@ export type RescheduleValidateResponse = {
 }
 
 export async function validateRescheduleToken(token: string): Promise<RescheduleValidateResponse> {
-  const { data } = await api.get('/proposal', { params: { r: token } })
+  const { data } = await api.get('/proposal/room', { params: { r: token } })
   return data as RescheduleValidateResponse
 }
 

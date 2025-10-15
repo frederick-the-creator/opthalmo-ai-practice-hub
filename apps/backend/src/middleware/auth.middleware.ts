@@ -1,15 +1,14 @@
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { createClient, User } from '@supabase/supabase-js';
 import type { Request, Response, NextFunction } from 'express';
 import type { Database } from '@/types/database.types.js'
 import { HttpError } from '@/lib/httpError.js';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
+import { TypedSupabaseClient } from '@/utils/supabaseClient.js';
 
 export const SUPABASE_URL = process.env.SUPABASE_URL as string;
 export const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY as string;
 export const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
-
-export type TypedSupabaseClient = SupabaseClient<Database>;
 
 
 declare module 'express-serve-static-core' {
