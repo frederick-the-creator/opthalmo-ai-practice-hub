@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "lint": "eslint .",
     "build": "tsc",
-    "postbuild": "tsc-alias -p tsconfig.json && mkdir -p dist/src/featurers/assessment && cp src/features/assessment/system-instructions.txt dist/src/featurers/assessment/",
+    "postbuild": "tsc-alias -p tsconfig.json && mkdir -p dist/src/features/assessment && cp src/features/assessment/system-instructions.txt dist/src/features/assessment/",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
