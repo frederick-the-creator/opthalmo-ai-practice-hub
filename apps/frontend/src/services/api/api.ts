@@ -1,5 +1,5 @@
 import axios from "axios";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase } from "@/utils/supabaseClient"; 
 
 // Base API URL - update this to point to your actual backend API
 const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
