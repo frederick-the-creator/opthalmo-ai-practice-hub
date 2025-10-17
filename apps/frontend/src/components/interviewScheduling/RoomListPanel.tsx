@@ -134,9 +134,9 @@ const RoomListPanel: React.FC<Props> = ({
       const startMs = new Date(room.startUtc as string).getTime();
       const nowMs = Date.now();
       const oneHourPastStart = !Number.isNaN(startMs) && (nowMs > (startMs + 60 * 60 * 1000));
-      // Exclude only if the room is Finished AND more than 1 hour past start time
-      const excludeFinishedAndExpired = room.stage === 'Finished' && oneHourPastStart;
-      return isMine && !excludeFinishedAndExpired;
+      // Exclude if the room is Finished OR more than 1 hour past start time
+      const excludeFinishedOrExpired = room.stage === 'Finished' || oneHourPastStart;
+      return isMine && !excludeFinishedOrExpired;
     }
   );
 
