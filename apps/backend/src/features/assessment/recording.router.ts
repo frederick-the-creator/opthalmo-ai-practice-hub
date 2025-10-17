@@ -4,8 +4,11 @@ import { startDailyRecording, stopDailyRecording } from '@/features/assessment/r
 
 const recordingRouter = Router()
 
+interface StartRecordingBody { roomUrl: string }
+interface StopRecordingBody { roomUrl: string; roomId: string }
+
 // Start recording endpoint: starts a Daily.co recording for a given roomUrl
-recordingRouter.post('/start', requireSupabaseUser, async (req: Request, res: Response) => {
+recordingRouter.post('/start', requireSupabaseUser, async (req: Request<unknown, unknown, StartRecordingBody>, res: Response) => {
   const { roomUrl } = req.body;
 
   if (!roomUrl) {
@@ -22,17 +25,18 @@ recordingRouter.post('/start', requireSupabaseUser, async (req: Request, res: Re
     }
 
     // Start recording via Daily.co
-    const recording = await startDailyRecording(roomName);
-    res.json({ recording });
+    const recording: unknown = await startDailyRecording(roomName);
+    return res.json({ recording });
 
-  } catch (err: any) {
-    console.error('Error starting recording:', err.response?.data || err.message);
-    res.status(500).json({ error: err.message || 'Failed to start recording' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to start recording';
+    console.error('Error starting recording:', message);
+    return res.status(500).json({ error: message });
   }
 });
   
 // Stop recording endpoint: stops a Daily.co recording for a given roomUrl
-recordingRouter.post('/stop', requireSupabaseUser, async (req: Request, res: Response) => {
+recordingRouter.post('/stop', requireSupabaseUser, async (req: Request<unknown, unknown, StopRecordingBody>, res: Response) => {
   const { roomUrl, roomId } = req.body;
 
   if (!roomUrl || !roomId) {
@@ -49,14 +53,15 @@ recordingRouter.post('/stop', requireSupabaseUser, async (req: Request, res: Res
       return res.status(400).json({ error: 'Invalid roomUrl' });
     }
 
-    const stopResult = await stopDailyRecording(roomName);
+    const stopResult: unknown = await stopDailyRecording(roomName);
 
     // Respond to the client immediately after stopping the recording
-    res.json({ stopResult });
+    return res.json({ stopResult });
 
-  } catch (err: any) {
-    console.error('Error in stop-recording workflow:', err.response?.data || err.message);
-    res.status(500).json({ error: err.message || 'Failed to process stop-recording workflow' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to process stop-recording workflow';
+    console.error('Error in stop-recording workflow:', message);
+    return res.status(500).json({ error: message });
   }
 });
 
