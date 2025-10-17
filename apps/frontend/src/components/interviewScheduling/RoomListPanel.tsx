@@ -37,8 +37,7 @@ My upcoming Rooms:
   - Additional Filter: Filter out any rooms that are more than 1 hour past start time
   - Additional: Once room is flagged as 'Finished' can no longer click 'Reschedule' or 'Cancel'.
 
-Change how room is flagged as finished so we can move stage flag to rounds
-Ask AI to first migrate DB, then run linter to see where new types are mismatched.
+
 */
 
 const RoomListPanel: React.FC<Props> = ({
