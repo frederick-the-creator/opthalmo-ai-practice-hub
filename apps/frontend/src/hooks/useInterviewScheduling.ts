@@ -203,13 +203,7 @@ export function useInterviewScheduling(): UseInterviewSchedulingResult {
     setError(null);
     try {
       const data = await fetchAllRooms();
-      // Filter out rooms that are more than 1 hour past start time
-      const now = new Date();
-      const filtered = (data as PracticeRoomWithProfiles[]).filter((room) => {
-        const roomStart = new Date(room.startUtc as string);
-        return now < new Date(roomStart.getTime() + 60 * 60 * 1000);
-      });
-      setRooms(filtered);
+      setRooms(data as PracticeRoomWithProfiles[]);
       setLoading(false);
     } catch (err) {
       setError("Failed to load rooms");

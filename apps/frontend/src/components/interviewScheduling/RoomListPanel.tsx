@@ -21,6 +21,26 @@ interface Props {
   onCancel?: (roomId: string) => void;
 }
 
+/*
+RoomList panel has two sections: Available Rooms and My Upcoming Rooms
+
+Input rooms are already filtered out rooms that are more than 1 hour past start time
+
+Available Rooms:
+  - Shows any room that the current user is not a part of (either host or guest)
+  - Filters our private rooms
+  - Additional Filter: Filter out any rooms with less than 15 mins to start so people can't sign up
+
+My upcoming Rooms:
+  - Shows any room that current user is a part of
+  - Filters out Finished rooms
+  - Additional Filter: Filter out any rooms that are more than 1 hour past start time
+  - Additional: Once room is flagged as 'Finished' can no longer click 'Reschedule' or 'Cancel'.
+
+Change how room is flagged as finished so we can move stage flag to rounds
+Ask AI to first migrate DB, then run linter to see where new types are mismatched.
+*/
+
 const RoomListPanel: React.FC<Props> = ({
   rooms,
   loading,
@@ -96,16 +116,29 @@ const RoomListPanel: React.FC<Props> = ({
 
   // Available rooms (not joined by user) and only public
   const availablerooms = rooms.filter(
-    (room) =>
-      (!user?.id || (room.hostId !== user.id && room.guestId !== user.id)) &&
-      room.private !== true
+    (room) => {
+      const notMyRoom = !user?.id || (room.hostId !== user.id && room.guestId !== user.id);
+      const isPublic = room.private !== true;
+      // Exclude rooms starting within next 15 minutes
+      const nowMs = Date.now();
+      const startMs = new Date(room.startUtc as string).getTime();
+      const startsInFutureBy15Min = !Number.isNaN(startMs) && (startMs - nowMs) >= (15 * 60 * 1000);
+      return notMyRoom && isPublic && startsInFutureBy15Min;
+    }
   );
 
   // My rooms (joined or hosted by user)
   const myrooms = rooms.filter(
-    (room) =>
-      user?.id &&
-      (room.hostId === user.id || room.guestId === user.id)
+    (room) => {
+      if (!user?.id) return false;
+      const isMine = (room.hostId === user.id || room.guestId === user.id);
+      const startMs = new Date(room.startUtc as string).getTime();
+      const nowMs = Date.now();
+      const oneHourPastStart = !Number.isNaN(startMs) && (nowMs > (startMs + 60 * 60 * 1000));
+      // Exclude only if the room is Finished AND more than 1 hour past start time
+      const excludeFinishedAndExpired = room.stage === 'Finished' && oneHourPastStart;
+      return isMine && !excludeFinishedAndExpired;
+    }
   );
 
   return (
@@ -191,6 +224,8 @@ const RoomListPanel: React.FC<Props> = ({
                         size="sm"
                         variant="outline"
                         className="border-gray-300"
+                        disabled={room.stage === 'Finished'}
+                        title={room.stage === 'Finished' ? 'This interview is finished' : undefined}
                         onClick={() => openRescheduleDialog(room)}
                       >
                         Reschedule
@@ -201,6 +236,8 @@ const RoomListPanel: React.FC<Props> = ({
                         type="button"
                         size="sm"
                         variant="destructive"
+                        disabled={room.stage === 'Finished'}
+                        title={room.stage === 'Finished' ? 'This interview is finished' : undefined}
                         onClick={() => confirmAndCancel(room.id)}
                       >
                         Cancel
