@@ -1,13 +1,18 @@
-import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
 import { createAdminSupabaseClient } from '@/utils/supabaseClient.js'
 import { createMagicToken, validateMagicTokenReturnPaylad, markMagicTokenUsed } from '@/features/scheduling/notification/services/buildNotification/magicLink.service.js'
-import { getPendingProposalById, markProposalDecision } from '@/features/scheduling/notification/repos/proposal.repo.js'
+import { getPendingProposalById, markProposalDecision } from '@/features/scheduling/reschedule/reschedule.repo.js'
 import { getPracticeRoomById, updatePracticeRoomWithReturn } from '@/features/scheduling/practiceRoom/practiceRoom.repo.js'
 import { buildBookingContext } from '@/features/scheduling/notification/services/buildNotification/bookingContextBuilder.service.js'
 import { sendEmailWithRetry, sendNotification } from '@/features/scheduling/notification/services/notification.service.js'
-import { BookedRoom } from '../../practiceRoom/practiceRoom.types.js'
+import { BookedRoom, PracticeRoom } from '../practiceRoom/practiceRoom.types.js'
 
-
+function isBookedRoom(room: PracticeRoom): room is BookedRoom {
+  return (
+    typeof room.guestId === 'string' &&
+    typeof room.icsUid === 'string' &&
+    typeof room.endUtc === 'string'
+  )
+}
 
 export async function requestCounterpartyApproval(params: {
   roomId: string
@@ -35,8 +40,7 @@ export async function requestCounterpartyApproval(params: {
     proposedStartUtc: proposal.proposedStartUtc,
     proposedEndUtc: proposal.proposedEndUtc,
     actorEmail: counterpartyEmail,
-    actorRole: counterpartyRole,
-    ttlSeconds: 60 * 60 * 24 * 7,
+    actorRole: counterpartyRole
   })
 
   const base = process.env.FRONTEND_URL?.replace(/\/$/, '')
@@ -45,7 +49,8 @@ export async function requestCounterpartyApproval(params: {
   // Subject aligned with ICS: personalize with counterparty's first name
   let subject = 'Ophthalmo Practice Session'
   // Personalize with the other party's name (proposer), not the recipient's
-  const otherPartyFirst = counterpartyRole === 'host' ? ctx.guestFirst : ctx.hostFirst
+  const otherPartyFirst = counterpartyRole === 'host' ? ctx.attendees.guest.name : ctx.attendees.host.name
+
   if (otherPartyFirst) subject = `Ophthalmo Practice Session with ${otherPartyFirst}`
   subject = `New Time Proposed: ${subject}`
 
@@ -57,7 +62,8 @@ export async function requestCounterpartyApproval(params: {
 }
 
 export async function decideByToken(token: string, action: 'agree' | 'propose' | 'cancel', proposalNote?: { proposedStartUtc?: string, proposedEndUtc?: string, note?: string }): Promise<{ ok: boolean }> {
-  const payload = await validateMagicTokenReturnPaylad(token, 'reschedule_decide')
+  
+  const payload = await validateMagicTokenReturnPaylad(token)
   if (!payload.roomId || !payload.proposalId) throw new Error('Invalid token payload')
   const admin = createAdminSupabaseClient()
   const proposal = await getPendingProposalById(payload.proposalId)
@@ -67,22 +73,32 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
     const room = await getPracticeRoomById(admin, proposal.roomId)
     const isReschedule = proposal.proposedStartUtc !== room.startUtc
     const nextSequence = (room.icsSequence ?? 0) + (isReschedule ? 1 : 0)
+
     const updatedRoom = await updatePracticeRoomWithReturn(admin, {
       roomId: room.id,
       startUtc: proposal.proposedStartUtc,
       endUtc: new Date(new Date(proposal.proposedStartUtc).getTime() + (room.durationMinutes * 60 * 1000)).toISOString(),
       icsSequence: nextSequence,
-    } as any)
-    try { await sendNotification('REQUEST', updatedRoom) } catch (_e) {}
+    })
+
+    if (isBookedRoom(updatedRoom)) {
+      await sendNotification('REQUEST', updatedRoom)
+    }
+
     await markProposalDecision({ id: proposal.id, status: 'approved', approvedBy: payload.actorRole })
     await markMagicTokenUsed(token)
     return { ok: true }
   }
 
   if (action === 'cancel') {
+
     // Cancel meeting: send CANCEL to both and delete
     const room = await getPracticeRoomById(admin, proposal.roomId)
-    try { await sendNotification('CANCEL', room) } catch (_e) {}
+
+    if (isBookedRoom(room)) {
+      await sendNotification('CANCEL', room)
+    }
+
     // Delete room + rounds
     // Reuse existing delete guard would require user context; here as system we directly delete via repos
     // For now, mark proposal declined and mark token used; actual deletion flow may stay host-only elsewhere
@@ -93,7 +109,7 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
 
   // action === 'propose' → create a new counter-proposal back to the other party
   if (!proposalNote?.proposedStartUtc || !proposalNote?.proposedEndUtc) throw new Error('Missing proposed times')
-  const { createPendingProposal } = await import('@/features/scheduling/notification/repos/proposal.repo.js')
+  const { createPendingProposal } = await import('@/features/scheduling/reschedule/reschedule.repo.js')
   // Persist a new proposal from the decider (counterparty)
   const newProposalId = await createPendingProposal({
     roomId: proposal.roomId,
@@ -110,7 +126,7 @@ export async function decideByToken(token: string, action: 'agree' | 'propose' |
     uid: proposal.uid,
     proposerRole: payload.actorRole,
     proposerEmail: payload.actorEmail,
-    proposalId: newProposalId,
+    proposalId: newProposalId.id,
   })
   await markMagicTokenUsed(token)
   return { ok: true }

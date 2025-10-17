@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { decideProposal, validateDecisionToken } from '@/services/api/api'
+import { decideProposal, retrieveRescheduleProposal } from '@/services/api/api'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
@@ -44,7 +44,7 @@ export default function DecisionPage() {
     async function init() {
       try {
         if (!token) throw new Error('Missing token')
-        const res = await validateDecisionToken(token)
+        const res = await retrieveRescheduleProposal(token)
         if (!res.ok) throw new Error('Invalid or expired link')
         setCurrentStartUtc(res.startUtc)
         setCurrentEndUtc(res.endUtc)

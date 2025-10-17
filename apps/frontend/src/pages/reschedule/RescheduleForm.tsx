@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { validateRescheduleToken, proposeReschedule, type RescheduleValidateResponse } from '@/services/api/api'
+import { retrieveRoomForReschedule, proposeReschedule, type RescheduleValidateResponse } from '@/services/api/api'
 import { Calendar } from '@/components/ui/calendar'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -36,7 +36,7 @@ export default function RescheduleForm() {
       return
     }
     setToken(r)
-    validateRescheduleToken(r)
+    retrieveRoomForReschedule(r)
       .then((data: RescheduleValidateResponse) => {
         setUid(data.uid)
         // Prefill from current scheduled start/end if available

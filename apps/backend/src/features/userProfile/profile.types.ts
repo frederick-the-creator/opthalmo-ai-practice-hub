@@ -1,50 +1,27 @@
+import { Tables, TablesInsert, TablesUpdate } from '@/types/database.types.js'
+import { SnakeToCamelKeys, camelToSnakeObject, snakeToCamelObject } from '@/types/casing.js'
 
-export type Profile = {
-	userId: string
-	firstName: string
-	lastName: string
-	avatar: string | null
-}
 
-export type ProfileInsert = {
-	userId: string
-	firstName: string
-	lastName: string
-	avatar?: string | null
-}
+export type ProfileRow = Tables<'profiles'>
+export type ProfileInsert = TablesInsert<'profiles'>
+export type ProfileUpdate = TablesUpdate<'profiles'>
 
-export type ProfileUpdate = {
-	userId: string
-	firstName?: string
-	lastName?: string
-	avatar?: string | null
-}
+export type Profile = SnakeToCamelKeys<ProfileRow>
+export type CreateProfile = SnakeToCamelKeys<ProfileInsert>
+export type UpdateProfile = { userId: string } & SnakeToCamelKeys<Omit<ProfileUpdate, 'user_id'>>
 
 export const ProfileMapper = {
-	insertToDb(insert: ProfileInsert): TablesInsert<'profiles'> {
-		return {
-			user_id: insert.userId,
-			first_name: insert.firstName,
-			last_name: insert.lastName,
-			avatar: insert.avatar ?? null,
-		}
+	insertToDb(insert: CreateProfile): ProfileInsert {
+		const mapped = camelToSnakeObject(insert) as ProfileInsert
+		return mapped
 	},
-
-	fromDb(row: Tables<'profiles'>): Profile {
-		return {
-			userId: row.user_id,
-			firstName: row.first_name,
-			lastName: row.last_name,
-			avatar: row.avatar,
-		}
+	updateToDb(update: UpdateProfile): ProfileUpdate {
+		const { userId, ...rest } = update
+		const mapped = camelToSnakeObject(rest) as ProfileUpdate
+		return {user_id: userId, ...mapped}
 	},
-
-	updateToDb(update: ProfileUpdate): TablesUpdate<'profiles'> {
-		return {
-			user_id: update.userId, // required
-			...(update.firstName !== undefined && { first_name: update.firstName }),
-			...(update.lastName !== undefined && { last_name: update.lastName }),
-			...(update.avatar !== undefined && { avatar: update.avatar }),
-		}
-	},
+	fromDb(row: ProfileRow): Profile {
+		const domain = snakeToCamelObject(row) as Profile
+		return domain
+	}
 }

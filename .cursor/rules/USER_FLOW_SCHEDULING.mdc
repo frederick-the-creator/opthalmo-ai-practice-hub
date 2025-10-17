@@ -135,7 +135,7 @@ This rule documents the Interview Scheduling and Acceptance flow end-to-end with
 
 - Public reschedule form (frontend):
   - Route: `/reschedule` → `apps/frontend/src/pages/reschedule/RescheduleForm.tsx`.
-  - On load, validates the token via `validateRescheduleToken(r)` and extracts room current timing from token (Using route `reschedule.ts`)
+  - On load, validates the token via `retrieveRoomForReschedule(r)` and extracts room current timing from token (Using route `reschedule.ts`)
   - On submit, posts `proposedStartUtc`, `proposedEndUtc`, and optional `note` via `proposeReschedule(...)`. Submits proposal request using new times from UI and room details from token. (Using route `reschedule.ts`)
 
 - Backend endpoints (mounted under `/api/reschedule`):

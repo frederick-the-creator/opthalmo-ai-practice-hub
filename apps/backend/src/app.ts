@@ -5,7 +5,7 @@ import roundRouter from '@/features/practiceRound/practiceRound.router.js'
 import profileRouter from '@/features/userProfile/profile.router.js'
 import recordingRouter from '@/features/assessment/recording.router.js'
 import assessmentRouter from '@/features/assessment/assessment.router.js'
-import proposalsRouter from '@/features/scheduling/notification/routes/proposal.router.js'
+import rescheduleRouter from '@/features/scheduling/reschedule/reschedule.router.js'
 import { errorMiddleware } from '@/middleware/error.middleware.js';
 
 const app = express();
@@ -30,7 +30,7 @@ app.use('/api/practice-room', roomRouter)
 app.use('/api/practice-round', roundRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/recording', recordingRouter)
-app.use('/api/proposal', proposalsRouter)
+app.use('/api/reschedule', rescheduleRouter)
 app.use('/api/assessment', assessmentRouter)
 
 app.use(errorMiddleware)

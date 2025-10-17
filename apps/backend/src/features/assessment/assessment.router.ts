@@ -1,5 +1,5 @@
 import {Router, Request, Response} from 'express'
-import { requireSupabaseUser } from '@/utils/supabaseClient.js'
+import { requireSupabaseUser } from '@/middleware/auth.middleware.js'
 import { runAssessment } from '@/features/assessment/assessment.service.js';
 
 const assessmentRouter = Router()

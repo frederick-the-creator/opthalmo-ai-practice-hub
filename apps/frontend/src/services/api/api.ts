@@ -56,14 +56,13 @@ export async function createRound({ roomId, roundNumber }: { roomId: string, rou
 
 
 export async function setRoundCandidate({ roundId, candidateId }: { roundId: string, candidateId: string }) {
-  const updateFields = { roundId, candidateId }
-  const { data } = await api.post("/practice-round/update", { updateFields });
+  const { data } = await api.post("/practice-round/update", { roundId, candidateId });
   return data.round;
 }
 
 export async function setRoundCase({ roundId, caseBriefId }: { roundId: string, caseBriefId: string }) {
-  const updateFields = { roundId, caseBriefId }
-  const { data } = await api.post("/practice-round/update", { updateFields });
+  console.log('roundId', roundId)
+  const { data } = await api.post("/practice-round/update", { roundId, caseBriefId });
   return data.round;
 }
 
@@ -108,25 +107,22 @@ export type RescheduleValidateResponse = {
   endUtc: string | null;
 }
 
-export async function validateRescheduleToken(token: string): Promise<RescheduleValidateResponse> {
-  const { data } = await api.get('/proposal/room', { params: { r: token } })
+export async function retrieveRoomForReschedule(token: string): Promise<RescheduleValidateResponse> {
+  const { data } = await api.get('/reschedule', { params: { token } })
   return data as RescheduleValidateResponse
 }
 
-export async function proposeReschedule(params: { token: string; proposedStartUtc: string; proposedEndUtc: string; note?: string }): Promise<{ ok: boolean; proposalId: string }> {
-  const { data } = await api.post('/proposal/propose', params)
+export async function proposeReschedule({ token, proposedStartUtc, proposedEndUtc, note }: { token: string; proposedStartUtc: string; proposedEndUtc: string; note?: string }): Promise<{ ok: boolean; proposalId: string }> {
+  const { data } = await api.post('/reschedule/propose', { token, proposedStartUtc, proposedEndUtc, note })
   return data as { ok: boolean; proposalId: string }
 }
 
-// approve/decline (legacy) removed in favor of decision flow
-
-// Single-link decision flow
-export async function validateDecisionToken(token: string): Promise<{ ok: boolean; uid: string; proposalId: string | null; startUtc: string | null; endUtc: string | null; proposedStartUtc: string | null; proposedEndUtc: string | null }>{
-  const { data } = await api.get('/proposal/decision', { params: { t: token } })
+export async function retrieveRescheduleProposal(token: string): Promise<{ ok: boolean; uid: string; proposalId: string | null; startUtc: string | null; endUtc: string | null; proposedStartUtc: string | null; proposedEndUtc: string | null }>{
+  const { data } = await api.get('/reschedule/decision', { params: { t: token } })
   return data as { ok: boolean; uid: string; proposalId: string | null; startUtc: string | null; endUtc: string | null; proposedStartUtc: string | null; proposedEndUtc: string | null }
 }
 
 export async function decideProposal(params: { token: string; action: 'agree' | 'propose' | 'cancel'; proposedStartUtc?: string; proposedEndUtc?: string; note?: string }): Promise<{ ok: boolean }>{
-  const { data } = await api.post('/proposal/decision', params)
+  const { data } = await api.post('/reschedule/decision', params)
   return data as { ok: boolean }
 }

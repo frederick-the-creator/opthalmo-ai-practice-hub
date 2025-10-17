@@ -3,7 +3,7 @@ import type { TypedSupabaseClient } from '@/utils/supabaseClient.js'
 import { createRoomWithReturn, updatePracticeRoomWithReturn, getPracticeRoomById, deletePracticeRoomById } from '@/features/scheduling/practiceRoom/practiceRoom.repo.js';
 import { createRoundWithReturn, deleteRoundsByRoomId } from '@/features/practiceRound/practiceRound.repo.js';
 import { PracticeRoom, UpdatePracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js';
-import { HttpError } from '@//utils/index.js';
+import { HttpError } from '@/lib/httpError.js';
 import { randomUUID } from 'crypto'
 import { isNotificationReady, sendNotification } from '@/features/scheduling/notification/services/notification.service.js'
 import { NewRoomBody } from './practiceRoom.schemas.js';
