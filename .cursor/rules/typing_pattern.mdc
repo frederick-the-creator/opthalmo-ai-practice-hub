@@ -22,4 +22,7 @@ const supabase = (req as AuthenticatedRequest).supabaseAsUser;
 Do not do this:
 type BookingContext = Awaited<ReturnType<typeof buildBookingContext>>
 
-**How are domain types created if there is no relevant database table??**
+
+## TODO
+Rules for creating domain types when there is no direct supabase table.
+Rules for creating domain types when there is no direct api route 
