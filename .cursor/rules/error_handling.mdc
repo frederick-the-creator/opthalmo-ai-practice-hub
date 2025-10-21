@@ -4,5 +4,5 @@ alwaysApply: false
 
 
 Applicable to backend
-- Default pattern is to throw errors in functions and avoid try / catch blocks
+- Default pattern is to throw errors in functions and avoid try / catch blocks (e.g. if (...) throw new Error )
 - Errors thrown send directly to error handling middleware in `apps/backend/src/middleware/error.middleware.ts`

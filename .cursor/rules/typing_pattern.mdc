@@ -15,6 +15,9 @@ Applicable to backend
 - Any functions called by the controller should use domain types for parameters and the inferred zod type will be structurally compatible with the domain type. Template here in updatePracticeRoomGuarded `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - In some cases, the body of the request does not contain all the required fields for the domain type. In these cases it is expected that business logic is implemented to create default types. The inferred types should be used for the parameters of the functions called by the controller up until this business logic is implemented, after which the domain type should be used. Template here in createPracticeRoom function `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - Always use @ path alias instead of relative imports
+- Always add typeguards to avoid use of type assertions and implicit any / unkown
+- Always use library / SDK types instead of generating bespoke type of relying on unkown
+- Don't use type annotations when the function is already typed. E.g. this is un-necessary const res: GenerateContentResponse = await ai.models.generateContent({
 
 
 Do not use type assertions except for the following:
@@ -29,3 +32,5 @@ type BookingContext = Awaited<ReturnType<typeof buildBookingContext>>
 Rules for creating domain types when there is no direct supabase table.
 Rules for creating domain types when there is no direct api route 
 Use a function typeguard isAuthenticatedRequest to remove use of type alias (req as AuthenticatedRequest).supabaseAsUser
+Rules for type guarding
+How to get AI to minimise use of any / unkown
