@@ -1,18 +1,26 @@
 import type { BookedRoom, PracticeRoom } from '@/features/scheduling/practiceRoom/practiceRoom.types.js'
 import { Resend } from 'resend'
 import { buildIcs } from '@/features/scheduling/notification/services/buildNotification/icsBuilder.service.js'
-import { buildBookingContext, Attendee, BookingContext } from '@/features/scheduling/notification/services/buildNotification/bookingContextBuilder.service.js'
+import { buildBookingContext } from '@/features/scheduling/notification/services/buildNotification/bookingContextBuilder.service.js'
+import type { Attendee, BookingContext } from '@/features/scheduling/notification/services/buildNotification/bookingContextBuilder.service.js'
 import { createMagicToken } from '@/features/scheduling/notification/services/buildNotification/magicLink.service.js'
 import type { IcsMethod } from '@/features/scheduling/notification/types/ics.types.js'
 
 
 
 export type SendEmailParams = {
-  to: Attendee[]
+  to: Attendee
   subject: string
   text: string
   ics?: { filename: string, content: string }
   methodForCalendar?: IcsMethod
+}
+
+export type BuildEmailParams = {
+	method: IcsMethod
+	room: BookedRoom
+	ctx: BookingContext
+	attendee: Attendee
 }
 
 export function isNotificationReady(room: PracticeRoom): room is BookedRoom {
@@ -24,12 +32,16 @@ function sleep(ms: number): Promise<void> {
 }
 
 
-export async function buildEmail(method: IcsMethod, room: BookedRoom, ctx: BookingContext, attendee: Attendee): Promise<SendEmailParams>{
+export async function buildEmail(params: BuildEmailParams): Promise<SendEmailParams>{
+
+	const { method, room, ctx, attendee } = params
+	const { host, guest } = ctx.attendees
+	const isHost = attendee.email === host.email
+	const counterparty = isHost ? guest.name : host.name
+	const uid = ctx.icsUid
 
 	// Build Subject for email and ics attachment - to include the other party's first name when available
 	let subject = 'Ophthalmo Practice Session'
-	const isHost = attendee.email === ctx.attendees.host.email
-	const counterparty = isHost ? ctx.attendees.guest.name : ctx.attendees.host.name
 
 	if (counterparty) {
 		subject = `Ophthalmo Practice Session with ${counterparty}`
@@ -51,7 +63,7 @@ export async function buildEmail(method: IcsMethod, room: BookedRoom, ctx: Booki
 	if (method === 'REQUEST') { // For case when notification is an initial booking or reschedule, generate a reschedule link
 		const { token } = await createMagicToken({
 			purpose: 'reschedule_propose',
-			uid: ctx.icsUid,
+			uid,
 			roomId: room.id,
 			actorEmail: attendee.email,
 			actorRole: isHost ? 'host' : 'guest',
@@ -67,19 +79,19 @@ export async function buildEmail(method: IcsMethod, room: BookedRoom, ctx: Booki
 
 	// Build Calendar invite attachment
 	const ics = buildIcs({
-		uid: ctx.icsUid,
+		uid,
 		sequence: ctx.sequence,
-		method,
+		method: method,
 		startUtc: ctx.startUtc,
 		endUtc: ctx.endUtc,
 		summary: subject,
 		description: body,
 		organizer: ctx.organizer,
-		attendees: [attendee],
+		attendee: attendee,
 	})
 
 	return {
-		to: [attendee],
+		to: attendee,
 		subject,
 		text: body,
 		ics: { filename: 'invite.ics', content: ics },
@@ -91,6 +103,8 @@ export async function buildEmail(method: IcsMethod, room: BookedRoom, ctx: Booki
  * Low-level email sender using Resend. No feature gating here.
  */
 export async function sendEmailWithRetry (params: SendEmailParams): Promise<void>{
+
+	const { to, subject, text, ics, methodForCalendar } = params
 
 	// Load environment variables
 	const resendApiKey = process.env.RESEND_API_KEY
@@ -105,15 +119,15 @@ export async function sendEmailWithRetry (params: SendEmailParams): Promise<void
 
 	// Build resend object and list of recipient emails
 	const resend = new Resend(resendApiKey)
-	const toList = params.to.map((t) => (t.name ? `${t.name} <${t.email}>` : t.email))
+	const toEmail = to.email
 
 
 	// Create email attachment ICS
-	const attachments = params.ics
+	const attachments = ics
 		? [{
-			filename: params.ics.filename,
-			content: Buffer.from(params.ics.content, 'utf8'),
-			contentType: `text/calendar; method=${params.methodForCalendar ?? 'REQUEST'}; charset=UTF-8`,
+			filename: ics.filename,
+			content: Buffer.from(ics.content, 'utf8'),
+			contentType: `text/calendar; method=${methodForCalendar ?? 'REQUEST'}; charset=UTF-8`,
 			}]
 		: undefined
 
@@ -126,9 +140,9 @@ export async function sendEmailWithRetry (params: SendEmailParams): Promise<void
 			// Try sending email and if true trigger return to exit loop
 			const result = await resend.emails.send({
 				from: fromEmail,
-				to: toList,
-				subject: params.subject,
-				text: params.text,
+				to: toEmail,
+				subject: subject,
+				text: text,
 				attachments,
 			})
 
@@ -167,7 +181,7 @@ export async function sendNotification(method: IcsMethod, room: BookedRoom): Pro
 
 	// Send separate emails to each attendee, with an ICS that only lists that attendee
 	for (const attendee of Object.values(ctx.attendees)) {
-		const email = await buildEmail(method, room, ctx, attendee)
+		const email = await buildEmail({method, room, ctx, attendee})
 		await sendEmailWithRetry(email)
 	}
 }

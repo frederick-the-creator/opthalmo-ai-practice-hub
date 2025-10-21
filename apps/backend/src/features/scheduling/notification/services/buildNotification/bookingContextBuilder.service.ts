@@ -18,7 +18,8 @@ export type BookingContext = {
   }
 }
 
-export function resolveOrganizerFromEnv(): { name?: string; email: string } {
+export function resolveOrganizerFromEnv(): Attendee {
+
   const from = process.env.NOTIFICATIONS_FROM_EMAIL
   if (!from) {
     throw new Error('Missing environment variable NOTIFICATIONS_FROM_EMAIL')
@@ -26,13 +27,14 @@ export function resolveOrganizerFromEnv(): { name?: string; email: string } {
 
   const match = from.match(/^(.*)<(.+?)>\s*$/)
 
-  if (match) {
-    const name = match[1].trim().replace(/^"|"$/g, '')
-    const email = match[2].trim()
-    return { name: name || undefined, email }
+  if (!match) {
+    throw new Error('Environment variable NOTIFICATIONS_FROM_EMAIL in incorrect format')
   }
 
-  return { name: undefined, email: from }
+  const name = match[1].trim().replace(/^"|"$/g, '')
+  const email = match[2].trim()
+  return { name, email }
+
 }
 
 async function safeGetEmail(userId: string): Promise<string> {

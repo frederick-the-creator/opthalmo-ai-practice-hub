@@ -1,4 +1,6 @@
 import { IcsMethod } from "@/features/scheduling/notification/types/ics.types.js"
+import { Attendee } from "@/features/scheduling/notification/services/buildNotification/bookingContextBuilder.service.js"
+
 
 function toIcsDate(isoUtc: string): string {
   const d = new Date(isoUtc)
@@ -27,11 +29,9 @@ export type BuildIcsParams = {
   startUtc: string
   endUtc: string
   summary: string
-  organizer: { name?: string; email: string }
-  attendees: Array<{ name?: string; email: string }>
-  status?: 'CONFIRMED' | 'CANCELLED' | 'TENTATIVE'
-  description?: string
-  location?: string
+  organizer: Attendee
+  attendee: Attendee
+  description: string
 }
 
 export function buildIcs(params: BuildIcsParams): string {
@@ -43,20 +43,19 @@ export function buildIcs(params: BuildIcsParams): string {
     endUtc,
     summary,
     organizer,
-    attendees,
-    status = 'CONFIRMED',
-    description = '',
-    location = 'Online',
+    attendee,
+    description
   } = params
+
+  const status = 'CONFIRMED'
+  const location = 'Online'
 
   const dtStamp = toIcsDate(new Date().toISOString())
   const dtStart = toIcsDate(startUtc)
   const dtEnd = toIcsDate(endUtc)
 
   const organizerLine = `ORGANIZER;CN=${organizer.name ?? organizer.email}:mailto:${organizer.email}`
-  const attendeeLines = attendees
-    .map(a => `ATTENDEE;CN=${a.name ?? a.email}:mailto:${a.email}`)
-    .join('\n')
+  const attendeeLine = `ATTENDEE;CN=${attendee.name ?? attendee.email}:mailto:${attendee.email}`
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -70,7 +69,7 @@ export function buildIcs(params: BuildIcsParams): string {
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,
     organizerLine,
-    attendeeLines,
+    attendeeLine,
     `SUMMARY:${escapeText(summary)}`,
     `DESCRIPTION:${escapeText(description)}`,
     `LOCATION:${escapeText(location)}`,
