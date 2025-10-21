@@ -39,13 +39,13 @@ export async function setRoomGuest({ roomId, guestId }: { roomId: string, guestI
   return response.data;
 }
 
-export async function setRoomStage({ roomId, stage }: { roomId: string, stage: string }) {
-  const { data } = await api.post("/practice-room/update", { roomId, stage });
+export async function rescheduleRoom({ roomId, startUtc }: { roomId: string, startUtc: string }) {
+  const { data } = await api.post("/practice-room/update", { roomId, startUtc });
   return data.room;
 }
 
-export async function rescheduleRoom({ roomId, startUtc }: { roomId: string, startUtc: string }) {
-  const { data } = await api.post("/practice-room/update", { roomId, startUtc });
+export async function setRoomStage({ roomId, stage }: { roomId: string, stage: string }) {
+  const { data } = await api.post("/practice-room/update", { roomId, stage });
   return data.room;
 }
 
