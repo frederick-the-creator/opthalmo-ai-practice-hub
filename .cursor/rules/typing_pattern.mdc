@@ -9,13 +9,12 @@ Backend flow
 Applicable to backend
 - All types should be anchored to the database types and the zod schema
 - Generate camelCase Supabase types directly from database.types.ts. E.g. PracticeRoom, PracticeRoomInsert, etc. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.types.ts`
-- Derive domain types from DB types. E.g. CreatePracticeRoom as pick of PracticeRoomInsert
-- Derive zod schema for API route validation, anchoring type against domain types. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.schemas.ts`
-- Infer types for route request body from Zod schema and use this in the controller
+- Derive domain types from DB types (E.g. CreatePracticeRoom as pick of PracticeRoomInsert)
+- Where it doesn't make sense to use domain types derived from DB types, then derive domain types within module. Template here 'apps/backend/src/features/scheduling/nofication/services/notificationservices.ts
+- Implement zod schema for API route validation, and infer types for route request body from Zod schema and use this in the controller. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.schemas.ts`
 - Any functions called by the controller should use domain types for parameters and the inferred zod type will be structurally compatible with the domain type. Template here in updatePracticeRoomGuarded `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - In some cases, the body of the request does not contain all the required fields for the domain type. In these cases it is expected that business logic is implemented to create default types. The inferred types should be used for the parameters of the functions called by the controller up until this business logic is implemented, after which the domain type should be used. Template here in createPracticeRoom function `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - Always use @ path alias instead of relative imports
-
 
 
 Do not use type assertions except for the following:
