@@ -14,6 +14,9 @@ Applicable to backend
 - Infer types for route request body from Zod schema and use this in the controller
 - Any functions called by the controller should use domain types for parameters and the inferred zod type will be structurally compatible with the domain type. Template here in updatePracticeRoomGuarded `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - In some cases, the body of the request does not contain all the required fields for the domain type. In these cases it is expected that business logic is implemented to create default types. The inferred types should be used for the parameters of the functions called by the controller up until this business logic is implemented, after which the domain type should be used. Template here in createPracticeRoom function `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
+- Always use @ path alias instead of relative imports
+
+
 
 Do not use type assertions except for the following:
 const supabase = (req as AuthenticatedRequest).supabaseAsUser;
@@ -22,4 +25,8 @@ const supabase = (req as AuthenticatedRequest).supabaseAsUser;
 Do not do this:
 type BookingContext = Awaited<ReturnType<typeof buildBookingContext>>
 
-**How are domain types created if there is no relevant database table??**
+
+## TODO
+Rules for creating domain types when there is no direct supabase table.
+Rules for creating domain types when there is no direct api route 
+Use a function typeguard isAuthenticatedRequest to remove use of type alias (req as AuthenticatedRequest).supabaseAsUser

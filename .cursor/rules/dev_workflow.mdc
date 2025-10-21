@@ -1,0 +1,73 @@
+---
+alwaysApply: false
+---
+
+## Environments
+
+**Git branches**
+- `dev` → STAGING & Local Development (preview site + staging API)
+- `main` → PRODUCTION (prod site + prod API)
+
+**Branch Protection**
+- Protect `main` from direct pushes.
+- Require PR merge from `dev → main`.
+
+**Vercel (frontend)**
+  - `https://staging-opthalmo-ai-practice-hub.vercel.app` → `dev` branch
+  - `https://opthalmo-ai-practice-hub.vercel.app` → `main` branch
+
+| Variable | Local | Preview (staging) | Production |
+|-----------|------------------|------------------|-------------|
+| `VITE_API_BASE_URL` | Localhost | staging | prod |
+| `VITE_SUPABASE_URL` | stagin | staging | prod |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | staging | staging | prod |
+
+**Railway (backend)**
+  - `https://staging-opthalmo-ai-practice-hub.up.railway.app` → `dev` branch
+  - `https://opthalmo-ai-practice-hub.up.railway.app` → `main` branch
+
+| Variable | Staging | Production |
+|-----------|----------|-------------|
+| `FRONTEND_URL` | Localhost | staging | prod |
+| `SUPABASE_URL` | stagin | staging | prod |
+| `SUPABASE_PUBLISHABLE_KEY` | staging | staging | prod |
+| `SUPABASE_SECRET_KEY` | staging | staging | prod |
+| `DAILY_API_KEY` | prod | prod | prod |
+| `GEMINI_API_KEY` | prod | prod | prod |
+| `NOTIFICATIONS_ENABLED` | bool | bool | bool |
+| `RESEND_API_KEY` | prod | prod | prod |
+| `NOTIFICATIONS_FROM_EMAIL` | prod | prod | prod |
+| `MAGIC_LINKS_SECRET` | prod | prod | prod |
+
+
+## Dev Workflow
+
+1. Work locally on `dev` branch (frontend & backend point to staging DB).  
+2. Push → auto-deploys to staging (Vercel + Railway).  
+3. Verify everything at `staging.example.com`.  
+4. Merge `dev` → `main` → deploys to production.  
+5. Reset dev branch
+  git fetch origin
+  git checkout dev
+  git reset --hard origin/main
+  git push --force-with-lease origin dev
+
+**Workflow for DB changes**
+
+New feature to be developed
+
+- Make changes to dev branch and db: (Create migration files in supabase/migrations). DO NOT USE SUPABASE MCP
+    E.g.
+    `supabase/migrations/20251019_add_users_idx.sql`
+    psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20251019_add_users_idx.sql
+- Once DB changes made, test locally
+- Once happy, push dev branch to deploy to staging environment
+- Once happy, push DB changes to production DB
+    E.g. psql "$PROD_DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20251019_add_users_idx.sql
+- Once happy, merge dev branch with main
+This ensures that all changes made to the staging DB are mirrored exactly in the production DB
+
+
+## TODO
+- Local build to test before commiting to github and / or github commit actions
+- Local supabase database. Currently using the staging database for local development. 
