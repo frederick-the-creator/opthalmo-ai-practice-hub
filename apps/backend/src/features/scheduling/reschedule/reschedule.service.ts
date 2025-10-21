@@ -55,7 +55,7 @@ export async function requestCounterpartyApproval(params: {
   subject = `New Time Proposed: ${subject}`
 
   await sendEmailWithRetry({
-    to: [{ email: counterpartyEmail }],
+    to: { email: counterpartyEmail },
     subject,
     text: `A new time was proposed for your session.\n\nOpen to decide: ${decisionUrl}`,
   })
