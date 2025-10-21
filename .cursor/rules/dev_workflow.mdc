@@ -46,7 +46,11 @@ alwaysApply: false
 2. Push → auto-deploys to staging (Vercel + Railway).  
 3. Verify everything at `staging.example.com`.  
 4. Merge `dev` → `main` → deploys to production.  
-5. Rollback easily if needed.
+5. Reset dev branch
+  git fetch origin
+  git checkout dev
+  git reset --hard origin/main
+  git push --force-with-lease origin dev
 
 **Workflow for DB changes**
 
