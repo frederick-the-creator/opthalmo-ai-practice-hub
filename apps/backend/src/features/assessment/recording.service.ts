@@ -2,8 +2,10 @@ import axios from 'axios';
 import { HttpError } from '@/lib/httpError.js';
 import {
   DailyCreateRoomResponseSchema,
-  DailyRecordingActionResponseSchema,
-  DailyRecordingActionResponse,
+  DailyRecordingStartResponseSchema,
+  DailyRecordingStartResponse,
+  DailyRecordingStopResponseSchema,
+  DailyRecordingStopResponse,
 } from '@/features/assessment/recording.schema.js';
 
 /**
@@ -39,7 +41,7 @@ export async function createDailyRoom(): Promise<string> {
  * @returns The recording object from Daily.co
  * @throws If the API call fails
  */
-export async function startDailyRecording(roomName: string): Promise<DailyRecordingActionResponse> {
+export async function startDailyRecording(roomName: string): Promise<DailyRecordingStartResponse> {
     const { data, status } = await axios.post<unknown>(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/start`,
       {},
@@ -56,7 +58,8 @@ export async function startDailyRecording(roomName: string): Promise<DailyRecord
 		throw HttpError.BadRequest('Bad request for start Daily recording');
 	}
 
-    return DailyRecordingActionResponseSchema.parse(data);
+
+    return DailyRecordingStartResponseSchema.parse(data);
 
 }
 
@@ -66,7 +69,7 @@ export async function startDailyRecording(roomName: string): Promise<DailyRecord
  * @returns The response from Daily.co
  * @throws If the API call fails
  */
-export async function stopDailyRecording(roomName: string): Promise<DailyRecordingActionResponse> {
+export async function stopDailyRecording(roomName: string): Promise<DailyRecordingStopResponse> {
   console.log('Stopping Daily.co recording for room:', roomName);
     const { data, status } = await axios.post<unknown>(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
@@ -84,6 +87,6 @@ export async function stopDailyRecording(roomName: string): Promise<DailyRecordi
 		throw HttpError.BadRequest('Bad request for stop Daily recording');
 	}
 
-    return DailyRecordingActionResponseSchema.parse(data);
+    return DailyRecordingStopResponseSchema.parse(data);
 
 }

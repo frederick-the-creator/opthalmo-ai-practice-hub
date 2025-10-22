@@ -77,6 +77,7 @@ export async function submitTranscriptionJob(recordingId: string): Promise<{ tra
 
 	if (res.status === 200) {
 		const parsed = TranscriptionSubmitSuccessSchema.parse(res.data);
+		console.log('Submit transcription id', parsed.id)
 		return { transcriptionId: parsed.id };
 	}
 
@@ -92,7 +93,7 @@ export async function submitTranscriptionJob(recordingId: string): Promise<{ tra
  * @returns The final job object (with output/transcription info)
  */
 export async function pollTranscriptionStatus(transcriptionId: string): Promise<TranscriptionJobSuccess> {
-	
+	console.log('Poll transcription id', transcriptionId)
 	const intervalMs = 5000
 	const timeoutMs = 300000
 
@@ -112,23 +113,27 @@ export async function pollTranscriptionStatus(transcriptionId: string): Promise<
 			}
 		);
 
-		if (res.status === 200) {
-			const job = TranscriptionJobResponseSchema.parse(res.data);
-			console.log('Transcription job status:', job.status);
-	
-			if (job.status === 'finished') {
-			  return job;
-			}
-	
-			if (job.status === 'error') {
-			  throw new Error('Transcription job failed: ' + job.error);
-			}
-	
-			// else, still processing
-			await new Promise((resolve) => setTimeout(resolve, intervalMs));		
+		console.log('Poll transcription response')
+		console.dir(res, {depth:null})
+
+		if (res.status !== 200) {
+			throw HttpError.BadRequest('Bad request for poll Daily transcription');
 		}
 
-		throw HttpError.BadRequest('Bad request for poll Daily transcription');
+		const job = TranscriptionJobResponseSchema.parse(res.data);
+		console.log('Transcription job status:', job.status);
+
+		if (job.status === 'finished') {
+			return job;
+		}
+
+		if (job.status === 'error') {
+			throw new Error('Transcription job failed: ' + job.error);
+		}
+
+		// else, still processing
+		await new Promise((resolve) => setTimeout(resolve, intervalMs));		
+
 
     }
 
@@ -157,7 +162,7 @@ export async function fetchTranscriptionJson(transcriptionId: string): Promise<T
 	);
 
 	let jsonLink = null
-	if (linkRes.status === 400) {
+	if (linkRes.status === 200) {
 
 		const access = AccessLinkResponseSchema.parse(linkRes.data);
 
