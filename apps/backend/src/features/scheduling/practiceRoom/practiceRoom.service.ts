@@ -57,7 +57,6 @@ export async function updatePracticeRoomGuarded(
   updateRoom: UpdatePracticeRoom
 ): Promise<PracticeRoom> {
 
-  console.log('updatedRoom.guestId: ', updateRoom.guestId)
   // Determine type of update (initial booking or reschedule)
   const isBooking = updateRoom.guestId !== undefined
   const isReschedule = updateRoom.startUtc != undefined

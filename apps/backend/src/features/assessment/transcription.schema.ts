@@ -41,8 +41,7 @@ const DailyJobInputSchema = z.object({
 const DailyJobOutputSchema = z.object({
     transcription: z.array(
         z.object({
-            format: z.string(),
-            link: z.string().url().optional()
+            format: z.string()
         }).passthrough()
     ).optional()
 })

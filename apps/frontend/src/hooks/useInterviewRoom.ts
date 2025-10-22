@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/services/database/data';
+import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoundId, fetchCaseBriefs } from '@/services/database/data';
 import { useAuth } from '@/store/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/services/api/api";
 import { mapApiError } from "@/services/api/utils";
@@ -29,7 +29,6 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   const [roomStage, setRoomStage] = useState<string>('Prep');
   const [error, setError] = useState<string | null>(null);
   const [caseBriefs, setCaseBriefs] = useState<Case[]>([]);
-
 
   //////////////
   // User Logic
@@ -123,9 +122,9 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
 
   // Subscribe to any round changes for this room so both participants get updates instantly
   useEffect(() => {
-    if (!roomId) return;
-    const cleanup = subscribeToPracticeRoundsByRoomId({
-      roomId,
+    if (!round?.id) return;
+    const cleanup = subscribeToPracticeRoundsByRoundId({
+      roundId: round.id,
       onChange: ({ event, new: rec }) => {
         if ((event === 'INSERT' || event === 'UPDATE') && rec) {
           setRound(rec);
@@ -136,7 +135,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       }
     });
     return cleanup;
-  }, []);
+  }, [round?.id]);
 
   //////////////
   // Update Room
@@ -198,7 +197,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   };
 
   
-  // Helper: setRound
+  // Helper: setCase
   const setCase = async (roundId: string, caseBriefId: string) => {
     setError(null);
     if (!roomId || !room) {

@@ -333,6 +333,59 @@ export function subscribeToPracticeRoundsByRoomId({
   };
 }
 
+
+/**
+ * Subscribe to realtime changes on practice_rounds filtered by room_id.
+ * Useful when you only know the roomId and want any round changes for that room.
+ */
+export function subscribeToPracticeRoundsByRoundId({
+  roundId,
+  onChange,
+}: {
+  roundId: string;
+  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRound | null; old?: PracticeRound | null }) => void;
+}) {
+  const filter = `id=eq.${roundId}`;
+  const channel = supabase
+    .channel(
+      `practice_rounds:room:${roundId}`, 
+      { config: { private: true } }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "practice_rounds",
+        filter,
+      },
+      (payload: any) => {
+        let mappedNew: PracticeRound | null = null;
+        let mappedOld: PracticeRound | null = null;
+        try {
+          if (payload?.new) {
+            mappedNew = PracticeRoundMapper.fromDb(payload.new as any);
+          }
+        } catch (_e) {}
+        try {
+          if (payload?.old) {
+            mappedOld = PracticeRoundMapper.fromDb(payload.old as any);
+          }
+        } catch (_e) {}
+        onChange({
+          event: payload.eventType,
+          new: mappedNew,
+          old: mappedOld,
+        })
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
 /**
  * Upsert the user's profile using user_id as onConflict key.
  * Requires first_name and last_name; avatar is optional.
