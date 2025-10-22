@@ -1,4 +1,10 @@
 import axios from 'axios';
+import { HttpError } from '@/lib/httpError.js';
+import {
+  DailyCreateRoomResponseSchema,
+  DailyRecordingActionResponseSchema,
+  DailyRecordingActionResponse,
+} from '@/features/assessment/recording.schema.js';
 
 /**
  * Create a new Daily.co room and return its URL.
@@ -6,21 +12,24 @@ import axios from 'axios';
  * @throws If the room creation fails.
  */
 export async function createDailyRoom(): Promise<string> {
-  try {
-    const dailyRes = await axios.post<{ url: string }>(
-      'https://api.daily.co/v1/rooms',
-      {},
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return dailyRes.data.url;
-  } catch (error: unknown) {
-    throw new Error(`Failed to create Daily.co room with error: ${error}`);
+  const { data, status } = await axios.post<unknown>(
+    'https://api.daily.co/v1/rooms',
+    {},
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      validateStatus: () => true,
+    }
+  );
+
+  if (status !== 200) {
+    throw HttpError.BadRequest('Bad request for create Daily room');
   }
+
+  const parsed = DailyCreateRoomResponseSchema.parse(data);
+  return parsed.url;
 }
 
 
@@ -30,9 +39,8 @@ export async function createDailyRoom(): Promise<string> {
  * @returns The recording object from Daily.co
  * @throws If the API call fails
  */
-export async function startDailyRecording(roomName: string): Promise<any> {
-  try {
-    const dailyRes = await axios.post(
+export async function startDailyRecording(roomName: string): Promise<DailyRecordingActionResponse> {
+    const { data, status } = await axios.post<unknown>(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/start`,
       {},
       {
@@ -40,13 +48,16 @@ export async function startDailyRecording(roomName: string): Promise<any> {
           'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
           'Content-Type': 'application/json',
         },
+        validateStatus: () => true
       }
     );
-    return dailyRes.data;
-  } catch (error: any) {
-    console.error('Error starting recording:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || error.message || 'Failed to start Daily.co recording');
-  }
+
+    if (status !== 200) {
+		throw HttpError.BadRequest('Bad request for start Daily recording');
+	}
+
+    return DailyRecordingActionResponseSchema.parse(data);
+
 }
 
 /**
@@ -55,10 +66,9 @@ export async function startDailyRecording(roomName: string): Promise<any> {
  * @returns The response from Daily.co
  * @throws If the API call fails
  */
-export async function stopDailyRecording(roomName: string): Promise<any> {
+export async function stopDailyRecording(roomName: string): Promise<DailyRecordingActionResponse> {
   console.log('Stopping Daily.co recording for room:', roomName);
-  try {
-    const dailyRes = await axios.post(
+    const { data, status } = await axios.post<unknown>(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
       {},
       {
@@ -66,10 +76,14 @@ export async function stopDailyRecording(roomName: string): Promise<any> {
           'Authorization': `Bearer ${process.env.DAILY_API_KEY}`,
           'Content-Type': 'application/json',
         },
+		validateStatus: () => true
       }
     );
-    return dailyRes.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.error || error.message || 'Failed to stop Daily.co recording');
-  }
+
+    if (status !== 200) {
+		throw HttpError.BadRequest('Bad request for stop Daily recording');
+	}
+
+    return DailyRecordingActionResponseSchema.parse(data);
+
 }

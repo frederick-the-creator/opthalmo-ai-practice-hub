@@ -72,8 +72,8 @@ export async function startRecording({ roomUrl }: { roomUrl: string }) {
   return response.data;
 }
 
-export async function stopRecording({ roomUrl, roomId }: { roomUrl: string, roomId: string }) {
-  const response = await api.post("/recording/stop", { roomUrl, roomId });
+export async function stopRecording({ roomUrl }: { roomUrl: string }) {
+  const response = await api.post("/recording/stop", { roomUrl });
   return response.data;
 }
 
