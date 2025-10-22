@@ -18,7 +18,9 @@ Applicable to backend
 - Always add typeguards to avoid use of type assertions and implicit any / unkown
 - Always use library / SDK types instead of generating bespoke type of relying on unkown
 - Don't use type annotations when the function is already typed. E.g. this is un-necessary const res: GenerateContentResponse = await ai.models.generateContent({
-
+- When calling axios, carry out validation using as example 
+    - `apps/backend/src/features/assessment/transcription.service.ts`
+    - `apps/backend/src/features/assessment/transcription.schema.ts`
 
 Do not use type assertions except for the following:
 const supabase = (req as AuthenticatedRequest).supabaseAsUser;
