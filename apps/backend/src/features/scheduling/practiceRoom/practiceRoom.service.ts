@@ -57,9 +57,10 @@ export async function updatePracticeRoomGuarded(
   updateRoom: UpdatePracticeRoom
 ): Promise<PracticeRoom> {
 
+  console.log('updatedRoom.guestId: ', updateRoom.guestId)
   // Determine type of update (initial booking or reschedule)
-  const isBooking = updateRoom.guestId !== null
-  const isReschedule = updateRoom.startUtc != null
+  const isBooking = updateRoom.guestId !== undefined
+  const isReschedule = updateRoom.startUtc != undefined
 
   // Retrieve room practice room to implement update guards
   const room = await getPracticeRoomById(supabaseAuthenticated, updateRoom.roomId);
@@ -67,6 +68,7 @@ export async function updatePracticeRoomGuarded(
   // Booking guard: Only bookable if no current guest
   if (isBooking) {
     if (room.guestId) {
+      console.log('Error triggered')
       throw new HttpError(409, 'Session already booked');
     }
   }
@@ -88,7 +90,8 @@ export async function updatePracticeRoomGuarded(
 
   // If rescheduling, recompute updateRoom with new endUtc and bump icsSequence
   // Else update practice room with updateRoom as is
-  let updateRoomValidated: UpdatePracticeRoom = { ...updateRoom }
+  let updateRoomValidated = updateRoom
+
   if (isReschedule) {
     const duration = room.durationMinutes
     const newStart = updateRoom.startUtc as string

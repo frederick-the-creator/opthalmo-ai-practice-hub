@@ -3,6 +3,7 @@ import { Assessment, AssessmentSchema } from "@/features/assessment/assessment.s
 import fs from "fs";
 import path from "path";
 import { transcribe } from "@/features/assessment/transcription.service.js";
+import { updatePracticeRoundWithReturn } from "@/features/practiceRound/practiceRound.repo.js";
 import type { TypedSupabaseClient } from "@/utils/supabaseClient.js";
 import type { Json } from "@/types/database.types.js";
 import { fileURLToPath } from 'node:url'
@@ -20,13 +21,7 @@ const SYSTEM_INSTRUCTION = fs.readFileSync(
 );
 
 
-interface GeminiResponseCandidatePart { text?: string }
-interface GeminiResponseCandidateContent { parts?: GeminiResponseCandidatePart[] }
-interface GeminiResponseCandidate { content?: GeminiResponseCandidateContent }
-interface GeminiGenerateContentResponse {
-  response?: { text?: () => string };
-  candidates?: GeminiResponseCandidate[];
-}
+// Narrow subset of the Google GenAI response is accessed via optional chaining
 
 type TranscriptionJson = {
   results?: {
@@ -39,15 +34,29 @@ type TranscriptionJson = {
 }
 
 function isTranscriptionJson(value: unknown): value is TranscriptionJson {
-  if (value === null || typeof value !== 'object') return false;
-  const root = value as Record<string, unknown>;
-  if (!('results' in root)) return true;
-  const results = root.results;
-  return typeof results === 'object' && results !== null;
+  if (typeof value !== 'object' || value === null) return false;
+  if (!('results' in value)) return true;
+  const v = value as { results?: unknown };
+  return typeof v.results === 'object' && v.results !== null;
 }
 
+function isNonNullObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
 
-export async function geminiAssessTranscript(caseName: string, transcript: string) {
+function isAssessment(value: unknown): value is Assessment {
+  if (!isNonNullObject(value)) return false;
+  const v = value;
+  const hasMaxTotal = typeof v.max_total === 'number';
+  const dims = v.dimensions;
+  const hasDimensions = Array.isArray(dims);
+  const totalsOk = isNonNullObject(v.totals);
+  const feedbackOk = isNonNullObject(v.overall_feedback);
+  return hasMaxTotal && hasDimensions && totalsOk && feedbackOk;
+}
+
+export async function geminiAssessTranscript(caseName: string, transcript: string): Promise<Assessment> {
+
   const res = await ai.models.generateContent({
     model: "gemini-2.5-pro",
     contents: [
@@ -63,45 +72,69 @@ export async function geminiAssessTranscript(caseName: string, transcript: strin
     }
   });
 
-  const r = res as GeminiGenerateContentResponse;
-  const primary = typeof r.response?.text === 'function' ? r.response.text() : undefined;
-  const fallback = r.candidates?.[0]?.content?.parts?.[0]?.text;
-  const safeText: string = typeof primary === 'string' ? primary : (typeof fallback === 'string' ? fallback : '{}');
+  // Safely extract JSON text from response without assertions
+  const safeText = res.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
+  const parsedResponse: unknown = JSON.parse(safeText);
+  
+  if (!isAssessment(parsedResponse)) {
+    throw new Error('Model returned invalid assessment JSON');
+  }
 
-  return JSON.parse(safeText) as Assessment;
+  return parsedResponse;
+
 }
 
-export async function uploadAssessmentToStorage(supabaseAuthenticated: TypedSupabaseClient, roundId: string, assessmentJson: Json): Promise<string> {
-  const { data, error } = await supabaseAuthenticated
-    .from('practice_rounds')
-    .update({ assessment: assessmentJson })
-    .eq('id', roundId)
-    .select('id');
-  if (error) {
-    throw new Error(error.message || 'Failed to update assessment on practice_rounds');
-  }
-  if (!data || !data[0]) {
-    throw new Error('No practice_round found or updated');
-  }
-  return data[0].id;
+export async function uploadAssessmentToStorage(supabaseAuthenticated: TypedSupabaseClient, roundId: string, assessmentJson: Json): Promise<void> {
+  
+  await updatePracticeRoundWithReturn(
+    supabaseAuthenticated, 
+    {
+      roundId,
+      assessment: assessmentJson
+    }
+  );
+
+  return
 }
 
-export async function runAssessment(supabaseAuthenticated: TypedSupabaseClient, roomName: string, roomId: string, roundId: string, caseName: string): Promise<Assessment> {
-  const transcriptionJsonUnknown: unknown = await transcribe(supabaseAuthenticated, roomName, roomId, roundId);
+export type RunAssessmentParams = {
+  roomName: string;
+  roomId: string;
+  roundId: string;
+  caseName: string;
+}
+
+export async function runAssessment(
+  supabaseAuthenticated: TypedSupabaseClient,
+  params: RunAssessmentParams
+): Promise<Assessment> {
+
+  const { roomName, roomId, roundId, caseName } = params
+
+  const transcriptionParams = { roomName, roomId, roundId }
+
+  const transcriptionJsonUnknown: unknown = await transcribe(supabaseAuthenticated, transcriptionParams);
+
   if (!isTranscriptionJson(transcriptionJsonUnknown)) {
     throw new Error('Invalid transcription JSON');
   }
+
   const transcript = transcriptionJsonUnknown?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript;
+
   if (!transcript) {
     throw new Error('Transcript not found in transcription JSON');
   }
+  
   const assessment = await geminiAssessTranscript(caseName, transcript);
+
   await uploadAssessmentToStorage(supabaseAuthenticated, roundId, toJson(assessment));
-  console.log('Assessment saved to practice_rounds:', { roundId });
+  
+  console.log('Assessment saved to practice_rounds:', { roundId: roundId });
   return assessment;
 }
 
 function toJson(value: unknown): Json {
-  // Ensure value is serializable JSON
-  return JSON.parse(JSON.stringify(value)) as Json;
+  // Ensure value is serializable JSON; JSON.parse returns unknown then narrowed
+  const serialized = JSON.stringify(value);
+  return JSON.parse(serialized) as Json;
 }

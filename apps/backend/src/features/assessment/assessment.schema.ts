@@ -1,4 +1,5 @@
 // schemas/assessment.ts
+import { z } from 'zod'
 
 // 1) Literal names for the five fixed dimensions
 export type DimensionName =
@@ -200,3 +201,15 @@ export const AssessmentSchema = {
   },
   required: ["max_total", "dimensions", "totals", "overall_feedback"]
 } as const;
+
+// API schema for running an assessment
+export const runAssessmentSchemaAPI = z.object({
+  body: z.object({
+    roomUrl: z.string(),
+    roomId: z.string(),
+    roundId: z.string(),
+    caseName: z.string()
+  })
+});
+
+export type RunAssessmentBody = z.infer<typeof runAssessmentSchemaAPI>["body"];

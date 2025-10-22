@@ -1,0 +1,9 @@
+---
+alwaysApply: false
+---
+
+All routers should have minimal content and rely on middleware, with no logic defined within the router itself. Template `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.router.ts`
+All routers should have three standard middleware components:
+    - User authentication
+    - Schema validation
+    - Controller

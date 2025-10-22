@@ -9,14 +9,18 @@ Backend flow
 Applicable to backend
 - All types should be anchored to the database types and the zod schema
 - Generate camelCase Supabase types directly from database.types.ts. E.g. PracticeRoom, PracticeRoomInsert, etc. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.types.ts`
-- Derive domain types from DB types. E.g. CreatePracticeRoom as pick of PracticeRoomInsert
-- Derive zod schema for API route validation, anchoring type against domain types. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.schemas.ts`
-- Infer types for route request body from Zod schema and use this in the controller
+- Derive domain types from DB types (E.g. CreatePracticeRoom as pick of PracticeRoomInsert)
+- Where it doesn't make sense to use domain types derived from DB types, then derive domain types within module. Template here 'apps/backend/src/features/scheduling/nofication/services/notificationservices.ts
+- Implement zod schema for API route validation, and infer types for route request body from Zod schema and use this in the controller. Template here `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.schemas.ts`
 - Any functions called by the controller should use domain types for parameters and the inferred zod type will be structurally compatible with the domain type. Template here in updatePracticeRoomGuarded `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - In some cases, the body of the request does not contain all the required fields for the domain type. In these cases it is expected that business logic is implemented to create default types. The inferred types should be used for the parameters of the functions called by the controller up until this business logic is implemented, after which the domain type should be used. Template here in createPracticeRoom function `apps/backend/src/features/scheduling/practiceRoom/practiceRoom.service.ts`
 - Always use @ path alias instead of relative imports
-
-
+- Always add typeguards to avoid use of type assertions and implicit any / unkown
+- Always use library / SDK types instead of generating bespoke type of relying on unkown
+- Don't use type annotations when the function is already typed. E.g. this is un-necessary const res: GenerateContentResponse = await ai.models.generateContent({
+- When calling axios, carry out validation using as example 
+    - `apps/backend/src/features/assessment/transcription.service.ts`
+    - `apps/backend/src/features/assessment/transcription.schema.ts`
 
 Do not use type assertions except for the following:
 const supabase = (req as AuthenticatedRequest).supabaseAsUser;
@@ -30,3 +34,5 @@ type BookingContext = Awaited<ReturnType<typeof buildBookingContext>>
 Rules for creating domain types when there is no direct supabase table.
 Rules for creating domain types when there is no direct api route 
 Use a function typeguard isAuthenticatedRequest to remove use of type alias (req as AuthenticatedRequest).supabaseAsUser
+Rules for type guarding
+How to get AI to minimise use of any / unkown

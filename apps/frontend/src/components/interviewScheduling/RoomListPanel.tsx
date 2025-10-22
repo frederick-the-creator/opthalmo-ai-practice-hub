@@ -122,7 +122,8 @@ const RoomListPanel: React.FC<Props> = ({
       const nowMs = Date.now();
       const startMs = new Date(room.startUtc as string).getTime();
       const startsInFutureBy15Min = !Number.isNaN(startMs) && (startMs - nowMs) >= (15 * 60 * 1000);
-      return notMyRoom && isPublic && startsInFutureBy15Min;
+      const excludeFinished = room.stage === 'Finished'
+      return notMyRoom && isPublic && startsInFutureBy15Min && !excludeFinished;
     }
   );
 
