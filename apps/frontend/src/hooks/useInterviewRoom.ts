@@ -30,16 +30,31 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   const [error, setError] = useState<string | null>(null);
   const [caseBriefs, setCaseBriefs] = useState<Case[]>([]);
 
+
   //////////////
   // User Logic
   /////////////
 
+
+  const [isCandidate, setIsCandidate] = useState(false)
+  useEffect(() => {
+    if (user?.id && room) {
+      if (user?.id === (round?.candidateId)) {
+        setIsCandidate(true)
+      } else {
+        setIsCandidate(false)
+      };
+    }
+  }, [round?.candidateId])
+
+
   let isHost = false;
-  let isCandidate = false;
   if (user?.id && room) {
     if (user?.id === room.hostId) isHost = true;
-    if (user?.id === (round?.candidateId)) isCandidate = true;
   }
+
+  console.log('round', round)
+  console.log('isCandidate', isCandidate)
 
   //////////////
   // Initial fetch of Room and Round
@@ -102,6 +117,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const cleanup = subscribeToPracticeRoomByRoomId({
       roomId,
       onChange: async ({ event, new: rec }) => {
+        console.log('Practice Room subscription change detected')
         // For INSERT/UPDATE on this room, refetch to pick up joined profiles
         if (event === 'INSERT' || event === 'UPDATE') {
           try {
@@ -123,9 +139,11 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   // Subscribe to any round changes for this room so both participants get updates instantly
   useEffect(() => {
     if (!round?.id) return;
+    console.log('subscribing to round: ', round.id)
     const cleanup = subscribeToPracticeRoundsByRoundId({
       roundId: round.id,
       onChange: ({ event, new: rec }) => {
+        console.log('Practice Round subscription change detected')
         if ((event === 'INSERT' || event === 'UPDATE') && rec) {
           setRound(rec);
           if (typeof rec.roundNumber === 'number') {

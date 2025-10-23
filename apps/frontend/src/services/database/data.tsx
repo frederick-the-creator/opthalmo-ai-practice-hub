@@ -281,57 +281,57 @@ export function subscribeToPracticeRoomByRoomId({
   };
 }
 
-/**
- * Subscribe to realtime changes on practice_rounds filtered by room_id.
- * Useful when you only know the roomId and want any round changes for that room.
- */
-export function subscribeToPracticeRoundsByRoomId({
-  roomId,
-  onChange,
-}: {
-  roomId: string;
-  onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRound | null; old?: PracticeRound | null }) => void;
-}) {
-  const filter = `room_id=eq.${roomId}`;
-  const channel = supabase
-    .channel(
-      `practice_rounds:room:${roomId}`, 
-      { config: { private: true } }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "practice_rounds",
-        filter,
-      },
-      (payload: any) => {
-        let mappedNew: PracticeRound | null = null;
-        let mappedOld: PracticeRound | null = null;
-        try {
-          if (payload?.new) {
-            mappedNew = PracticeRoundMapper.fromDb(payload.new as any);
-          }
-        } catch (_e) {}
-        try {
-          if (payload?.old) {
-            mappedOld = PracticeRoundMapper.fromDb(payload.old as any);
-          }
-        } catch (_e) {}
-        onChange({
-          event: payload.eventType,
-          new: mappedNew,
-          old: mappedOld,
-        })
-      }
-    )
-    .subscribe();
+// /**
+//  * Subscribe to realtime changes on practice_rounds filtered by room_id.
+//  * Useful when you only know the roomId and want any round changes for that room.
+//  */
+// export function subscribeToPracticeRoundsByRoomId({
+//   roomId,
+//   onChange,
+// }: {
+//   roomId: string;
+//   onChange: (ev: { event: 'INSERT' | 'UPDATE' | 'DELETE'; new?: PracticeRound | null; old?: PracticeRound | null }) => void;
+// }) {
+//   const filter = `room_id=eq.${roomId}`;
+//   const channel = supabase
+//     .channel(
+//       `practice_rounds:room:${roomId}`, 
+//       { config: { private: true } }
+//     )
+//     .on(
+//       "postgres_changes",
+//       {
+//         event: "*",
+//         schema: "public",
+//         table: "practice_rounds",
+//         filter,
+//       },
+//       (payload: any) => {
+//         let mappedNew: PracticeRound | null = null;
+//         let mappedOld: PracticeRound | null = null;
+//         try {
+//           if (payload?.new) {
+//             mappedNew = PracticeRoundMapper.fromDb(payload.new as any);
+//           }
+//         } catch (_e) {}
+//         try {
+//           if (payload?.old) {
+//             mappedOld = PracticeRoundMapper.fromDb(payload.old as any);
+//           }
+//         } catch (_e) {}
+//         onChange({
+//           event: payload.eventType,
+//           new: mappedNew,
+//           old: mappedOld,
+//         })
+//       }
+//     )
+//     .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}
+//   return () => {
+//     supabase.removeChannel(channel);
+//   };
+// }
 
 
 /**
@@ -348,7 +348,7 @@ export function subscribeToPracticeRoundsByRoundId({
   const filter = `id=eq.${roundId}`;
   const channel = supabase
     .channel(
-      `practice_rounds:room:${roundId}`, 
+      `practice_rounds:round:${roundId}`, 
       { config: { private: true } }
     )
     .on(
