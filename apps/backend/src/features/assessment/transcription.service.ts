@@ -92,14 +92,12 @@ export async function submitTranscriptionJob(recordingId: string): Promise<{ tra
  * @returns The final job object (with output/transcription info)
  */
 export async function pollTranscriptionStatus(transcriptionId: string): Promise<TranscriptionJobSuccess> {
-	
 	const intervalMs = 5000
 	const timeoutMs = 300000
 
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-
-      	console.log('Polling transcription status for:', transcriptionId);
+		console.log('Polling...')
 
 		const res = await axios.get(
 			`https://api.daily.co/v1/batch-processor/${transcriptionId}`,
@@ -112,23 +110,24 @@ export async function pollTranscriptionStatus(transcriptionId: string): Promise<
 			}
 		);
 
-		if (res.status === 200) {
-			const job = TranscriptionJobResponseSchema.parse(res.data);
-			console.log('Transcription job status:', job.status);
-	
-			if (job.status === 'finished') {
-			  return job;
-			}
-	
-			if (job.status === 'error') {
-			  throw new Error('Transcription job failed: ' + job.error);
-			}
-	
-			// else, still processing
-			await new Promise((resolve) => setTimeout(resolve, intervalMs));		
+		if (res.status !== 200) {
+			throw HttpError.BadRequest('Bad request for poll Daily transcription');
 		}
 
-		throw HttpError.BadRequest('Bad request for poll Daily transcription');
+		const job = TranscriptionJobResponseSchema.parse(res.data);
+
+		if (job.status === 'finished') {
+			console.log('Polling shows status finished')
+			return job;
+		}
+
+		if (job.status === 'error') {
+			throw new Error('Transcription job failed: ' + job.error);
+		}
+
+		// else, still processing
+		await new Promise((resolve) => setTimeout(resolve, intervalMs));		
+
 
     }
 
@@ -141,8 +140,6 @@ export async function pollTranscriptionStatus(transcriptionId: string): Promise<
  * @returns The transcription JSON
  */
 export async function fetchTranscriptionJson(transcriptionId: string): Promise<TranscriptJson> {
-
-	console.log('Fetching transcription JSON for:', transcriptionId);
 
 	// Get link to transcript
 	const linkRes = await axios.get(
@@ -157,7 +154,7 @@ export async function fetchTranscriptionJson(transcriptionId: string): Promise<T
 	);
 
 	let jsonLink = null
-	if (linkRes.status === 400) {
+	if (linkRes.status === 200) {
 
 		const access = AccessLinkResponseSchema.parse(linkRes.data);
 
@@ -223,9 +220,11 @@ export async function transcribe(
 
     const { roomName, roomId, roundId } = params
 
-    const recordingId = await getLatestRecordingId(roomName);
+	console.log('Starting new transcription workflow for roomId', roomId)
+	console.log('roundId', roundId)
 
-    console.log('latest recordingId:', recordingId);
+    const recordingId = await getLatestRecordingId(roomName);
+	console.log('recordingId', recordingId)
     
     if (!recordingId) {
 		throw new Error('No recording ID found for room')
@@ -236,11 +235,11 @@ export async function transcribe(
     const { transcriptionId } = await submitTranscriptionJob(recordingId);
 
     // 3) Poll for completion
+	console.log('Polling transcription job ID: ', transcriptionId)
     const transcriptionResult = await pollTranscriptionStatus(transcriptionId);
 
 	console.log('Fetching transcription JSON for:', transcriptionId);
 	const transcriptionJson = await fetchTranscriptionJson(transcriptionId);
-	console.log('transcriptionJson:', transcriptionJson);
 
     // 5) Upload transcript to Supabase Storage
     console.log('Uploading transcription to Supabase Storage for room:', roomId, 'and round:', roundId);

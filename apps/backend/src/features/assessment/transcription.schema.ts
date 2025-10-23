@@ -41,7 +41,7 @@ const DailyJobInputSchema = z.object({
 const DailyJobOutputSchema = z.object({
     transcription: z.array(
         z.object({
-            format: z.literal('txt')
+            format: z.string()
         }).passthrough()
     ).optional()
 })

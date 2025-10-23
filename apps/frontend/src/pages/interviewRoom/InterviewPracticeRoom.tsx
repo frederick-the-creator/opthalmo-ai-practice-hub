@@ -33,7 +33,6 @@ const InterviewPracticeRoom: React.FC = () => {
     caseBriefs,
   } = useInterviewRoom(roomId);
 
-  console.log('room', room)
   
   useEffect(() => {
     setUpdating(false);

@@ -78,6 +78,7 @@ export async function stopRecording({ roomUrl }: { roomUrl: string }) {
 }
 
 export async function assessCandidatePerformance({ roomUrl, roomId, roundId, caseName }: { roomUrl: string, roomId: string, roundId: string, caseName:string }) {
+  console.log('assessCandidatePerformance roundId', roundId)
   const response = await api.post("/assessment", { roomUrl, roomId, roundId, caseName });
   return response.data;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, fetchCaseBriefs } from '@/services/database/data';
+import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, fetchLatestRoundByRoom, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, subscribeToPracticeRoundsByRoundId, fetchCaseBriefs } from '@/services/database/data';
 import { useAuth } from '@/store/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/services/api/api";
 import { mapApiError } from "@/services/api/utils";
@@ -35,12 +35,26 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   // User Logic
   /////////////
 
+
+  const [isCandidate, setIsCandidate] = useState(false)
+  useEffect(() => {
+    if (user?.id && room) {
+      if (user?.id === (round?.candidateId)) {
+        setIsCandidate(true)
+      } else {
+        setIsCandidate(false)
+      };
+    }
+  }, [round?.candidateId])
+
+
   let isHost = false;
-  let isCandidate = false;
   if (user?.id && room) {
     if (user?.id === room.hostId) isHost = true;
-    if (user?.id === (round?.candidateId)) isCandidate = true;
   }
+
+  console.log('round', round)
+  console.log('isCandidate', isCandidate)
 
   //////////////
   // Initial fetch of Room and Round
@@ -51,17 +65,20 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const fetch = async () => {
       try {
         const roomResult = roomId ? await fetchRoomWithProfiles(roomId) : null;
-        const roundResult = roomId ? await fetchRoundByRoomAndRoundNumber(roomId, roundNumber) : null;
+        const roundResult = roomId ? await fetchLatestRoundByRoom(roomId) : null;
         if (isMounted) setRoom(roomResult);
         if (isMounted && roomResult) setRoomStage(roomResult.stage);
         if (isMounted) setRound(roundResult);
+        if (isMounted && typeof roundResult?.roundNumber === 'number') {
+          setRoundNumber(roundResult.roundNumber);
+        }
       } catch (err: any) {
         if (isMounted) setError('Failed to fetch room');
       }
     };
     fetch();
     return () => { isMounted = false; };
-  }, []);
+  }, [roomId]);
 
   //////////////
   // Load Cases
@@ -103,6 +120,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const cleanup = subscribeToPracticeRoomByRoomId({
       roomId,
       onChange: async ({ event, new: rec }) => {
+        console.log('Practice Room subscription change detected')
         // For INSERT/UPDATE on this room, refetch to pick up joined profiles
         if (event === 'INSERT' || event === 'UPDATE') {
           try {
@@ -121,12 +139,31 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return cleanup;
   }, []);
 
-  // Subscribe to any round changes for this room so both participants get updates instantly
+  // Subscribe to new round for this room so both participants get new round
   useEffect(() => {
     if (!roomId) return;
     const cleanup = subscribeToPracticeRoundsByRoomId({
       roomId,
       onChange: ({ event, new: rec }) => {
+        if (event === 'INSERT' && rec) {
+          setRound(rec);
+          if (typeof rec.roundNumber === 'number') {
+            setRoundNumber(rec.roundNumber);
+          }
+        }
+      }
+    });
+    return cleanup;
+  }, [roomId]);
+
+  // Subscribe to changes on the current round (candidate/case/transcript/assessment updates)
+  useEffect(() => {
+    if (!round?.id) return;
+    console.log('subscribing to round: ', round.id)
+    const cleanup = subscribeToPracticeRoundsByRoundId({
+      roundId: round.id,
+      onChange: ({ event, new: rec }) => {
+        console.log('Practice Round subscription change detected')
         if ((event === 'INSERT' || event === 'UPDATE') && rec) {
           setRound(rec);
           if (typeof rec.roundNumber === 'number') {
@@ -136,7 +173,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
       }
     });
     return cleanup;
-  }, []);
+  }, [round?.id]);
 
   //////////////
   // Update Room
@@ -198,7 +235,7 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
   };
 
   
-  // Helper: setRound
+  // Helper: setCase
   const setCase = async (roundId: string, caseBriefId: string) => {
     setError(null);
     if (!roomId || !room) {

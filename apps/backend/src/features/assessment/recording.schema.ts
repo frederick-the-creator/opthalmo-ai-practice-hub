@@ -17,9 +17,13 @@ export const DailyCreateRoomResponseSchema = z.object({
 export type DailyCreateRoomResponse = z.infer<typeof DailyCreateRoomResponseSchema>
 
 // Daily.co recording action response (start/stop/update share same minimal fields)
-export const DailyRecordingActionResponseSchema = z.object({
+export const DailyRecordingStartResponseSchema = z.object({
   status: z.string(),
   recordingId: z.string()
 }).passthrough()
-export type DailyRecordingActionResponse = z.infer<typeof DailyRecordingActionResponseSchema>
+export type DailyRecordingStartResponse = z.infer<typeof DailyRecordingStartResponseSchema>
 
+export const DailyRecordingStopResponseSchema = z.object({
+  status: z.string()
+}).passthrough()
+export type DailyRecordingStopResponse = z.infer<typeof DailyRecordingStopResponseSchema>
