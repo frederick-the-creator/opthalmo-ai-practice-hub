@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoundId, fetchCaseBriefs } from '@/services/database/data';
+import { fetchRoomWithProfiles,  fetchRoundByRoomAndRoundNumber, fetchLatestRoundByRoom, subscribeToPracticeRoomByRoomId, subscribeToPracticeRoundsByRoomId, subscribeToPracticeRoundsByRoundId, fetchCaseBriefs } from '@/services/database/data';
 import { useAuth } from '@/store/AuthProvider';
 import { setRoundCandidate, setRoundCase, setRoomStage as setRoomStageApi, createRound } from "@/services/api/api";
 import { mapApiError } from "@/services/api/utils";
@@ -65,17 +65,20 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     const fetch = async () => {
       try {
         const roomResult = roomId ? await fetchRoomWithProfiles(roomId) : null;
-        const roundResult = roomId ? await fetchRoundByRoomAndRoundNumber(roomId, roundNumber) : null;
+        const roundResult = roomId ? await fetchLatestRoundByRoom(roomId) : null;
         if (isMounted) setRoom(roomResult);
         if (isMounted && roomResult) setRoomStage(roomResult.stage);
         if (isMounted) setRound(roundResult);
+        if (isMounted && typeof roundResult?.roundNumber === 'number') {
+          setRoundNumber(roundResult.roundNumber);
+        }
       } catch (err: any) {
         if (isMounted) setError('Failed to fetch room');
       }
     };
     fetch();
     return () => { isMounted = false; };
-  }, []);
+  }, [roomId]);
 
   //////////////
   // Load Cases
@@ -136,7 +139,24 @@ export function useInterviewRoom(roomId: string | null): UseInterviewRoomResult 
     return cleanup;
   }, []);
 
-  // Subscribe to any round changes for this room so both participants get updates instantly
+  // Subscribe to new round for this room so both participants get new round
+  useEffect(() => {
+    if (!roomId) return;
+    const cleanup = subscribeToPracticeRoundsByRoomId({
+      roomId,
+      onChange: ({ event, new: rec }) => {
+        if (event === 'INSERT' && rec) {
+          setRound(rec);
+          if (typeof rec.roundNumber === 'number') {
+            setRoundNumber(rec.roundNumber);
+          }
+        }
+      }
+    });
+    return cleanup;
+  }, [roomId]);
+
+  // Subscribe to changes on the current round (candidate/case/transcript/assessment updates)
   useEffect(() => {
     if (!round?.id) return;
     console.log('subscribing to round: ', round.id)

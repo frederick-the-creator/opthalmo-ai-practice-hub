@@ -90,6 +90,25 @@ export const fetchRoundByRoomAndRoundNumber = async (roomId: string, roundNumber
 };
 
 
+export async function fetchLatestRoundByRoom(roomId: string): Promise<PracticeRound | null> {
+  const { data, error } = await supabase
+    .from('practice_rounds')
+    .select('id, room_id, round_number, candidate_id, case_brief_id, transcript, assessment, created_at')
+    .eq('room_id', roomId)
+    .order('round_number', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.log('[fetchLatestRoundByRoom] DB error: ', error)
+    throw new Error(error.message || 'Failed to fetch latest round');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data ? PracticeRoundMapper.fromDb(data as any) : null;
+}
+
+
 export const fetchRoundsByCandidate = async (candidateId: string): Promise<PracticeRound[] | []> => {
 
     const { data, error } = await supabase
@@ -332,6 +351,46 @@ export function subscribeToPracticeRoomByRoomId({
 //     supabase.removeChannel(channel);
 //   };
 // }
+
+
+export function subscribeToPracticeRoundsByRoomId({
+  roomId,
+  onChange,
+}: {
+  roomId: string;
+  onChange: (ev: { event: 'INSERT'; new?: PracticeRound | null }) => void;
+}) {
+  const filter = `room_id=eq.${roomId}`;
+  const channel = supabase
+    .channel(
+      `practice_rounds:room:${roomId}`,
+      { config: { private: true } }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'practice_rounds',
+        filter,
+      },
+      (payload: { new?: unknown }) => {
+        const mappedNew: PracticeRound | null = payload?.new
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ? PracticeRoundMapper.fromDb(payload.new as any)
+          : null;
+        onChange({
+          event: 'INSERT',
+          new: mappedNew,
+        });
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
 
 
 /**
